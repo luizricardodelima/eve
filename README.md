@@ -1,2 +1,2 @@
 # eve
-EVE - Open Source Events Management Sytem - Sistema de Gerenciamento de Eventos Open Source
+EVE - Events Management Sytem - Sistema de Gerenciamento de Eventos

@@ -18,7 +18,7 @@ _Event management system_
 - 2020-04-30 **(feature)** Removed "Alternative email" from user data for being too specific. Now userdata has 5 custom text fields.
 - 2020-04-28 **(feature)** Included a third gender: "Rather not say"
 - 2020-04-27 **(usability)** Minor code fixes that remove warnings on PHP 7 when system tries to read an unset variable
-- 2019-03-23 **(bug fix)** Code fix for increased compatibility - All "<?" occurrences were replaced by "<?php"
+- 2019-03-23 **(bug fix)** Code fix for increased compatibility - All `<?` occurrences were replaced by `<?php`
 - 2019-03-23  **(usability)** Changes on the initial user settings for a fresh install. User category is not initially mandatory, fewer visible and mandatory fields by default. Easier for quick testing.
 - 2018-02-22 **(security)** Database settings are not written in an .ini file anymore.
 - 2018-02-22 **(feature)** Automatic database creation screen.

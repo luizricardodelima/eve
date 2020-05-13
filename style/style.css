@@ -1,0 +1,397 @@
+@font-face {
+	font-family:	'OpenSans';
+	font-style:		normal;
+	font-weight:	400;
+	src:			url('OpenSans-Regular.ttf') format('truetype');
+}
+
+@font-face {
+	font-family:	'IconWorks';
+	font-style:		normal;
+	font-weight:	400;
+	src:			url('icon-works-webfont.ttf') format('truetype');
+}
+
+*
+{ 
+	font-family:		'OpenSans', sans-serif; 
+}
+
+textarea {
+    -webkit-box-sizing: border-box;
+       -moz-box-sizing: border-box;
+            box-sizing: border-box;
+}
+
+a, a:hover, a:visited
+{
+	color: 			royalblue;
+}
+
+body
+{
+	background-color:	lightgray;
+	margin: 		0em;
+}
+
+button
+{
+	background-color: #c0ff02;
+	color: black;
+	text-decoration: none;
+	text-align: center;
+	border-width: 0;
+	outline: 0;
+	display: inline;
+	border-radius: 0.8em;
+	transition: 0.5s;
+}
+
+button:hover
+{
+	background-color: #f4ff00;
+}
+
+button.big
+{
+	width: 9.0rem;
+	height: 9.0rem;
+	padding: 0em;
+	margin: 0 1rem 1rem 0;
+	overflow: hidden;
+}
+
+button.big .buttonicon
+{
+	opacity: 0.9;	
+	font-size: 2.9rem;
+	line-height: 5.5rem;
+	font-family: 'IconWorks';
+	overflow: hidden;
+}
+
+button.big .buttonlabel
+{
+	font-size: 0.9rem;
+	padding: 0 0.8rem;
+	overflow: hidden;
+	width: 7.4rem;
+	height: 3.5rem;
+}
+
+button.medium
+{
+	max-width: 20em;
+	line-height: 2em;
+	vertical-align: middle;
+	margin: 1em 1em 1em 0;
+}
+
+button.small
+{
+	max-width: 20em;
+	line-height: 2em;
+	vertical-align: middle;
+	margin: 1em 1em 1em 0;
+}
+
+.user_dialog_panel_large
+{
+	margin: auto;
+	display: grid;
+	grid-gap: 0.5em;
+	grid-template-columns: 1fr;
+	max-width: 50em;
+}
+
+.default_content_panel
+{
+	padding: 1em;
+	display: inline-block;	
+}
+
+.user_dialog_panel
+{
+	margin: auto;
+	display: grid;
+	grid-gap: 0.5em;
+	grid-template-columns: 1fr;
+	max-width: 40em;
+}
+
+.user_dialog_panel button.submit, .user_dialog_panel_large button.submit
+{
+	line-height: 2em;
+	font-size: 1.3em;
+}
+
+table.data_table {
+	width: 100%;	
+	border-spacing: 0;
+}
+
+table.data_table td
+{
+	padding: 0.1em 0.5em 0.1em 0.5em;
+	vertical-align: middle;	
+}
+
+table.data_table input[type='checkbox']
+{
+	width: 100%;
+	text-align: center;
+}
+
+table.data_table button
+{
+	width: 100%;
+	text-align: center;
+	background-color: transparent;
+}
+
+table.data_table th
+{
+	background-color: cornflowerblue;
+	color: white;
+	padding: 0.5em;
+	font-size: 0.8em;
+	text-transform: uppercase;
+}
+
+table.data_table th a
+{
+	color: white;
+}
+
+table.data_table tr:nth-child(odd)
+{
+	background-color: gainsboro;
+}
+
+table.data_table tr:nth-child(even)
+{
+	background-color: white;
+}
+
+table.data_table tr.selected
+{
+	color: black;	
+	background-color: #c0ff02;
+}
+
+.section
+{
+	background-color: cornflowerblue;
+	color: white;
+	padding: 0.5em;
+	padding-left: 1em;
+
+}
+
+.section a
+{
+	color: white;
+}
+
+.section a:hover
+{
+	text-decoration: underline;
+}
+
+.section button
+{
+	vertical-align: middle;
+	background-color: transparent;
+	outline: none;
+	min-width: 1em;
+	min-height: 1em;
+	color: white;
+	text-decoration: none;
+	text-align: center;
+	border-width: 1px;
+	border-style: solid;
+	border-color: white;
+	font-size: 0.9em;
+	border-radius: 0;
+}
+
+.modal {
+	display: none;
+	position: fixed;
+	z-index: 1;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	overflow: auto;
+	background-color: rgb(0,0,0);
+	background-color: rgba(0,0,0,0.4);
+  }
+  
+  .modal-content {
+	background-color: white;
+	margin: 15% auto; /* 15% from the top and centered */
+	padding: 20px;
+	border: 1px solid #333;
+	width: 80%; /* Could be more or less, depending on screen size */
+  }
+
+@keyframes msg_animation {
+	0%   {transform: translateY(-100%)}
+	100% {transform: translateY(0)}
+  }
+
+.msg_error, .msg_success
+{
+	z-index: 0;
+	position: relative;
+	padding: 0.5em;
+	padding-left: 1em;
+	animation-name: msg_animation;
+	animation-duration: 1s;
+}
+
+.msg_error
+{
+	background-color: #ff6f00;	
+	color: white;
+}
+
+.msg_success
+{
+	background-color: limegreen;	
+	color: white;
+}
+
+.msg_error a:link, .msg_error a:visited, .msg_success a:link, .msg_success a:visited
+{
+	color: white;
+	text-decoration: underline;
+}
+
+.msg_icon
+{
+	font-family: 'IconWorks';
+	font-size: 1.5em;
+	margin-top: -0.1em;
+	margin-right: 0.5em;
+	vertical-align: top;
+	color: rgba(255, 255, 255, 0.6);
+	display: inline-block;
+}
+
+.msg_body
+{
+	vertical-align: top;
+	display: inline-block;
+}
+
+.msg_close, .msg_close:hover
+{
+	float: right;
+	border-width: 1px;
+	border-style: solid;
+	border-color: white;
+	color: white;
+	background-color: transparent;
+	border-radius: 0;
+	font-size: 0.9em;
+	vertical-align: top;
+}
+
+#header
+{
+	background-color:	#555;
+	color:				white;
+	font-size: 			1.5em;
+}
+
+#header img
+{
+	vertical-align: top;  
+}
+
+#header span.header_text
+{
+	padding: 0.5em; 
+	display: block;
+}
+
+#main_content, #footer
+{
+	background-color:	white;
+	color: 			black;
+	overflow: 		hidden;
+}
+
+#footer
+{
+	border-style:	dotted none none none;	
+	border-width:	1px;
+	border-color:	gray;
+	padding:		0.5em;
+	font-size: 		0.75em;
+}
+
+#footer, #footer a
+{
+	color:			gray;
+}
+
+#menu
+{
+	background-color:	lightgray;
+}
+
+#menu ul
+{
+	list-style:			none;
+	border:				0;
+	padding:			0;
+	margin:				0;
+}
+
+#menu ul li
+{
+	display: 			inline-block;
+	text-transform: 	uppercase;
+	font-size:			0.9em;
+	padding:			0.5em 0.9em;
+}
+
+#menu ul li a
+{
+	color:				black;
+	text-decoration: 	none;
+}
+
+#menu ul li a:hover
+{
+	text-decoration:	underline;
+}
+
+#navigation_bar
+{
+	background-color:	lightgray;
+	color:				black;
+	padding:			0.5em 1em 0.5em 1em;
+	font-size: 			0.9em;
+}
+
+#navigation_bar a
+{
+	color: 				black;
+	text-decoration:	none;
+}
+
+#navigation_bar a:hover
+{
+	text-decoration: 	underline;
+}
+
+#navigation_bar a.navigation_back
+{
+	font-family:		'IconWorks';
+	text-decoration:	none;
+	font-size: 			1.1em;
+}

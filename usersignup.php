@@ -1,0 +1,83 @@
+<?php
+require_once 'eve.class.php';
+require_once 'eveuserservice.class.php';
+
+$eve = new Eve();
+$eve->output_html_header();
+$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('signup.title'), null);
+
+// If accepting new sign ups, the user signup page will be shown. Otherwise, the user shouldn't be able 
+// to access this page, since the link that leads to this page should be disabled. Anyway, the verification
+// is performed here for security reasons. 
+if ($eve->getSetting('user_signup_closed'))
+{
+	echo "<div class=\"user_dialog_panel\">";
+	echo $eve->getSetting('user_signup_closed_message');
+	echo "<p><a href=\"userarea.php\">{$eve->_('common.action.back')}</a></p>";
+	echo "</div>";
+}
+else
+{
+	$msg = false;
+	if (!empty($_POST))
+	{
+		$eveUserServices = new EveUserServices($eve);
+		$msg = $eveUserServices->unverified_user_create($_POST['screenname'], $_POST['password'], $_POST['passwordrepeat']);
+	}
+	if ($msg == EveUserServices::UNVERIFIED_USER_CREATE_SUCCESS)
+	{
+		?>
+		<div class="user_dialog_panel">
+		<span>
+		<p><?php echo $eve->_('signup.success.1');?></p>
+		<p><?php echo $eve->_('signup.success.2');?></p>
+		<p><?php echo $eve->_('signup.success.3');?></p>
+		<p><a href="userarea.php"><?php echo $eve->_('common.action.back');?></a></p>
+		</span>
+		</div>
+		<?php
+	}
+	else // there is no message or there were errors on creating an unverified user
+	{
+		switch ($msg)
+		{
+			case EveUserServices::UNVERIFIED_USER_CREATE_ERROR_PASSWORD_TOO_SMALL:
+				$eve->output_error_message("signup.error.password.too.small");
+				break;
+			case EveUserServices::UNVERIFIED_USER_CREATE_ERROR_INVALID_EMAIL:
+				$eve->output_error_message("signup.error.invalid.email");
+				break;
+			case EveUserServices::UNVERIFIED_USER_CREATE_ERROR_USER_EXISTS:
+				$eve->output_error_message("signup.error.user.exists");
+				break;
+			case EveUserServices::UNVERIFIED_USER_CREATE_ERROR_PASSWORDS_DO_NOT_MATCH:
+				$eve->output_error_message("signup.error.passwords.do.not.match");
+				break;
+		}
+		?> 
+		<script>
+		function disable_submit_button()
+		{
+			document.getElementById('submit_button').disabled = 1;
+			document.getElementById('submit_button').innerHTML = '<?php echo $eve->_('common.action.pleasewait');?>';
+		}
+		</script>
+		
+		<form method="post" autocomplete="off" onsubmit="disable_submit_button();" class="user_dialog_panel">
+		<p><?php echo $eve->_('signup.intro');?></p>
+		<label for="signup_email_ipt"><?php echo $eve->_('signup.email');?></label>
+		<input id="signup_email_ipt" type="text" name="screenname" value="<?php if (isset($_POST['screenname'])){ echo $_POST['screenname'];}?>"/>
+		<label for="signup_password_ipt"><?php echo $eve->_('signup.password');?></label>
+		<input id="signup_password_ipt" type="password" name="password" autocomplete="off"/>
+		<label for="signup_passwordrepeat_ipt"><?php echo $eve->_('signup.passwordrepeat');?></label>
+		<input id="signup_passwordrepeat_ipt" type="password" name="passwordrepeat" autocomplete="off"/>
+		<button class="submit" type="submit" id="submit_button"><?php echo $eve->_('signup.submit');?></button>
+		<p><a href="userarea.php"><?php echo $eve->_('common.action.back');?></a></p>
+		</form>
+		
+		<?php	
+	}
+}
+
+$eve->output_html_footer();
+?>

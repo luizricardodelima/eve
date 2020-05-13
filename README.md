@@ -9,6 +9,8 @@ _Event management system_
 1. When using this application in production, delete `/setup` folder for security reasons.
 
 ## Changelog
+- **(under development usability)** Change the flags for the flags from the project RegionFlags (https://github.com/google/region-flags)
+- **(under development usability)** Changed the deprecated phpExcel library to PHP_XLSXWriter (https://github.com/mk-j/PHP_XLSXWriter). Although PHPExcel (Now PHPSpreadsheet) is good, this application perform basic exports and a simpler library will consume less resources and new deploys will be faster (PHPExcel has too many files).
 - **(under development feature)** New Password Retrieval dynamics - An expirable acess is sent to users e-mail. After access this code, user is prompted to change his password.
 - **(under development feature)** Bug fixes for increased compatibility with SQL Strict mode - text fields on database are null by default
 - **(under development feature)** Removed alternate e-mail text for verification e-mail (now it works only with HTML)

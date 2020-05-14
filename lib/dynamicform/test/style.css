@@ -1,0 +1,23 @@
+.toolbar
+{
+    background-color: dimgrey;
+}
+
+#variables_area
+{
+    display: none;
+    background-color: lightgrey;
+    height: 400px;
+    width: 100%;
+    overflow: scroll;
+}
+
+#controls
+{
+    margin: 0 15%;
+    padding: 20px;
+    border: 1px solid #333;
+    display: grid;
+    grid-gap: 0.5em;
+    grid-template-columns: 1fr;
+}

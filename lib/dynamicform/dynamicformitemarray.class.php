@@ -1,8 +1,18 @@
 <?php
-require_once "custominputitem.class.php";
+require_once "dynamicformitem.class.php";
+require_once "dynamicformvalidationerror.class.php";
 
-class CustomInputItemArray extends CustomInputItem
+class DynamicFormItemArray extends DynamicFormItem
 {
+
+    public function getHtmlFormattedContent()
+    {
+        $result = "<tr><td>{$this->description}</td><td><ul>";
+        foreach ($this->spec->items as $j => $arrayItem)
+            $result .= "<li>{$arrayItem}: ".htmlentities($this->content[$j], ENT_QUOTES, 'utf-8')."</li>";
+        $result .= "</ul></td></tr>";
+        return $result;
+    }
 
     public static function getType()
     {
@@ -14,13 +24,13 @@ class CustomInputItemArray extends CustomInputItem
         return 'edt_arr';
     }
 
-    public static function outputCustomInputStructureAddButton($html_id) 
+    public static function outputDynamicFormStructureAddButton($html_id) 
     {
         $result = "
         <script>
         function add_arr_{$html_id}()
 		{	
-			var item_description = prompt('Digite a descrição para o novo item');
+			var item_description = prompt('".DynamicFormHelper::_('item.action.add.prompt')."');
 			if (item_description != null)
 			{
 				str_{$html_id}.push
@@ -58,19 +68,19 @@ class CustomInputItemArray extends CustomInputItem
 
         <div id=\"arr_dlg_{$html_id}\" style=\"display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgb(0,0,0); background-color: rgba(0,0,0,0.4);\">
 		<div style=\"background-color: white; margin: 15% auto; padding: 20px; border: 1px solid #333; width: 80%; 	display: grid; grid-gap: 0.5em; grid-template-columns: 1fr;\">
-		<span><input type=\"checkbox\" id=\"arr_unr_{$html_id}\"/><label for=\"arr_unr_{$html_id}\">Visão irrestrita</label></span>
-		<span><input type=\"checkbox\" id=\"arr_man_{$html_id}\"/><label for=\"arr_man_{$html_id}\">Obrigatório</label></span>
-		<label for=\"arr_des_{$html_id}\">Descrição</label>
+		<span><input type=\"checkbox\" id=\"arr_unr_{$html_id}\"/><label for=\"arr_unr_{$html_id}\">".DynamicFormHelper::_('item.unrestrict')."</label></span>
+		<span><input type=\"checkbox\" id=\"arr_man_{$html_id}\"/><label for=\"arr_man_{$html_id}\">".DynamicFormHelper::_('item.mandatory')."</label></span>
+		<label for=\"arr_des_{$html_id}\">".DynamicFormHelper::_('item.description')."</label>
         <input  id=\"arr_des_{$html_id}\" type=\"text\"/>
-        <label for=\"arr_itm_{$html_id}\">Ítens <small>(um por linha)</small></label>
+        <label for=\"arr_itm_{$html_id}\">".DynamicFormHelper::_('item.array.spec.items')." <small>".DynamicFormHelper::_('item.array.spec.items.help')."</small></label>
 		<textarea id=\"arr_itm_{$html_id}\" rows=\"3\"></textarea>
-		<button type=\"button\" id=\"arr_sav_{$html_id}\">Atualizar</button>
-		<button type=\"button\" onclick=\"document.getElementById('arr_dlg_{$html_id}').style.display = 'none';\">Cancelar</button>
+		<button type=\"button\" id=\"arr_sav_{$html_id}\">".DynamicFormHelper::_('item.action.save')."</button>
+		<button type=\"button\" onclick=\"document.getElementById('arr_dlg_{$html_id}').style.display = 'none';\">".DynamicFormHelper::_('item.action.cancel')."</button>
 		</div>
 		</div>
         ";
         $result .= "<button type=\"button\" onclick=\"add_arr_{$html_id}();\">";
-        $result .= "+ Array";
+        $result .= DynamicFormHelper::_('item.action.add.array');
         $result .= "</button>";
         return $result;
     }
@@ -79,7 +89,7 @@ class CustomInputItemArray extends CustomInputItem
         
         $result = "
         <label>{$this->description}";
-        if ($this->mandatory) $result .= "&nbsp;<small>(Obrigatório)</small>";
+        if ($this->mandatory) $result .= "<small>".DynamicFormHelper::_('control.restriction.start').DynamicFormHelper::_('control.restriction.mandatory').DynamicFormHelper::_('control.restriction.end')."</small>";
         $result .= "</label>
         <div style=\"display: grid; grid-template-columns:";
         for ($k = 0; $k < sizeof($this->spec->items); $k++) $result .= " 2fr 5fr";
@@ -95,6 +105,17 @@ class CustomInputItemArray extends CustomInputItem
 		}
         $result .= "</div>";
         return $result;
+    }
+
+    public function validate()
+    {
+        $validationErrors = array();
+        $atLeastOneIsEmpty = false;
+        foreach ($this->content as $arrayItem)
+            if ($arrayItem == '') $atLeastOneIsEmpty = true;
+		if ($this->mandatory && $atLeastOneIsEmpty)
+			$validationErrors[] = DynamicFormValidationError::MANDATORY;
+        return $validationErrors;
     }
 
     function __construct($object, $content)

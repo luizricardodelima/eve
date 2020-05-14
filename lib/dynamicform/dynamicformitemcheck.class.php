@@ -1,8 +1,16 @@
 <?php
-require_once "custominputitem.class.php";
+require_once "dynamicformitem.class.php";
+require_once "dynamicformvalidationerror.class.php";
 
-class CustomInputItemCheck extends CustomInputItem
+class DynamicFormItemCheck extends DynamicFormItem
 {
+    public function getHtmlFormattedContent()
+    {
+        $result = "<tr><td>{$this->description}</td><td>";
+        $result .= ($this->content) ? DynamicFormHelper::_('item.check.checked') : DynamicFormHelper::_('item.check.unchecked');
+        $result .= "</td></tr>";
+        return $result;
+    }
 
     public static function getType()
     {
@@ -14,13 +22,13 @@ class CustomInputItemCheck extends CustomInputItem
         return 'edt_chk';
     }
 
-    public static function outputCustomInputStructureAddButton($html_id) 
+    public static function outputDynamicFormStructureAddButton($html_id) 
     {
         $result = "
         <script>
         function add_chk{$html_id}()
 		{	
-			var item_description = prompt('Digite a descrição para o novo item');
+			var item_description = prompt('".DynamicFormHelper::_('item.action.add.prompt')."');
 			if (item_description != null)
 			{
 				str_{$html_id}.push
@@ -56,17 +64,17 @@ class CustomInputItemCheck extends CustomInputItem
 
         <div id=\"chk_dlg_{$html_id}\" style=\"display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgb(0,0,0); background-color: rgba(0,0,0,0.4);\">
 		<div style=\"background-color: white; margin: 15% auto; padding: 20px; border: 1px solid #333; width: 80%; 	display: grid; grid-gap: 0.5em; grid-template-columns: 1fr;\">
-		<span><input type=\"checkbox\" id=\"chk_unr_{$html_id}\"/><label for=\"chk_unr_{$html_id}\">Visão irrestrita</label></span>
-		<span><input type=\"checkbox\" id=\"chk_man_{$html_id}\"/><label for=\"chk_man_{$html_id}\">Obrigatório</label></span>
-		<label for=\"chk_des_{$html_id}\">Descrição</label>
+		<span><input type=\"checkbox\" id=\"chk_unr_{$html_id}\"/><label for=\"chk_unr_{$html_id}\">".DynamicFormHelper::_('item.unrestrict')."</label></span>
+		<span><input type=\"checkbox\" id=\"chk_man_{$html_id}\"/><label for=\"chk_man_{$html_id}\">".DynamicFormHelper::_('item.mandatory')."</label></span>
+		<label for=\"chk_des_{$html_id}\">".DynamicFormHelper::_('item.description')."</label>
 		<input  id=\"chk_des_{$html_id}\" type=\"text\"/>
-		<button type=\"button\" id=\"chk_sav_{$html_id}\">Atualizar</button>
-		<button type=\"button\" onclick=\"document.getElementById('chk_dlg_{$html_id}').style.display = 'none';\">Cancelar</button>
+		<button type=\"button\" id=\"chk_sav_{$html_id}\">".DynamicFormHelper::_('item.action.save')."</button>
+		<button type=\"button\" onclick=\"document.getElementById('chk_dlg_{$html_id}').style.display = 'none';\">".DynamicFormHelper::_('item.action.cancel')."</button>
 		</div>
 		</div>
         ";
         $result .= "<button type=\"button\" onclick=\"add_chk{$html_id}();\">";
-        $result .= "+ Check";
+        $result .= DynamicFormHelper::_('item.action.add.check');
         $result .= "</button>";
         return $result;
     }
@@ -84,6 +92,13 @@ class CustomInputItemCheck extends CustomInputItem
         return $result;
     }
 
+    public function validate()
+    {
+        $validationErrors = array();
+        // No validations so far for this item
+        return $validationErrors;
+    }
+
     function __construct($object, $content)
 	{
         parent::__construct($object, $content);
@@ -92,7 +107,7 @@ class CustomInputItemCheck extends CustomInputItem
             $this->content =  0;
         }
         else {
-            $this->content = $content;
+            $this->content = intval($content);
         }
 	}
 

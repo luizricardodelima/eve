@@ -1,9 +1,16 @@
 <?php
-require_once "custominputitem.class.php";
+require_once "dynamicformitem.class.php";
+require_once "dynamicformvalidationerror.class.php";
 
-class CustomInputItemBigtext extends CustomInputItem
+class DynamicFormItemBigtext extends DynamicFormItem
 {
-
+    public function getHtmlFormattedContent()
+    {
+        $result = "<tr><td>{$this->description}</td><td>";
+        $result .= htmlentities($this->content, ENT_QUOTES, 'utf-8');
+        $result .= "</td></tr>";
+        return $result;
+    }
     public static function getType()
     {
         return 'bigtext'; 
@@ -14,13 +21,13 @@ class CustomInputItemBigtext extends CustomInputItem
         return 'edt_bgt';
     }
 
-    public static function outputCustomInputStructureAddButton($html_id) 
+    public static function outputDynamicFormStructureAddButton($html_id) 
     {
         $result = "
         <script>
         function add_bgt_{$html_id}()
 		{	
-			var item_description = prompt('Digite a descrição para o novo item');
+			var item_description = prompt('".DynamicFormHelper::_('item.action.add.prompt')."');
 			if (item_description != null)
 			{
 				str_{$html_id}.push
@@ -60,31 +67,40 @@ class CustomInputItemBigtext extends CustomInputItem
 
         <div id=\"bgt_dlg_{$html_id}\" style=\"display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgb(0,0,0); background-color: rgba(0,0,0,0.4);\">
 		<div style=\"background-color: white; margin: 15% auto; padding: 20px; border: 1px solid #333; width: 80%; 	display: grid; grid-gap: 0.5em; grid-template-columns: 1fr;\">
-		<span><input type=\"checkbox\" id=\"bgt_uvi_{$html_id}\"/><label for=\"bgt_uvi_{$html_id}\">Visão irrestrita</label></span>
-		<span><input type=\"checkbox\" id=\"bgt_man_{$html_id}\"/><label for=\"bgt_man_{$html_id}\">Obrigatório</label></span>
-		<label for=\"bgt_des_{$html_id}\">Descrição</label>
+		<span><input type=\"checkbox\" id=\"bgt_uvi_{$html_id}\"/><label for=\"bgt_uvi_{$html_id}\">".DynamicFormHelper::_('item.unrestrict')."</label></span>
+		<span><input type=\"checkbox\" id=\"bgt_man_{$html_id}\"/><label for=\"bgt_man_{$html_id}\">".DynamicFormHelper::_('item.mandatory')."</label></span>
+		<label for=\"bgt_des_{$html_id}\">".DynamicFormHelper::_('item.description')."</label>
 		<input  id=\"bgt_des_{$html_id}\" type=\"text\"/>
-		<label for=\"bgt_min_{$html_id}\">Mínimo de palavras</label>
+		<label for=\"bgt_min_{$html_id}\">".DynamicFormHelper::_('item.bigtext.spec.minwords')."</label>
 		<input  id=\"bgt_min_{$html_id}\" type=\"number\" min=\"0\" step=\"1\" value=\"0\"/>
-		<label for=\"bgt_max_{$html_id}\">Máximo de palavras</label>
+		<label for=\"bgt_max_{$html_id}\">".DynamicFormHelper::_('item.bigtext.spec.maxwords')."</label>
 		<input  id=\"bgt_max_{$html_id}\" type=\"number\" min=\"0\" step=\"1\" value=\"0\"/>
-		<button type=\"button\" id=\"bgt_sav_{$html_id}\">Atualizar</button>
-		<button type=\"button\" onclick=\"document.getElementById('bgt_dlg_{$html_id}').style.display = 'none';\">Cancelar</button>
+		<button type=\"button\" id=\"bgt_sav_{$html_id}\">".DynamicFormHelper::_('item.action.save')."</button>
+		<button type=\"button\" onclick=\"document.getElementById('bgt_dlg_{$html_id}').style.display = 'none';\">".DynamicFormHelper::_('item.action.cancel')."</button>
 		</div>
 		</div>
         ";
         $result .= "<button type=\"button\" onclick=\"add_bgt_{$html_id}();\">";
-        $result .= "+ Big Text";
+        $result .= DynamicFormHelper::_('item.action.add.bigtext');
         $result .= "</button>";
         return $result;
     }
 
     public function outputControls($htmlName, $index, $active) {
         $result = "
+        <span>
         <label for=\"{$htmlName}[{$index}]\">{$this->description}";
-        if ($this->mandatory) $result .= "&nbsp;<small>(Obrigatório)</small>";
+        $requirements = array();
+        if ($this->mandatory) $requirements[] = DynamicFormHelper::_('control.restriction.mandatory');
+        if ($this->spec->min_words) $requirements[] = DynamicFormHelper::_('control.restriction.minwords').$this->spec->min_words;
+        if ($this->spec->max_words) $requirements[] = DynamicFormHelper::_('control.restriction.maxwords').$this->spec->max_words;
+        if (!empty($requirements)) $result .= "<small>".DynamicFormHelper::_('control.restriction.start').implode(", ", $requirements).DynamicFormHelper::_('control.restriction.end')."</small>";
         $result .= "</label>
-        <div>
+        <span id=\"bgt_inf_{$htmlName}_{$index}\" style=\"float: right; font-size: 0.8rem\">
+        <label id=\"bgt_cnt_{$htmlName}_{$index}\"></label>
+        </span>
+        </span>
+    
         <textarea name=\"{$htmlName}[{$index}]\" id=\"{$htmlName}[{$index}]\" style=\"width: 100%;\" rows=\"15\"";
         $result .= ($this->spec->min_words || $this->spec->max_words) ? " onkeyup=\"bgt_check_{$htmlName}_{$index}()\"" : "";
         $result .= ($active) ? "" : " disabled=\"disabled\"";
@@ -93,15 +109,6 @@ class CustomInputItemBigtext extends CustomInputItem
         $result .= "</textarea>";
 
         if ($this->spec->min_words || $this->spec->max_words) $result .= "
-        <div id=\"bgt_inf_{$htmlName}_{$index}\" style=\"font-size: 0.8rem\">
-        <span id=\"bgt_war_{$htmlName}_{$index}\">&#9940;</span>
-        Total de palavras: 
-        <label id=\"bgt_cnt_{$htmlName}_{$index}\">0</label> 
-        Mínimo: {$this->spec->min_words}
-        &nbsp;-&nbsp;
-        Máximo: {$this->spec->max_words}
-        </div>
-        </div>
         <script>
         function bgt_check_{$htmlName}_{$index}()
         {
@@ -112,12 +119,10 @@ class CustomInputItemBigtext extends CustomInputItem
             document.getElementById('bgt_cnt_{$htmlName}_{$index}').innerHTML = words.length;
             if(words.length < {$this->spec->min_words} || words.length > {$this->spec->max_words})
             {
-                document.getElementById('bgt_war_{$htmlName}_{$index}').style.display = 'initial';
                 document.getElementById('bgt_inf_{$htmlName}_{$index}').style.fontWeight = 'bold';
             }
             else
             {
-                document.getElementById('bgt_war_{$htmlName}_{$index}').style.display = 'none';
                 document.getElementById('bgt_inf_{$htmlName}_{$index}').style.fontWeight = 'normal';
             }
         }
@@ -125,6 +130,18 @@ class CustomInputItemBigtext extends CustomInputItem
         </script>
         ";
         return $result;
+    }
+
+    public function validate()
+    {
+        $validationErrors = array();
+        if ($this->mandatory && $this->content == '')
+            $validationErrors[] = DynamicFormValidationError::MANDATORY;
+		if ($this->spec->min_words && preg_match_all("/\S+/", $this->content) < $this->spec->min_words)
+			$validationErrors[] = DynamicFormValidationError::UNDER_MIN_WORDS;
+		if ($this->spec->max_words && preg_match_all("/\S+/", $this->content) > $this->spec->max_words)
+			$validationErrors[] = DynamicFormValidationError::OVER_MAX_WORDS;
+        return $validationErrors;
     }
 
     function __construct($object, $content)

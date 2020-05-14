@@ -1,6 +1,6 @@
 <?php
 
-abstract class CustomInputItem
+abstract class DynamicFormItem
 {
     protected $content;
     protected $type;
@@ -20,10 +20,12 @@ abstract class CustomInputItem
         ));
     }
 
+    public abstract function getHtmlFormattedContent();
     public abstract static function getType();
     public abstract static function javascriptEditMethod();
-    public abstract static function outputCustomInputStructureAddButton($html_id);
+    public abstract static function outputDynamicFormStructureAddButton($html_id);
     public abstract function outputControls($htmlName, $index, $active);
+    public abstract function validate();
     
     function __construct($object, $content = null)
 	{

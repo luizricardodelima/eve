@@ -23,7 +23,7 @@ abstract class DynamicFormItem
     public abstract function getHtmlFormattedContent();
     public abstract static function getType();
     public abstract static function javascriptEditMethod();
-    public abstract static function outputDynamicFormStructureAddButton($html_id);
+    public abstract static function outputAddEditControls($html_id);
     public abstract function outputControls($htmlName, $index, $active);
     public abstract function validate();
     

@@ -1,12 +1,13 @@
 <?php
 session_start();
 require_once 'eve.class.php';
-require_once 'evecustominputservice.class.php';
+//require_once 'evecustominputservice.class.php'; //TODO Remove evecustominputservice.class.php
 require_once 'evesubmissionservice.class.php';
+require_once 'lib/dynamicform/dynamicform.class.php';
 
 $eve = new Eve();
 $eveSubmissionService = new EveSubmissionService($eve);
-$eveCustomInputService = new EveCustomInputService($eve);
+//$eveCustomInputService = new EveCustomInputService($eve);
 
 // Session verification.
 if (!isset($_SESSION['screenname']))
@@ -99,9 +100,14 @@ else
 	<p></p>
 	</div>
 	<?php
-	
-	$eveCustomInputService->custom_input_output_structure_table('submission_structure', $submission_definition['submission_structure'], $eve->_('submission_definition.submission.structure'));
-	$eveCustomInputService->custom_input_output_structure_table('revision_structure', $submission_definition['revision_structure'], $eve->_('submission_definition.revision.structure'));
+
+	DynamicFormHelper::$locale = $eve->getSetting('system_locale');
+	$submissionStructure = new DynamicForm($submission_definition['submission_structure']);
+	echo $submissionStructure->outputStructureTable('submission_structure', 'data_table', 'section');
+	$revisionStructure = new DynamicForm($submission_definition['revision_structure']);
+	echo $revisionStructure->outputStructureTable('revision_structure', 'data_table', 'section');
+	//$eveCustomInputService->custom_input_output_structure_table('submission_structure', $submission_definition['submission_structure'], $eve->_('submission_definition.submission.structure'));
+	//$eveCustomInputService->custom_input_output_structure_table('revision_structure', $submission_definition['revision_structure'], $eve->_('submission_definition.revision.structure'));
 	
 	?>
 	</form>

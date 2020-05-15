@@ -13,7 +13,7 @@
 
 require_once '../dynamicform.class.php';
 require_once '../dynamicformhelper.class.php';
-DynamicFormHelper::$locale = "pt_BR";
+//DynamicFormHelper::$locale = "pt_BR";
 $customInput = new DynamicForm($_POST['s']);
 
 ?>

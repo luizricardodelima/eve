@@ -1,14 +1,15 @@
 <?php
 session_start();
-require_once 'lib/filechecker/filechecker.php';
+
+require_once 'lib/dynamicform/dynamicform.class.php';
+require_once 'lib/dynamicform/dynamicformhelper.class.php';
+require_once 'lib/dynamicform/dynamicformvalidationerror.class.php';
 require_once 'eve.class.php';
 require_once 'eveg11n.class.php';
-require_once 'evecustominputservice.class.php';
 require_once 'evesubmissionservice.class.php';
 
 $eve = new Eve();
 $eveSubmissionService = new EveSubmissionService($eve);
-$eveCustomInputService = new EveCustomInputService($eve);
 
 // Session verification.
 if (!isset($_SESSION['screenname']))
@@ -19,65 +20,43 @@ else if (!$eveSubmissionService->submission_definition_user_access_permitted($_G
 {
 	$eve->output_error_page('common.message.no.permission');
 }
-else if (isset ($_POST['operation']))
+else
 {
-	// User operations
-	switch ($_POST['operation'])
+	// Loading submission definition data
+	$submission_definition = $eveSubmissionService->submission_definition_get($_GET['id']);
+	
+	DynamicFormHelper::$locale = $eve->getSetting('system_locale');
+	$structure = $submission_definition['submission_structure'];
+	$content = (isset($_POST) && isset($_POST['submission_content'])) ? $_POST['submission_content'] : null;
+	$files = (isset($_FILES) && isset($_FILES['submission_content'])) ? $_FILES['submission_content'] : null;
+	$dynamicForm = new DynamicForm($structure, $content, $files, 'upload/submission/');
+
+	// User actions
+	if (isset ($_POST['action'])) switch ($_POST['action'])
 	{
 		case 'delete':
 			$msg = $eveSubmissionService->submission_delete($_POST['submission_id'], $_SESSION['screenname']);
 			$eve->output_redirect_page(basename(__FILE__)."?id={$_GET['id']}&message=$msg");
-		        break;
+			break;
 		case 'submission':
-			$validation_errors = $eveCustomInputService->custom_input_validate(json_decode($_POST['structure']), $_POST['content'], $_FILES['content'], 'upload/submission/');
-			if (!empty($validation_errors))
+			$validationErrors = $dynamicForm->validate();
+			if (!empty($validation_errors)) // There are validation errors
 			{
-				// There are validation errors. Redirecting to this page showing where the errors are
 				$eve->output_redirect_page(basename(__FILE__)."?id={$_GET['id']}&validation=".serialize($validation_errors));				
 			}
-			else // TODO: Duplicate on submissionedit and submissions. the validation should occur on evecustominput.class
+			else // Everything is correct, creating new submission
 			{
-				// No validation errors. Uploading files and populating $_POST['content'] with uploaded filenames
-				$file_errors = array();
-				foreach(json_decode($_POST['structure']) as $i => $structure_item) switch($structure_item->type)
-				{
-					case 'file':
-						$random_filename = md5(uniqid(rand(), true)); // Generating a random filename
-						$extension = pathinfo($_FILES['content']['name'][$i], PATHINFO_EXTENSION);
-						if (move_uploaded_file($_FILES['content']['tmp_name'][$i], "upload/submission/$random_filename.$extension"))
-							$_POST['content'][$i] = "upload/submission/$random_filename.$extension";
-						else
-							$file_errors[$i] = EveCustomInputService::CUSTOM_INPUT_VALIDATION_ERROR_FILE_ERROR;
-						break;
-				}
-				if(!empty($file_errors))
-				{
-					// Errors on uploading files. Redirecting to this page showing where the errors are
-					$eve->output_redirect_page(basename(__FILE__)."?id={$_GET['id']}&file_error=".serialize($file_errors));
-				}
-				else
-				{
-					// Everything is right so far. Creating new submission
-					$msg = $eveSubmissionService->submission_create($_GET['id'], $_SESSION['screenname'], $_POST['structure'], json_encode($_POST['content']));
-					if ($msg == EveSubmissionService::SUBMISSION_CREATE_SUCCESS)					
-						$eve->output_redirect_page("userarea.php?systemmessage=submission.sent");
-					else					
-						$eve->output_redirect_page(basename(__FILE__)."?id={$_GET['id']}&message=$msg");
-				}
+				$msg = $eveSubmissionService->submission_create($_GET['id'], $_SESSION['screenname'], $_POST['submission_structure'], json_encode($_POST['submission_content']));
+				if ($msg == EveSubmissionService::SUBMISSION_CREATE_SUCCESS)					
+					$eve->output_redirect_page("userarea.php?systemmessage=submission.sent");
+				else					
+					$eve->output_redirect_page(basename(__FILE__)."?id={$_GET['id']}&message=$msg");
 			}
 			break;
 	}
-}
-else
-{
-	// No user operations or when redirected afer an user operation
 
 	// Loading helper classes	
 	$eveG11n = new EveG11n($eve);
-
-	// Loading submission definition data
-	$submission_definition = $eveSubmissionService->submission_definition_get($_GET['id']);
-	$structure = json_decode($submission_definition['submission_structure']);
 
 	// Header and (sucess or error) messages	
 	$eve->output_html_header();
@@ -109,7 +88,6 @@ else
 		$validation_errors_messages = array();
 		foreach ($validation_errors as $pos => $validation_error)
 		{
-			// TODO use CustomInputService cosntants
 			switch ($validation_error)
 			{
 				case EveCustomInputService::CUSTOM_INPUT_VALIDATION_ERROR_MANDATORY:
@@ -136,40 +114,45 @@ else
 		// TODO usar função internacionalizável
 		$eve->output_error_list_message($validation_errors_messages);
 	}
-	// TODO 'file_error'
 
 	$submission_deadline = strtotime($submission_definition['deadline']);
 	$within_the_deadline = (time() < $submission_deadline);
+
+	// TODO: Only display the list if allow multiple submissions. 
+	// TODO: Display HTML FORM WITH sent data otherwise
 
 	// Displaying sent submissions
 	$submissions_sent_by_user = $eveSubmissionService->submission_list($_GET['id'], 'owner', $_SESSION['screenname']);
 	if (!empty($submissions_sent_by_user))
 	{
 		?>
+		<div class="section">Envios</div>
+
 		<dialog id="submission_view_dialog" style="position: fixed; top: 0; left: 0; width: 99%; height: 99%;">
 		<div style="width:99%; height: 1.5em;"> <button type="button" onclick="document.getElementById('submission_view_dialog').close();">Fechar</button></div>	
 		<div style="width:99%; height: calc(99% - 2em); overflow-y: scroll;" id="submission_view_container"></div>
 		</dialog>
 
-		<dialog id="submission_review_dialog" style="position: fixed; top: 0; left: 0; width: 99%; height: 99%;">
-		<div style="width:99%; height: 1.5em;"> <button type="button" onclick="document.getElementById('submission_review_dialog').close();">Fechar</button></div>	
-		<div style="width:99%; height: calc(99% - 2em); overflow-y: scroll;" >	
-		<div id="submission_review_container" class="user_dialog_panel_large"></div>
-		</div>
-		</dialog>
-
-		<div class="section">Envios</div>
-		<form action="<?php echo basename(__FILE__)."?id=".$_GET['id'];?>" id ="submission_delete_form" method="post">
-		<input type="hidden" name="operation" value="delete"/>	
-		<input type="hidden" name="submission_id" id="submission_delete_id" value=""/>
-		</form>
 		<script>
 		function delete_submission(submission_id) 
 		{
 			if (confirm('Tem certeza que você quer apagar este envio? Esta ação não poderá ser desfeita.'))
 			{
-				document.getElementById('submission_delete_id').value = submission_id;
-				document.getElementById('submission_delete_form').submit();
+				form = document.createElement('form');
+				form.setAttribute('method', 'POST');
+				form.setAttribute('action', '<?php echo basename(__FILE__)."?id=".$_GET['id'];?>');
+				var1 = document.createElement('input');
+				var1.setAttribute('type', 'hidden');
+				var1.setAttribute('name', 'action');
+				var1.setAttribute('value', 'delete');
+				form.appendChild(var1);
+				var2 = document.createElement('input');
+				var2.setAttribute('type', 'hidden');
+				var2.setAttribute('name', 'submission_id');
+				var2.setAttribute('value', submission_id);
+				form.appendChild(var2);
+				document.body.appendChild(form);
+				form.submit();  
 			}
 			return false;
 		}
@@ -180,24 +163,8 @@ else
 			xhr.onload = function() {
 			    if (xhr.status === 200) {
 				var data = JSON.parse(xhr.responseText);
-				const container = document.getElementById('submission_view_container');
-				while (container.firstChild) container.removeChild(container.firstChild);
-				var tbl = document.createElement("table");
-				tbl.className = 'data_table';	
-				var row_count = 0;
-				for (var i in data.formatted_content)
-				{
-					var tr = document.createElement("tr");
-					var td1 = document.createElement("td");
-					td1.innerHTML = i;
-					tr.appendChild(td1);
-					var td2 = document.createElement("td");
-					td2.innerHTML = data.formatted_content[i];
-					tr.appendChild(td2);			
-					tbl.appendChild(tr);
-					row_count++
-				}
-				container.appendChild(tbl);
+				var container = document.getElementById('submission_view_container');
+				container.innerHTML = data['formatted_content'];
 			    }
 			    else {
 				document.getElementById('submission_view_container').innerHTML = '<p>Erro na requisição: Erro HTTP ' + xhr.status + '</p>';
@@ -210,17 +177,19 @@ else
 		function submission_review(submission_id)
 		{
 			var xhr = new XMLHttpRequest();
-			xhr.open('GET', 'service/submission_review.php?id=' + submission_id);
+			xhr.open('GET', 'service/submission_view.php?id=' + submission_id);
 			xhr.onload = function() {
 			    if (xhr.status === 200) {
-				document.getElementById('submission_review_container').innerHTML = xhr.responseText;
+				var data = JSON.parse(xhr.responseText);
+				var container = document.getElementById('submission_view_container');
+				container.innerHTML = data['formatted_revision'];
 			    }
 			    else {
-				document.getElementById('submission_review_container').innerHTML = '<p>Erro na requisição: Erro HTTP ' + xhr.status + '</p>';
+				document.getElementById('submission_view_container').innerHTML = '<p>Erro na requisição: Erro HTTP ' + xhr.status + '</p>';
 			    }
 			};
 			xhr.send();
-			document.getElementById('submission_review_dialog').show();
+			document.getElementById('submission_view_dialog').show();
 		}
 		</script>
 		<table class="data_table">
@@ -281,9 +250,8 @@ else
 
 		<form action="<?php echo basename(__FILE__)."?id={$_GET['id']}";?>" method="post" enctype="multipart/form-data" class="user_dialog_panel_large">
 		<?php echo $submission_definition['information']; ?>
-		<input type="hidden" name="operation" value="submission"/>
-		<input type="hidden" name="structure" value="<?php echo htmlentities($submission_definition['submission_structure']);?>"/>
-		<?php $eveCustomInputService->custom_input_output_html_controls($structure); ?>
+		<?php echo $dynamicForm->outputControls('submission_structure', 'submission_content') ?>
+		<input type="hidden" name="action" value="submission"/>
 		<button type="submit" class="submit">Enviar</button>
 		<p></p>
 		</form>

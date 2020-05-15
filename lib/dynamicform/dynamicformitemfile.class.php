@@ -10,10 +10,7 @@ class DynamicFormItemFile extends DynamicFormItem
 
     public function getHtmlFormattedContent()
     {
-        $result = "<tr><td>{$this->description}</td><td>";
-        $result .= "<a href=\"$this->content\">".htmlentities($this->content, ENT_QUOTES, 'utf-8')."</a>";
-        $result .= "</td></tr>";
-        return $result;
+        return "<a href=\"{$this->content}\" download>{$this->content}</a>";
     }
 
     public static function getType()
@@ -26,13 +23,13 @@ class DynamicFormItemFile extends DynamicFormItem
         return 'edt_fil';
     }
 
-    public static function outputDynamicFormStructureAddButton($html_id) 
+    public static function outputAddEditControls($html_id) 
     {
         $result = "
         <script>
         function add_fil_{$html_id}()
 		{	
-			var item_description = prompt('".DynamicFormHelper::_('item.action.add.prompt')."');
+			var item_description = prompt('".DynamicFormHelper::_('structure.table.message.add')."');
 			if (item_description != null)
 			{
 				str_{$html_id}.push
@@ -113,7 +110,7 @@ class DynamicFormItemFile extends DynamicFormItem
 		</div>
         ";
         $result .= "<button type=\"button\" onclick=\"add_fil_{$html_id}();\">";
-        $result .= DynamicFormHelper::_('item.action.add.file');
+        $result .= DynamicFormHelper::_('structure.table.button.add.file');
         $result .= "</button>";
         return $result;
     }
@@ -191,8 +188,8 @@ class DynamicFormItemFile extends DynamicFormItem
 		{
 			$randomName = md5(uniqid(rand(), true)); // Generating a random filename
 			$extension = pathinfo($this->uploadedFile['name'], PATHINFO_EXTENSION);
-			if (move_uploaded_file($this->uploadedFile['tmp_name'], "{$this->uploadedFile['upload_path']}$randomName.$extension"))
-				$this->content = DynamicFormHelper::url().$this->uploadedFile['upload_path'].$randomName.$extension;
+			if (move_uploaded_file($this->uploadedFile['tmp_name'], $this->uploadedFile['upload_path'].$randomName.'.'.$extension))
+				$this->content = DynamicFormHelper::url().$this->uploadedFile['upload_path'].$randomName.'.'.$extension;
 			else
 				$validationErrors[] = DynamicFormValidationError::FILE_UPLOAD_ERROR;
 		}

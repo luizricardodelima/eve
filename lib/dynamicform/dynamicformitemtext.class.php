@@ -7,10 +7,7 @@ class DynamicFormItemText extends DynamicFormItem
 
     public function getHtmlFormattedContent()
     {
-        $result = "<tr><td>{$this->description}</td><td>";
-        $result .= htmlentities($this->content, ENT_QUOTES, 'utf-8');
-        $result .= "</td></tr>";
-        return $result;
+        return htmlentities($this->content, ENT_QUOTES, 'utf-8');
     }
 
     public static function getType()
@@ -23,13 +20,13 @@ class DynamicFormItemText extends DynamicFormItem
         return 'edt_tex';
     }
 
-    public static function outputDynamicFormStructureAddButton($html_id) 
+    public static function outputAddEditControls($html_id) 
     {
         $result = "
         <script>
         function add_tex{$html_id}()
 		{	
-			var item_description = prompt('".DynamicFormHelper::_('item.action.add.prompt')."');
+			var item_description = prompt('".DynamicFormHelper::_('structure.table.message.add')."');
 			if (item_description != null)
 			{
 				str_{$html_id}.push
@@ -75,7 +72,7 @@ class DynamicFormItemText extends DynamicFormItem
 		</div>
         ";
         $result .= "<button type=\"button\" onclick=\"add_tex{$html_id}();\">";
-        $result .= DynamicFormHelper::_('item.action.add.text');
+        $result .= DynamicFormHelper::_('structure.table.button.add.text');
         $result .= "</button>";
         return $result;
     }

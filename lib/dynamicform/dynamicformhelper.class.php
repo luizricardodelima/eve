@@ -18,7 +18,7 @@ class DynamicFormHelper
 		if (!file_exists($lang_file))
 		{
             // Loading default english dictionary, if file is not found
-      		$lang_file = __DIR__ . '../g11n/en.json';
+      		$lang_file = __DIR__ . '/g11n/en.json';
     	}
 		// Loading the language JSON file and transforming it into an associative array
         self::$dictionary = json_decode(file_get_contents($lang_file), true);

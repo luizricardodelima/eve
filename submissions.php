@@ -259,8 +259,11 @@ else
 		return false;
 	}
 
+	// TODO: This code probably wont work anymore. change for the code used in submisson.php
 	function submission_show(el, submission_id)
 	{
+		alert('reimplement!');
+		/*
 		el.disabled = true;
 		var currTR = el.parentNode.parentNode;
 		var newTR = document.createElement("tr");
@@ -295,7 +298,7 @@ else
 		};
 		xhr.send();
 		newTR.appendChild(newTD);
-		currTR.parentNode.insertBefore(newTR, currTR.nextSibling);
+		currTR.parentNode.insertBefore(newTR, currTR.nextSibling);*/
 	}
 
 /*

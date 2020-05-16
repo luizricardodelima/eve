@@ -78,7 +78,7 @@ else
 		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $submission['reviewer_email']);
 		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $submission['revision_status']);
 
-		// TODO. RELY ON eve custom input service to deliver the values.
+		// TODO. RELY ON DynamicInput to deliver the values.
 		$submission_content = json_decode($submission['content']);
 		for ($i = 0; $i < count($submission_structure); $i++) {
 			switch ($submission_structure[$i]->type)

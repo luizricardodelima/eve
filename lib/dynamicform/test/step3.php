@@ -15,8 +15,8 @@ require_once '../dynamicform.class.php';
 require_once '../dynamicformhelper.class.php';
 //DynamicFormHelper::$locale = "pt_BR";
 $files = (isset($_FILES) && isset($_FILES['c'])) ? $_FILES['c'] : null;
-$customInput = new DynamicForm($_POST['s'], $_POST['c'], $files, 'upload/');
-$validationErrors = $customInput->validate();
+$dynamicForm = new DynamicForm($_POST['s'], $_POST['c'], $files, 'upload/');
+$validationErrors = $dynamicForm->validate();
 
 ?>
 <script>
@@ -37,8 +37,8 @@ echo '$_POST ';
 var_dump($_POST);
 echo '$_FILES ';
 var_dump($_FILES);
-echo '$customInput ';
-var_dump($customInput);
+echo '$dynamicForm ';
+var_dump($dynamicForm);
 echo '$validationErrors ';
 var_dump($validationErrors);
 
@@ -48,20 +48,20 @@ var_dump($validationErrors);
   <h3>Inactive form</h3>
   <form method="post" action="step3.php" enctype="multipart/form-data">
   <div id="controls">
-  <?php echo $customInput->outputControls('s', 'c', false); ?>
+  <?php echo $dynamicForm->outputControls('s', 'c', false); ?>
   <button type="submit">Enviar</button>
   </div>
   </form>
   <h3>Table of contents - all fields</h3>
-  <?php echo $customInput->getHtmlFormattedContent(false, "tablename", "tableid"); ?>
-  <h3>Table of contents - only unrestrict fields</h3>
-  <?php echo $customInput->getHtmlFormattedContent(true, "tablename", "tableid"); ?>
+  <?php echo $dynamicForm->getHtmlFormattedContent("tablename", "tableid"); ?>
+  <h3>Table of contents - after removing some DynamicTable items</h3>
+  <?php echo $dynamicForm->getHtmlFormattedContent("tablename", "tableid"); ?>
 <?php } else { ?>
   <h3>Active form - with validation error messages</h3>
   <!-- TODO Validation error messages on form -->
   <form method="post" action="step3.php" enctype="multipart/form-data">
   <div id="controls">
-  <?php echo $customInput->outputControls('s', 'c'); ?>
+  <?php echo $dynamicForm->outputControls('s', 'c'); ?>
   <button type="submit">Enviar</button>
   </div>
   </form>

@@ -11,35 +11,43 @@ require_once 'dynamicformitemsinglechoice.class.php';
 require_once 'dynamicformitemmultiplechoice.class.php';
 require_once 'dynamicformitemfile.class.php';
 
-
+/**
+ * A DynamicForm allows an user to dynamically define a structure of a form.
+ * The structure of a DynamicForm is composed of DynamicFormItems. A DynamicFormItem
+ * contains the information of a "field" of the form, such as its type and content.
+ * 
+ * The structure of DynamicFormItems is an ordered array, so the form information 
+ * (such as structure table, controls and formatted content) will be displayed in
+ * the same order of this array. 
+ * 
+ * @see DynamicFormItem
+ */
 class DynamicForm
 {
-    private $structure;
+    public  $structure;
     private $dynamicFormItemClasses;
 
     /**
-     * Returns a human-readable HTML table with the fields and their contents
-     * 
-     * If $unrestrictOnly == true, only the unrestrict items will be shown
+     * Returns a human-readable HTML <table> with the fields and their contents
      * 
      * Optionally the parameters $htmlClass and/or $htmlId can be passed, if the table
      * needs to be styled with css or modified with javascript. As can be deduced, if
      * these parameters are not null, the table will be output with class="$htmlClass"
      * and/or id="$htmlId" attributes.
+     * 
      */
-    function getHtmlFormattedContent($unrestrictOnly = false, $htmlClass = null, $htmlId = null)
+    function getHtmlFormattedContent($htmlClass = null, $htmlId = null)
     {
         $result = "<table";
         if ($htmlClass !== null) $result .= " class=\"$htmlClass\"";
         if ($htmlId !== null) $result .= " id=\"$htmlId\"";
         $result .= ">";
         foreach ($this->structure as $structureItem)
-            if ($structureItem->unrestrict || !$unrestrictOnly) 
-            {
-                $result .= "<tr><td>{$structureItem->description}</td><td>";
-                $result .= $structureItem->getHtmlFormattedContent();
-                $result .= "</td></tr>";
-            }                
+        {
+            $result .= "<tr><td>{$structureItem->description}</td><td>";
+            $result .= $structureItem->getHtmlFormattedContent();
+            $result .= "</td></tr>";
+        }                
         $result .= "</table>";
         return $result;
     }
@@ -122,8 +130,8 @@ class DynamicForm
 				var tr = table.insertRow(-1);
 				tr.insertCell(-1).innerHTML = j+1;
 				tr.insertCell(-1).innerHTML = typesNames_{$strName}[str_{$strName}[j].type];
-				tr.insertCell(-1).innerHTML = str_{$strName}[j].description;
-				tr.insertCell(-1).innerHTML = (str_{$strName}[j].unrestrict) ? '&#8226;' : '';
+                tr.insertCell(-1).innerHTML = str_{$strName}[j].description;
+                tr.insertCell(-1).innerHTML = str_{$strName}[j].customattribute;
 				tr.insertCell(-1).innerHTML = (str_{$strName}[j].mandatory) ? '&#8226;' : '';
 				tr.insertCell(-1).innerHTML = '<button type=\"button\" onclick=\"move_item_{$strName}('+j+', -1)\"><img src=\"".substr(dirname(__FILE__), strlen($_SERVER['DOCUMENT_ROOT']))."/icons/up.png\"/></button></td>';
 				tr.insertCell(-1).innerHTML = '<button type=\"button\" onclick=\"move_item_{$strName}('+j+', +1)\"><img src=\"".substr(dirname(__FILE__), strlen($_SERVER['DOCUMENT_ROOT']))."/icons/down.png\"/></button>';
@@ -158,7 +166,7 @@ class DynamicForm
         <th>".DynamicFormHelper::_('structure.table.header.position')."</th>
         <th>".DynamicFormHelper::_('structure.table.header.type')."</th>
         <th>".DynamicFormHelper::_('structure.table.header.description')."</th>
-        <th>".DynamicFormHelper::_('structure.table.header.unrestrict')."</th>
+        <th>".DynamicFormHelper::_('structure.table.header.customattribute')."</th>
         <th>".DynamicFormHelper::_('structure.table.header.mandatory')."</th>
         <th colspan=\"4\">".DynamicFormHelper::_('structure.table.header.options')."</th>
         </thead>

@@ -1,13 +1,11 @@
 <?php
 session_start();
 require_once 'eve.class.php';
-//require_once 'evecustominputservice.class.php'; //TODO Remove evecustominputservice.class.php
 require_once 'evesubmissionservice.class.php';
 require_once 'lib/dynamicform/dynamicform.class.php';
 
 $eve = new Eve();
 $eveSubmissionService = new EveSubmissionService($eve);
-//$eveCustomInputService = new EveCustomInputService($eve);
 
 // Session verification.
 if (!isset($_SESSION['screenname']))
@@ -97,19 +95,22 @@ else
 	}
 	?>
 	</select>
-	<p></p>
-	</div>
+	<p>Estrutura de submissão: Marque com atributo personalizado <strong>noreview</strong> para os campos não acessíveis ao revisor.</p>
 	<?php
-
+	// TODO: g11n text above
 	DynamicFormHelper::$locale = $eve->getSetting('system_locale');
 	$submissionStructure = new DynamicForm($submission_definition['submission_structure']);
-	echo $submissionStructure->outputStructureTable('submission_structure', 'data_table', 'section');
-	$revisionStructure = new DynamicForm($submission_definition['revision_structure']);
-	echo $revisionStructure->outputStructureTable('revision_structure', 'data_table', 'section');
-	//$eveCustomInputService->custom_input_output_structure_table('submission_structure', $submission_definition['submission_structure'], $eve->_('submission_definition.submission.structure'));
-	//$eveCustomInputService->custom_input_output_structure_table('revision_structure', $submission_definition['revision_structure'], $eve->_('submission_definition.revision.structure'));
+	echo $submissionStructure->outputStructureTable('submission_structure', 'data_table');
 	
 	?>
+	<p>Estrutura de revisão:</p>
+	<?php
+	// TODO: g11n text above
+	$revisionStructure = new DynamicForm($submission_definition['revision_structure']);
+	echo $revisionStructure->outputStructureTable('revision_structure', 'data_table');
+	
+	?>
+	</div>
 	</form>
 	<?php
 	$eve->output_html_footer();

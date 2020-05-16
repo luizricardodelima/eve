@@ -33,6 +33,7 @@ require_once 'lib/filechecker/filechecker.php';
  * if you need to save in the database or serialize (to be displayed in html, for 
  * example) the content or structure, you will have to use json_encode() method. If
  * you need to use them again in this class, you will need to use json_decode().
+ * @deprecated
  */
 class EveCustomInputService
 {
@@ -694,6 +695,7 @@ class EveCustomInputService
 		return $validation_errors;
 	}
 
+	/** @deprecated */
 	function __construct(Eve $eve)
 	{
 		$this->eve = $eve;

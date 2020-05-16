@@ -16,61 +16,63 @@ class DynamicFormItemChoice extends DynamicFormItem
 
     public static function javascriptEditMethod()
     {
-        return 'edt_cho';
+        return 'cho_edt';
     }
 
-    public static function outputAddEditControls($html_id) 
+    public static function outputAddEditControls($name) 
     {
         $result = "
         <script>
-        function add_cho{$html_id}()
+        function cho_add{$name}()
 		{	
 			var item_description = prompt('".DynamicFormHelper::_('structure.table.message.add')."');
 			if (item_description != null)
 			{
-				str_{$html_id}.push
+				str_{$name}.push
 				({
 					type:'".self::getType()."',
 					description:item_description,
-					unrestrict:true,
+					customattribute:'',
 					mandatory:true,
 					spec:null
 				});
-				update_table_{$html_id}();
-				update_field_{$html_id}();
+				update_table_{$name}();
+				update_field_{$name}();
 			}
         }
-        function edt_cho_{$html_id}(i)
+        function cho_edt_{$name}(i)
         {
-            document.getElementById('cho_dlg_{$html_id}').style.display = 'block';
-            document.getElementById('cho_des_{$html_id}').value = str_{$html_id}[i].description;
-            document.getElementById('cho_unr_{$html_id}').checked = str_{$html_id}[i].unrestrict;
-            document.getElementById('cho_man_{$html_id}').checked = str_{$html_id}[i].mandatory;
-            document.getElementById('cho_sav_{$html_id}').onclick = function(){sav_cho_{$html_id}(i);};
+            document.getElementById('cho_dlg_{$name}').style.display = 'block';
+            document.getElementById('cho_des_{$name}').value = str_{$name}[i].description;
+            document.getElementById('cho_cat_{$name}').value = str_{$name}[i].customattribute;
+            document.getElementById('cho_man_{$name}').checked = str_{$name}[i].mandatory;
+            document.getElementById('cho_sav_{$name}').onclick = function(){cho_sav_{$name}(i);};
         }
-        function sav_cho_{$html_id}(i)
+        function cho_sav_{$name}(i)
         {
-			str_{$html_id}[i].description = document.getElementById('cho_des_{$html_id}').value;
-			str_{$html_id}[i].unrestrict = document.getElementById('cho_unr_{$html_id}').checked;
-			str_{$html_id}[i].mandatory = document.getElementById('cho_man_{$html_id}').checked;
-			document.getElementById('cho_dlg_{$html_id}').style.display = 'none';
-			update_table_{$html_id}();
-			update_field_{$html_id}();
+            str_{$name}[i].description = document.getElementById('cho_des_{$name}').value;
+            str_{$name}[i].customattribute = document.getElementById('cho_cat_{$name}').value;
+			str_{$name}[i].mandatory = document.getElementById('cho_man_{$name}').checked;
+			document.getElementById('cho_dlg_{$name}').style.display = 'none';
+			update_table_{$name}();
+			update_field_{$name}();
         }
         </script>
 
-        <div id=\"cho_dlg_{$html_id}\" style=\"display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgb(0,0,0); background-color: rgba(0,0,0,0.4);\">
-		<div style=\"background-color: white; margin: 15% auto; padding: 20px; border: 1px solid #333; width: 80%; 	display: grid; grid-gap: 0.5em; grid-template-columns: 1fr;\">
-		<span><input type=\"checkbox\" id=\"cho_unr_{$html_id}\"/><label for=\"cho_unr_{$html_id}\">".DynamicFormHelper::_('item.unrestrict')."</label></span>
-		<span><input type=\"checkbox\" id=\"cho_man_{$html_id}\"/><label for=\"cho_man_{$html_id}\">".DynamicFormHelper::_('item.mandatory')."</label></span>
-		<label for=\"cho_des_{$html_id}\">".DynamicFormHelper::_('item.description')."</label>
-		<input  id=\"cho_des_{$html_id}\" type=\"text\"/>
-		<button type=\"button\" id=\"cho_sav_{$html_id}\">".DynamicFormHelper::_('item.action.save')."</button>
-		<button type=\"button\" onclick=\"document.getElementById('cho_dlg_{$html_id}').style.display = 'none';\">".DynamicFormHelper::_('item.action.cancel')."</button>
+        <div id=\"cho_dlg_{$name}\" style=\"display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgb(0,0,0); background-color: rgba(0,0,0,0.4);\">
+		<div style=\"background-color: white; margin: 15% auto; padding: 20px; border: 1px solid #333; width: 80%; display: grid; grid-gap: 0.5em; grid-template-columns: 1fr;\">
+		<label for=\"cho_des_{$name}\">".DynamicFormHelper::_('item.description')."</label>
+        <input  id=\"cho_des_{$name}\" type=\"text\"/>
+        <label for=\"cho_cat_{$name}\">".DynamicFormHelper::_('item.customattribute')."</label>
+        <input  id=\"cho_cat_{$name}\" type=\"text\"/>
+        <label for=\"cho_man_{$name}\">
+        <input  id=\"cho_man_{$name}\" type=\"checkbox\"/>".DynamicFormHelper::_('item.mandatory')."</label>
+        <button type=\"button\" id=\"cho_sav_{$name}\">".DynamicFormHelper::_('item.action.save')."</button>
+		<button type=\"button\" onclick=\"document.getElementById('cho_dlg_{$name}').style.display = 'none';\">".DynamicFormHelper::_('item.action.cancel')."</button>
 		</div>
 		</div>
         ";
-        $result .= "<button type=\"button\" onclick=\"add_cho{$html_id}();\">";
+        $result .= "<button type=\"button\" onclick=\"cho_add{$name}();\">";
         $result .= DynamicFormHelper::_('structure.table.button.add.choice');
         $result .= "</button>";
         return $result;

@@ -20,96 +20,98 @@ class DynamicFormItemFile extends DynamicFormItem
 
     public static function javascriptEditMethod()
     {
-        return 'edt_fil';
+        return 'fil_edt';
     }
 
-    public static function outputAddEditControls($html_id) 
+    public static function outputAddEditControls($name) 
     {
         $result = "
         <script>
-        function add_fil_{$html_id}()
+        function fil_add_{$name}()
 		{	
 			var item_description = prompt('".DynamicFormHelper::_('structure.table.message.add')."');
 			if (item_description != null)
 			{
-				str_{$html_id}.push
+				str_{$name}.push
 				({
 					type:'".self::getType()."',
 					description:item_description,
-					unrestrict:true,
+					customattribute:'',
 					mandatory:true,
 					spec:{file_types:[], max_size:0}
 				});
-				update_table_{$html_id}();
-				update_field_{$html_id}();
+				update_table_{$name}();
+				update_field_{$name}();
 			}
         }
-        function edt_fil_{$html_id}(i)
+        function fil_edt_{$name}(i)
         {
         ";
         $result .= "
             var filetypes = " . json_encode(array_keys(DynamicFormHelper::supportedFiletypes())) . ";";
         $result .= "
-            document.getElementById('fil_dlg_{$html_id}').style.display = 'block';
-            document.getElementById('fil_des_{$html_id}').value = str_{$html_id}[i].description;
-            document.getElementById('fil_max_{$html_id}').value = str_{$html_id}[i].spec.max_size;
+            document.getElementById('fil_dlg_{$name}').style.display = 'block';
+            document.getElementById('fil_des_{$name}').value = str_{$name}[i].description;
+            document.getElementById('fil_cat_{$name}').value = str_{$name}[i].customattribute;
+            document.getElementById('fil_max_{$name}').value = str_{$name}[i].spec.max_size;
             filetypes.forEach(function(element)
             {
-                if (str_{$html_id}[i].spec.file_types.includes(element))
-                    document.getElementById('fil_typ_'+ element +'_{$html_id}').checked = true;
+                if (str_{$name}[i].spec.file_types.includes(element))
+                    document.getElementById('fil_typ_'+ element +'_{$name}').checked = true;
                 else
-                    document.getElementById('fil_typ_'+ element +'_{$html_id}').checked = false;
+                    document.getElementById('fil_typ_'+ element +'_{$name}').checked = false;
             });
-            document.getElementById('fil_unr_{$html_id}').checked = str_{$html_id}[i].unrestrict;
-            document.getElementById('fil_man_{$html_id}').checked = str_{$html_id}[i].mandatory;
-            document.getElementById('fil_sav_{$html_id}').onclick = function(){sav_fil_{$html_id}(i);};
+            document.getElementById('fil_man_{$name}').checked = str_{$name}[i].mandatory;
+            document.getElementById('fil_sav_{$name}').onclick = function(){fil_sav_{$name}(i);};
         }
-        function sav_fil_{$html_id}(i)
+        function fil_sav_{$name}(i)
         {
         ";
         $result .= "
             var filetypes = " . json_encode(array_keys(DynamicFormHelper::supportedFiletypes())) . ";";
         $result .= "
-            str_{$html_id}[i].description = document.getElementById('fil_des_{$html_id}').value;
-            str_{$html_id}[i].spec.max_size = document.getElementById('fil_max_{$html_id}').value;
-            str_{$html_id}[i].spec.file_types = new Array();
+            str_{$name}[i].description = document.getElementById('fil_des_{$name}').value;
+            str_{$name}[i].customattribute = document.getElementById('fil_cat_{$name}').value;
+            str_{$name}[i].spec.max_size = document.getElementById('fil_max_{$name}').value;
+            str_{$name}[i].spec.file_types = new Array();
             filetypes.forEach(function(element)
             {
-                if (document.getElementById('fil_typ_'+ element +'_{$html_id}').checked)
-                    str_{$html_id}[i].spec.file_types.push(element);
+                if (document.getElementById('fil_typ_'+ element +'_{$name}').checked)
+                    str_{$name}[i].spec.file_types.push(element);
             });
-			str_{$html_id}[i].unrestrict = document.getElementById('fil_unr_{$html_id}').checked;
-			str_{$html_id}[i].mandatory = document.getElementById('fil_man_{$html_id}').checked;
-			document.getElementById('fil_dlg_{$html_id}').style.display = 'none';
-			update_table_{$html_id}();
-			update_field_{$html_id}();
+			str_{$name}[i].mandatory = document.getElementById('fil_man_{$name}').checked;
+			document.getElementById('fil_dlg_{$name}').style.display = 'none';
+			update_table_{$name}();
+			update_field_{$name}();
         }
         </script>
 
-        <div id=\"fil_dlg_{$html_id}\" style=\"display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgb(0,0,0); background-color: rgba(0,0,0,0.4);\">
+        <div id=\"fil_dlg_{$name}\" style=\"display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgb(0,0,0); background-color: rgba(0,0,0,0.4);\">
 		<div style=\"background-color: white; margin: 15% auto; padding: 20px; border: 1px solid #333; width: 80%; 	display: grid; grid-gap: 0.5em; grid-template-columns: 1fr;\">
-		<span><input type=\"checkbox\" id=\"fil_unr_{$html_id}\"/><label for=\"fil_unr_{$html_id}\">".DynamicFormHelper::_('item.unrestrict')."</label></span>
-		<span><input type=\"checkbox\" id=\"fil_man_{$html_id}\"/><label for=\"fil_man_{$html_id}\">".DynamicFormHelper::_('item.mandatory')."</label></span>
-		<label for=\"fil_des_{$html_id}\">".DynamicFormHelper::_('item.description')."</label>
-        <input  id=\"fil_des_{$html_id}\" type=\"text\"/>
-        <label for=\"fil_max_{$html_id}\">".DynamicFormHelper::_('item.file.spec.maxsize')."</label>
-		<input  id=\"fil_max_{$html_id}\" type=\"number\" min=\"0\" step=\"0.1\" value=\"0\"/>
+		<label for=\"fil_des_{$name}\">".DynamicFormHelper::_('item.description')."</label>
+        <input  id=\"fil_des_{$name}\" type=\"text\"/>
+        <label for=\"fil_cat_{$name}\">".DynamicFormHelper::_('item.customattribute')."</label>
+        <input  id=\"fil_cat_{$name}\" type=\"text\"/>
+        <label for=\"fil_man_{$name}\">
+        <input  id=\"fil_man_{$name}\" type=\"checkbox\"/>".DynamicFormHelper::_('item.mandatory')."</label>
+        <label for=\"fil_max_{$name}\">".DynamicFormHelper::_('item.file.spec.maxsize')."</label>
+		<input  id=\"fil_max_{$name}\" type=\"number\" min=\"0\" step=\"0.1\" value=\"0\"/>
 		<label>".DynamicFormHelper::_('item.file.spec.filetypes')."</label>";
 		foreach (DynamicFormHelper::supportedFiletypes() as $file_type => $file_extensions)
 		{
             $result .= "
             <span>
-            <input  id=\"fil_typ_{$file_type}_{$html_id}\" type=\"checkbox\" />
-            <label for=\"fil_typ_{$file_type}_{$html_id}\">{$file_extensions[0]}</label>
+            <input  id=\"fil_typ_{$file_type}_{$name}\" type=\"checkbox\" />
+            <label for=\"fil_typ_{$file_type}_{$name}\">{$file_extensions[0]}</label>
             </span>";
 		}
         $result .= "
-        <button type=\"button\" id=\"fil_sav_{$html_id}\">".DynamicFormHelper::_('item.action.save')."</button>
-		<button type=\"button\" onclick=\"document.getElementById('fil_dlg_{$html_id}').style.display = 'none';\">".DynamicFormHelper::_('item.action.cancel')."</button>
+        <button type=\"button\" id=\"fil_sav_{$name}\">".DynamicFormHelper::_('item.action.save')."</button>
+		<button type=\"button\" onclick=\"document.getElementById('fil_dlg_{$name}').style.display = 'none';\">".DynamicFormHelper::_('item.action.cancel')."</button>
 		</div>
 		</div>
         ";
-        $result .= "<button type=\"button\" onclick=\"add_fil_{$html_id}();\">";
+        $result .= "<button type=\"button\" onclick=\"fil_add_{$name}();\">";
         $result .= DynamicFormHelper::_('structure.table.button.add.file');
         $result .= "</button>";
         return $result;

@@ -62,7 +62,7 @@ class EveCertificationService
 				$content = json_decode($submission['content']);
 				$parameter = explode("-", $structure_item->parameter);
 					
-				// TODO this should be somehow handled by evecustominputservice
+				// TODO this should be handled by DynamicInput
 				switch ($structure[$parameter[0] - 1]->type)
 				{
 					case "array":
@@ -356,6 +356,7 @@ class EveCertificationService
 		}
 		$stmt->bind_param('i', $certification_id);
 		$stmt->execute();
+		$certification = array();
 		$stmt->bind_result
 		(
 			$certification['owner'],
@@ -448,6 +449,7 @@ class EveCertificationService
 		}
 		$stmt->bind_param('i', $id);
 		$stmt->execute();
+		$certificationmodel = array();
 		// Binding result variable - Column by column to ensure compability
 		// From PHP Verions 5.3+ there is the get_result() method
     		$stmt->bind_result

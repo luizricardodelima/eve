@@ -34,7 +34,7 @@
 	"item.singlechoice.spec.items": "Ítens",
 	"item.singlechoice.spec.items.help": "(Um por linha)",
 	"item.text": "Texto",
-	"item.unrestrict": "Visão irrestrita",
+	"item.customattribute": "Atributo personalizado",
 	"structure.table.button.add.bigtext": "+ Texto grande",
 	"structure.table.button.add.choice": "+ Escolha",
 	"structure.table.button.add.file": "+ Arquivo",
@@ -47,7 +47,7 @@
 	"structure.table.header.options": "Opções",
 	"structure.table.header.position": "Posição",
 	"structure.table.header.type": "Tipo",
-	"structure.table.header.unrestrict": "V. Irrestrita",
+	"structure.table.header.customattribute": "Atributo Pers.",
 	"structure.table.message.add": "Insira a descrição do novo item",
 	"structure.table.message.delete.1": "Tem certeza que deseja apagar o item na posição ",
 	"structure.table.message.delete.2": "? "

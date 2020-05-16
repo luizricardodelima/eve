@@ -6,7 +6,7 @@ abstract class DynamicFormItem
     protected $type;
     public $spec;
     public $description;
-    public $unrestrict;
+    public $customattribute;
     public $mandatory;
     
     public function getJSONStructure() {
@@ -14,7 +14,7 @@ abstract class DynamicFormItem
             array(
             'type' => $this->type,
             'description' => $this->description,
-            'unrestrict' => $this->unrestrict,
+            'customattribute' => $this->customattribute,
             'mandatory' => $this->mandatory,
             'spec' => $this->spec
         ));
@@ -30,7 +30,7 @@ abstract class DynamicFormItem
     function __construct($object, $content = null)
 	{
         $this->description = $object->description;
-        $this->unrestrict = $object->unrestrict;
+        $this->customattribute = $object->customattribute;
         $this->mandatory = $object->mandatory;
         $this->spec = $object->spec;
     }

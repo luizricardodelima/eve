@@ -66,17 +66,23 @@ else if (
 	$submission['revision_structure'] = json_decode($submission['revision_structure']);
 	$submission['revision_content'] = json_decode($submission['revision_content']);
 
-	// Removing all the not-unrestrict items from structure, if $only_unrestrict_view == true
+	// Removing all the not-unrestrict items from structure, if customattribute == 'noreview'
 	if ($only_unrestrict_view)
+	{
 		foreach($submission['structure'] as $i => $submission_structure_item)
-			if ($submission_structure_item->unrestrict == false)
+			if ($submission_structure_item->customattribute == 'noreview')
 			{
 				unset($submission['structure'][$i]);
 				unset($submisson['content'][$i]);
 			}
-
-	$submission['formatted_content'] = $dynamicFormSubmission->getHtmlFormattedContent($only_unrestrict_view, 'data_table');
-	$submission['formatted_revision'] = $dynamicFormRevision->getHtmlFormattedContent(false, 'data_table');
+		foreach ($dynamicFormSubmission->structure as $i => $dynamicFormSubmissionItem)
+			if ($dynamicFormSubmissionItem->customattribute == 'noreview')
+			{
+				unset($dynamicFormSubmission->structure[$i]);
+			}
+	}
+	$submission['formatted_content'] = $dynamicFormSubmission->getHtmlFormattedContent('data_table');
+	$submission['formatted_revision'] = $dynamicFormRevision->getHtmlFormattedContent('data_table');
 
 	header("Content-Type: application/json; charset=utf-8");
 	echo json_encode($submission);

@@ -17,65 +17,67 @@ class DynamicFormItemSingleChoice extends DynamicFormItem
 
     public static function javascriptEditMethod()
     {
-        return 'edt_sch';
+        return 'sch_edt';
     }
 
-    public static function outputAddEditControls($html_id) 
+    public static function outputAddEditControls($name) 
     {
         $result = "
         <script>
-        function add_sch_{$html_id}()
+        function sch_add_{$name}()
 		{	
 			var item_description = prompt('".DynamicFormHelper::_('structure.table.message.add')."');
 			if (item_description != null)
 			{
-				str_{$html_id}.push
+				str_{$name}.push
 				({
 					type:'".self::getType()."',
 					description:item_description,
-					unrestrict:true,
+					customattribute:'',
 					mandatory:true,
 					spec:{items:[]}
 				});
-				update_table_{$html_id}();
-				update_field_{$html_id}();
+				update_table_{$name}();
+				update_field_{$name}();
 			}
         }
-        function edt_sch_{$html_id}(i)
+        function sch_edt_{$name}(i)
         {
-            document.getElementById('sch_dlg_{$html_id}').style.display = 'block';
-            document.getElementById('sch_des_{$html_id}').value = str_{$html_id}[i].description;
-            document.getElementById('sch_itm_{$html_id}').value = str_{$html_id}[i].spec.items.join('\\n');
-            document.getElementById('sch_unr_{$html_id}').checked = str_{$html_id}[i].unrestrict;
-            document.getElementById('sch_man_{$html_id}').checked = str_{$html_id}[i].mandatory;
-            document.getElementById('sch_sav_{$html_id}').onclick = function(){sav_sch_{$html_id}(i);};
+            document.getElementById('sch_dlg_{$name}').style.display = 'block';
+            document.getElementById('sch_des_{$name}').value = str_{$name}[i].description;
+            document.getElementById('sch_cat_{$name}').value = str_{$name}[i].customattribute;
+            document.getElementById('sch_itm_{$name}').value = str_{$name}[i].spec.items.join('\\n');
+            document.getElementById('sch_man_{$name}').checked = str_{$name}[i].mandatory;
+            document.getElementById('sch_sav_{$name}').onclick = function(){sch_sav_{$name}(i);};
         }
-        function sav_sch_{$html_id}(i)
+        function sch_sav_{$name}(i)
         {
-            str_{$html_id}[i].description = document.getElementById('sch_des_{$html_id}').value;
-            str_{$html_id}[i].spec.items = document.getElementById('sch_itm_{$html_id}').value.split('\\n');
-			str_{$html_id}[i].unrestrict = document.getElementById('sch_unr_{$html_id}').checked;
-			str_{$html_id}[i].mandatory = document.getElementById('sch_man_{$html_id}').checked;
-			document.getElementById('sch_dlg_{$html_id}').style.display = 'none';
-			update_table_{$html_id}();
-			update_field_{$html_id}();
+            str_{$name}[i].description = document.getElementById('sch_des_{$name}').value;
+            str_{$name}[i].customattribute = document.getElementById('sch_cat_{$name}').value;
+            str_{$name}[i].spec.items = document.getElementById('sch_itm_{$name}').value.split('\\n');
+			str_{$name}[i].mandatory = document.getElementById('sch_man_{$name}').checked;
+			document.getElementById('sch_dlg_{$name}').style.display = 'none';
+			update_table_{$name}();
+			update_field_{$name}();
         }
         </script>
 
-        <div id=\"sch_dlg_{$html_id}\" style=\"display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgb(0,0,0); background-color: rgba(0,0,0,0.4);\">
+        <div id=\"sch_dlg_{$name}\" style=\"display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgb(0,0,0); background-color: rgba(0,0,0,0.4);\">
 		<div style=\"background-color: white; margin: 15% auto; padding: 20px; border: 1px solid #333; width: 80%; 	display: grid; grid-gap: 0.5em; grid-template-columns: 1fr;\">
-		<span><input type=\"checkbox\" id=\"sch_unr_{$html_id}\"/><label for=\"sch_unr_{$html_id}\">".DynamicFormHelper::_('item.unrestrict')."</label></span>
-		<span><input type=\"checkbox\" id=\"sch_man_{$html_id}\"/><label for=\"sch_man_{$html_id}\">".DynamicFormHelper::_('item.mandatory')."</label></span>
-		<label for=\"sch_des_{$html_id}\">".DynamicFormHelper::_('item.description')."</label>
-        <input  id=\"sch_des_{$html_id}\" type=\"text\"/>
-        <label for=\"sch_itm_{$html_id}\">".DynamicFormHelper::_('item.singlechoice.spec.items')." <small>".DynamicFormHelper::_('item.singlechoice.spec.items.help')."</small></label>
-		<textarea id=\"sch_itm_{$html_id}\" rows=\"3\"></textarea>
-		<button type=\"button\" id=\"sch_sav_{$html_id}\">".DynamicFormHelper::_('item.action.save')."</button>
-		<button type=\"button\" onclick=\"document.getElementById('sch_dlg_{$html_id}').style.display = 'none';\">".DynamicFormHelper::_('item.action.cancel')."</button>
+		<label for=\"sch_des_{$name}\">".DynamicFormHelper::_('item.description')."</label>
+        <input  id=\"sch_des_{$name}\" type=\"text\"/>
+        <label for=\"sch_cat_{$name}\">".DynamicFormHelper::_('item.customattribute')."</label>
+        <input  id=\"sch_cat_{$name}\" type=\"text\"/>
+        <label for=\"sch_man_{$name}\">
+        <input  id=\"sch_man_{$name}\" type=\"checkbox\"/>".DynamicFormHelper::_('item.mandatory')."</label>
+        <label for=\"sch_itm_{$name}\">".DynamicFormHelper::_('item.singlechoice.spec.items')." <small>".DynamicFormHelper::_('item.singlechoice.spec.items.help')."</small></label>
+		<textarea id=\"sch_itm_{$name}\" rows=\"3\"></textarea>
+		<button type=\"button\" id=\"sch_sav_{$name}\">".DynamicFormHelper::_('item.action.save')."</button>
+		<button type=\"button\" onclick=\"document.getElementById('sch_dlg_{$name}').style.display = 'none';\">".DynamicFormHelper::_('item.action.cancel')."</button>
 		</div>
 		</div>
         ";
-        $result .= "<button type=\"button\" onclick=\"add_sch_{$html_id}();\">";
+        $result .= "<button type=\"button\" onclick=\"sch_add_{$name}();\">";
         $result .= DynamicFormHelper::_('structure.table.button.add.singlechoice');
         $result .= "</button>";
         return $result;

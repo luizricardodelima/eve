@@ -34,7 +34,7 @@
 	"item.singlechoice.spec.items": "Items",
 	"item.singlechoice.spec.items.help": "(One per line)",
 	"item.text": "Text",
-	"item.unrestrict": "Unrestrict",
+	"item.customattribute": "Custom attribute",
 	"structure.table.button.add.bigtext": "+ Big text",
 	"structure.table.button.add.choice": "+ Choice",
 	"structure.table.button.add.file": "+ File",
@@ -47,7 +47,7 @@
 	"structure.table.header.options": "Options",
 	"structure.table.header.position": "Position",
 	"structure.table.header.type": "Type",
-	"structure.table.header.unrestrict": "Unrestrict",
+	"structure.table.header.customattribute": "Custom attr.",
 	"structure.table.message.add": "Enter the description of the new item",
 	"structure.table.message.delete.1": "Are you sure you want to delete item at position ",
 	"structure.table.message.delete.2": "? "

@@ -15,17 +15,19 @@ require_once '../dynamicform.class.php';
 require_once '../dynamicformhelper.class.php';
 
 // Test structure
+
 $structureJSON = '
 [
-    {"type":"text","description":"This is a text field","unrestrict":true,"mandatory":true,"spec":null},
-    {"type":"bigtext","description":"This is a big text field","unrestrict":true,"mandatory":true,"spec":{"min_words":2,"max_words":100}},
-    {"type":"groupedtext","description":"This is a grouped text field","unrestrict":true,"mandatory":true,"spec":{"items":["a","b","c"]}},
-    {"type":"choice","description":"This is a choice field","unrestrict":true,"mandatory":true,"spec":null},
-    {"type":"singlechoice","description":"This is an single choice field","unrestrict":true,"mandatory":true,"spec":{"items":["m","n","o"]}},
-    {"type":"multiplechoice","description":"This is an multiple choice field","unrestrict":true,"mandatory":true,"spec":{"items":["x","y","z"]}},
-    {"type":"file","description":"This is a file field","unrestrict":true,"mandatory":true,"spec":{"file_types":["application/pdf","image/jpeg","image/bmp","application/vnd.openxmlformats-officedocument.wordprocessingml.document","application/vnd.ms-powerpoint"],"max_size":42}}
+    {"type":"text","description":"This is a text field","customattribute":"","mandatory":true,"spec":null},
+    {"type":"bigtext","description":"This is a big text field","customattribute":"","mandatory":true,"spec":{"min_words":2,"max_words":100}},
+    {"type":"groupedtext","description":"This is a grouped text field","customattribute":"","mandatory":true,"spec":{"items":["a","b","c"]}},
+    {"type":"choice","description":"This is a choice field","customattribute":"","mandatory":true,"spec":null},
+    {"type":"singlechoice","description":"This is a single choice field","customattribute":"","mandatory":true,"spec":{"items":["m","n","o"]}},
+    {"type":"multiplechoice","description":"This is a multiple choice field","customattribute":"","mandatory":true,"spec":{"items":["x","y","z"]}},
+    {"type":"file","description":"This is a file field","customattribute":"","mandatory":true,"spec":{"file_types":["application/pdf","image/jpeg","image/bmp","application/vnd.openxmlformats-officedocument.wordprocessingml.document","application/vnd.ms-powerpoint"],"max_size":42}}
 ]';
-//DynamicFormHelper::$locale = "pt_BR";
+
+DynamicFormHelper::$locale = "pt_BR";
 $customInput = new DynamicForm($structureJSON);
 
 ?>

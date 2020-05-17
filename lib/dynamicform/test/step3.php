@@ -13,7 +13,7 @@
 
 require_once '../dynamicform.class.php';
 require_once '../dynamicformhelper.class.php';
-//DynamicFormHelper::$locale = "pt_BR";
+DynamicFormHelper::$locale = "pt_BR";
 $files = (isset($_FILES) && isset($_FILES['c'])) ? $_FILES['c'] : null;
 $dynamicForm = new DynamicForm($_POST['s'], $_POST['c'], $files, 'upload/');
 $validationErrors = $dynamicForm->validate();
@@ -57,8 +57,12 @@ var_dump($validationErrors);
   <h3>Table of contents - after removing some DynamicTable items</h3>
   <?php echo $dynamicForm->getHtmlFormattedContent("tablename", "tableid"); ?>
 <?php } else { ?>
-  <h3>Active form - with validation error messages</h3>
+  <h3>Validation error messages</h3>
   <!-- TODO Validation error messages on form -->
+  <ul>
+  <?php foreach($validationErrors as $validationError) echo "<li>$validationError</li>"; ?>
+  </ul>
+  <h3>Still active form</h3>
   <form method="post" action="step3.php" enctype="multipart/form-data">
   <div id="controls">
   <?php echo $dynamicForm->outputControls('s', 'c'); ?>

@@ -195,7 +195,7 @@ class DynamicForm
      * 
      * If the validation is successful, an empty array is returned.
      */
-    function validate()
+    function validate($humanReadableOutput = true)
     {
         $validationErrors = array();
         foreach($this->structure as $i => $structureItem)
@@ -203,7 +203,20 @@ class DynamicForm
             $validationMessages = $structureItem->validate();
             if (!empty($validationMessages)) $validationErrors[$i] = $validationMessages;
         }
-        return $validationErrors;
+        if ($humanReadableOutput)
+        {
+            $humanReadableMessages = array();
+            foreach ($validationErrors as $i => $validationMessages) foreach ($validationMessages as $validationMessage) 
+            {
+                $placeholder =  ["<field>" => $this->structure[$i]->description];
+                $humanReadableMessages[] = DynamicFormHelper::_($validationMessage, $placeholder);
+            }
+            return $humanReadableMessages;
+        }
+        else 
+        {
+            return $validationErrors;
+        }
     }
 
     /**

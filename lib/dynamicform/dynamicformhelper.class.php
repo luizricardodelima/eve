@@ -6,10 +6,13 @@ class DynamicFormHelper
     public static $dictionary = null;
 
     // translate key - dictionary
-	static function _($key)
+	static function _($key, $placeholders = null)
 	{
-		if (self::$dictionary === null) self::load_dictionary();
-		return (isset(self::$dictionary[$key])) ? self::$dictionary[$key] : $key;
+        if (self::$dictionary === null) self::load_dictionary();
+        $translation = isset(self::$dictionary[$key]) ? self::$dictionary[$key] : $key;
+        if (is_array($placeholders)) foreach($placeholders as $key => $value)
+            $translation = str_replace($key, $value, $translation);
+		return $translation;
 	}
 
 	static function load_dictionary()

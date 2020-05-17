@@ -16,6 +16,10 @@ if (!isset($_SESSION['screenname']))
 {	
 	$eve->output_redirect_page("userarea.php?sessionexpired=1");
 }
+else if (!isset($_GET['id']))
+{
+	$eve->output_error_page('common.message.invalid.parameter');
+}
 else if (!$eveSubmissionService->submission_definition_user_access_permitted($_GET['id'], $_SESSION['screenname']))
 {
 	$eve->output_error_page('common.message.no.permission');
@@ -30,6 +34,7 @@ else
 	$content = (isset($_POST) && isset($_POST['submission_content'])) ? $_POST['submission_content'] : null;
 	$files = (isset($_FILES) && isset($_FILES['submission_content'])) ? $_FILES['submission_content'] : null;
 	$dynamicForm = new DynamicForm($structure, $content, $files, 'upload/submission/');
+	$validation_errors = null; // If form is not sent because of validation errors, this page will display them
 
 	// User actions
 	if (isset ($_POST['action'])) switch ($_POST['action'])
@@ -39,12 +44,8 @@ else
 			$eve->output_redirect_page(basename(__FILE__)."?id={$_GET['id']}&message=$msg");
 			break;
 		case 'submission':
-			$validationErrors = $dynamicForm->validate();
-			if (!empty($validation_errors)) // There are validation errors
-			{
-				$eve->output_redirect_page(basename(__FILE__)."?id={$_GET['id']}&validation=".serialize($validation_errors));				
-			}
-			else // Everything is correct, creating new submission
+			$validation_errors = $dynamicForm->validate();
+			if(empty($validation_errors)) // validation returns no errors
 			{
 				$msg = $eveSubmissionService->submission_create($_GET['id'], $_SESSION['screenname'], $_POST['submission_structure'], json_encode($_POST['submission_content']));
 				if ($msg == EveSubmissionService::SUBMISSION_CREATE_SUCCESS)					
@@ -55,14 +56,11 @@ else
 			break;
 	}
 
-	// Loading helper classes	
-	$eveG11n = new EveG11n($eve);
-
 	// Header	
 	$eve->output_html_header();
 	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $submission_definition['description'], null);
 
-	// There are success/error messages
+	// Success/error messages
 	if (isset($_GET['message'])) switch ($_GET['message'])
 	{
 		case EveSubmissionService::SUBMISSION_CREATE_ERROR_SQL:
@@ -81,40 +79,14 @@ else
 			$eve->output_success_message("Submissão apagada com sucesso."); //TODO g11n
 			break;
 	}
-	// There are validation error messages
-	// TODO Make the messages in DynamicForm Lib AND DO NOT RELOAD THE PAGE IF VALIDATION FAILS
-	if (isset($_GET['validation']))
+	// Validation error messages
+	if (!empty($validation_errors))
 	{
-		$validation_errors = unserialize($_GET['validation']);
-		$validation_errors_messages = array();
-		foreach ($validation_errors as $pos => $array) foreach($array as $validation_error) switch ($validation_error)
-		{
-			case DynamicFormValidationError::MANDATORY:
-				$validation_errors_messages[] = "Campo {$structure[$pos]->description}: Obrigatório";
-				break;
-			case DynamicFormValidationError::UNDER_MIN_WORDS:
-				$validation_errors_messages[] = "Campo {$structure[$pos]->description}: Não tem o número mínimo de palavras exigido.";
-				break;
-			case DynamicFormValidationError::OVER_MAX_WORDS:
-				$validation_errors_messages[] = "Campo {$structure[$pos]->description}: Ultrapassou o número máximo de palavras permitido.";
-				break;
-			case DynamicFormValidationError::FILE_ERROR:
-			case DynamicFormValidationError::FILE_UPLOAD_ERROR:
-				$validation_errors_messages[] = "Campo {$structure[$pos]->description}: Erro ao fazer upload do arquivo.";
-				break;
-			case DynamicFormValidationError::FILE_EXCEEDED_SIZE:
-				$validation_errors_messages[] = "Campo {$structure[$pos]->description}: Arquivo maior que o permitido.";
-				break;
-			case DynamicFormValidationError::FILE_WRONG_TYPE:
-				$validation_errors_messages[] = "Campo {$structure[$pos]->description}: Tipo de arquivo não permitido.";
-				break;
-		}
-		// TODO certificar que seja função internacionalizável
-		$eve->output_error_list_message($validation_errors_messages);
+		$eve->output_error_list_message($validation_errors);
 	}
 
-	$submission_deadline = strtotime($submission_definition['deadline']);
-	$within_the_deadline = (time() < $submission_deadline);
+	$eveG11n = new EveG11n($eve);
+	$within_the_deadline = (!$submission_definition['deadline'] || time() < strtotime($submission_definition['deadline']));
 	$submissions_sent_by_user = $eveSubmissionService->submission_list($_GET['id'], 'owner', $_SESSION['screenname']);
 
 	// Displaying previous submissions // TODO: Consistent style of "wiew" dialog
@@ -148,7 +120,6 @@ else
 				document.body.appendChild(form);
 				form.submit();  
 			}
-			return false;
 		}
 		function view_submission(submission_id, field) 
 		{
@@ -215,9 +186,7 @@ else
 			<?php
 			$dynamicForm = new DynamicForm($submissions_sent_by_user[0]['structure'], json_decode($submissions_sent_by_user[0]['content']));
 			echo $dynamicForm->getHtmlFormattedContent('data_table');
-			
-			
-			 ?>
+			?>
 			<?php
 		}
 	}
@@ -228,24 +197,22 @@ else
 	// Displaying submission form, if we are before the deadline or user has a 'submission_after_deadline' access restriction (permission, in this case)
 	$submission_after_deadline = $eveSubmissionService->submission_after_deadline_allowed($_GET['id'], $_SESSION['screenname']);
 
-	// Showing the submission form if $new_submission_allowed (previously explainded) AND under the three cases below:
-	// If there is no deadline
-	// If there is deadline and it is within the deadline
-	// If there is deadline, out of date, but there's a special permission for user
+	// Showing the submission form if $new_submission_allowed (previously explainded) AND under the cases below:
+	// - If it is within the deadline
+	// - If there's a special permission for user to submit after the deadline
 	echo "<div class=\"section\">Novo envio</div>";
-	if ($new_submission_allowed && (!$submission_definition['deadline'] || $within_the_deadline || $submission_after_deadline))
+	if ($new_submission_allowed && ($within_the_deadline || $submission_after_deadline))
 	{	
 		?>
 		<form action="<?php echo basename(__FILE__)."?id={$_GET['id']}";?>" method="post" enctype="multipart/form-data" class="user_dialog_panel_large">
 		<p><?php if ($submission_definition['deadline'])
 		{
 			echo "Prazo para envio: "; // TODO g11n
-			echo $eveG11n->full_date_time_format($submission_deadline);
+			echo $eveG11n->full_date_time_format(strtotime($submission_definition['deadline']));
 			if($submission_after_deadline) echo "&nbsp;(O prazo para envio foi prorrogado para você)."; // TODO g11n
 		}
 		?>
 		</p>
-
 		<?php echo $submission_definition['information']; ?>
 		<?php echo $dynamicForm->outputControls('submission_structure', 'submission_content') ?>
 		<input type="hidden" name="action" value="submission"/>

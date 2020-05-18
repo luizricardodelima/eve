@@ -192,8 +192,6 @@ class Eve
 		echo "<div class=\"$class\"><span class=\"msg_icon\">$icon</span><span class=\"msg_body\">$text</span> <button class=\"msg_close\" onclick=\"dismiss(this);\">X</button></div>";
 	}
 
-	//	TODO DEPRECATED - Remove
-	//  TODO RECONSIDER THE DEPRECATION. IT CAN BE USEFUL.
 	function output_error_list_message($message_array)
 	{
 		// TODO G11n
@@ -202,6 +200,18 @@ class Eve
 		$this->output_message('error', $error_message);
 	}
 	
+	/**
+	 * Function for correctly displaying the messages output by services,
+	 * showing error or success messages according to the case.
+	 */
+	function output_service_message($message)
+	{
+		if (strpos($_GET['message'], 'success') === false)
+			$this->output_error_message($message);
+		else
+			$this->output_success_message($message);
+	}
+
 	function output_error_message($message)
 	{
 		$this->output_message('error', $message);

@@ -18,40 +18,13 @@ else if (!isset($_GET['id']) || !$eveSubmissionService->submission_definition_ge
 {
 	$eve->output_error_page('common.message.invalid.parameter');
 }
-// Checking whether there are post actions. If so, perform these actions and reload
-// current page without post actions. It's done this way to prevent repeating actions
-// when page is reloaded.
-else if (isset($_POST['action']))
-{	// TODO RESOLVE SECURITY FLAWS: 'set_revierer' only for admins and final_reviewers - revision: only for admins, final_reviewers and reviewers
-	switch ($_POST['action'])
-	{
-		case 'change_status':
-			$eveSubmissionService->submission_change_revision_status($_POST['submission_id'], $_POST['status']);
-			$eve->output_redirect_page(basename(__FILE__)."?id={$_GET['id']}&success=3");
-			break;
-		case 'set_reviewer':
-			foreach ($_POST['submission'] as $submission_id)
-				$eveSubmissionService->submission_set_reviewer($submission_id, $_POST['reviewer']);
-			$eve->output_redirect_page(basename(__FILE__)."?id={$_GET['id']}&success=1");
-			break;
-		case 'revision':
-			$validation_errors = $eveCustomInputService->custom_input_validate(json_decode($_POST['revision_structure']), $_POST['revision_content'], $_FILES['revision_content'], 'upload/submission');
-			if (empty($validation_errors))
-			{
-				$eveSubmissionService->submission_review($_POST['submission_id'], json_decode($_POST['revision_structure']), $_POST['revision_content'], $_SESSION['screenname']);
-				$eve->output_redirect_page(basename(__FILE__)."?id={$_GET['id']}&success=2");
-			}
-			else
-			{
-				$eve->output_redirect_page(basename(__FILE__)."?id={$_GET['id']}&validation=".serialize($validation_errors));
-			}
-			break;
-	} 
-}
+else 
+{
+	
+
 // If there's a valid session, and the current user is administrator and there are no
 // actions, display the regular listing page.
-else
-{
+
 	$submission_definition = $eveSubmissionService->submission_definition_get($_GET['id']);
 	
 	$access_mode = null;
@@ -63,12 +36,49 @@ else
 		$access_mode = 'reviewer';
 	else
 		$access_mode = 'owner';
+
+	$message == null;
+	$validation_errors == null;
 	
-	
+	if (isset($_POST['action'])) switch ($_POST['action'])
+	{ // TODO RESOLVE SECURITY FLAWS: 'set_revierer' only for admins and final_reviewers - revision: only for admins, final_reviewers and reviewers
+		// TODO MAYBE DO IT IN THE SERVICES...
+		// TODO submission services have to return the correct messages! Reloading is probably not necessary anymore
+		case 'change_status':
+			$message = $eveSubmissionService->submission_change_revision_status($_POST['submission_id'], $_POST['status']);
+			// $eve->output_redirect_page(basename(__FILE__)."?id={$_GET['id']}&access_mode={$access_mode}&success=3");
+			break;
+		case 'set_reviewer':
+			foreach ($_POST['submission'] as $submission_id) // TODO SUM UP THE MESSAGES!
+				$message = $eveSubmissionService->submission_set_reviewer($submission_id, $_POST['reviewer']);
+			// $eve->output_redirect_page(basename(__FILE__)."?id={$_GET['id']}&access_mode={$access_mode}&success=1");
+			break;
+		case 'revision':
+			$validation_errors = $eveCustomInputService->custom_input_validate(json_decode($_POST['revision_structure']), $_POST['revision_content'], $_FILES['revision_content'], 'upload/submission');
+			if (empty($validation_errors))
+			{
+				$message = $eveSubmissionService->submission_review($_POST['submission_id'], json_decode($_POST['revision_structure']), $_POST['revision_content'], $_SESSION['screenname']);
+				//$eve->output_redirect_page(basename(__FILE__)."?id={$_GET['id']}&access_mode={$access_mode}&success=2");
+			}
+			else
+			{
+				//$eve->output_redirect_page(basename(__FILE__)."?id={$_GET['id']}&access_mode={$access_mode}&validation=".serialize($validation_errors));
+			}
+			break;
+	} 
+
 	$eve->output_html_header();
 	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('submission_definitions'), "submission_definitions.php", $submission_definition['description'], null);
 
-	// TODO: CASE 3
+	// Success/error messages
+	if (!is_null($message)) $eve->output_service_message($message);
+	// Validation error messages
+	if (!empty($validation_errors))	$eve->output_error_list_message($validation_errors);
+	
+	/* THIS BLOCKED WILL BE REMOVED BECAUSE ERRROR MESSAGES ARE THROWN BY SERVICES AND
+	 * TRANSLATED IN EVE CLASS. VALIDATION MESSAGES ARE THROWN ALREADY TRANSLATED BY
+	 * DYNAMIC FORM
+	//TODO: CASE 3
 	if (isset($_GET['success'])) switch ($_GET['success'])
 	{
 		case '1':
@@ -112,13 +122,17 @@ else
 		}
 		// TODO usar função internacionalizável
 		$eve->output_error_list_message($validation_errors_messages);
-	}
+		
+	}*/
 
 	?>
-	<div class="section">		
-	<?php if ($access_mode == 'admin' || $access_mode == 'final_reviewer') { ?><button type="button" onclick="set_reviewer_show_dialog();">Atribuir avaliador</button><?php } ?>
-	<!--<button type="button" onclick="alert('To be implemented');">Exportar</button>-->
+	<div class="section">
+	<!-- TODO --> <button type="button" onclick="alert('Implement - Filtro no DynamicForm, deixar lista em javascript client-side e atualizar view')">Filtrar</button>
+	<?php if ($access_mode == 'admin' || $access_mode == 'final_reviewer') { ?><button type="button" onclick="alert('Implement - Avaliador final pode gerenciar avaliadores - passar referencia para a tela de gerenciamento de avaliadores pra voltar a esta tela depois');">Gerenciar avaliadores</button><?php } ?>
+	<!-- TODO --><?php if ($access_mode == 'admin' || $access_mode == 'final_reviewer') { ?><button type="button" onclick="set_reviewer_show_dialog();">Atribuir avaliador</button><?php } ?>
+	<!-- TODO PARA admins, final_reviewers and reviewers --><button type="button" onclick="alert('To be implemented');">Exportar</button>
 	<?php if ($access_mode == 'admin' || $access_mode == 'final_reviewer') { ?><button type="button" onclick="window.location.href = 'submissionsexport.php?id=<?php echo $_GET['id'];?>';">Exportar tudo</button><?php } ?>
+	
 	</div>
 	
 	<!--
@@ -131,7 +145,7 @@ else
 	<dialog id="submission_review_dialog" style="position: fixed; top: 0; left: 0; width: 99%; height: 99%;">
 	<div style="width:99%; height: 1.5em;"> <button type="button" onclick="document.getElementById('submission_review_dialog').close();">Fechar</button></div>	
 	<div style="width:99%; height: calc(99% - 2em); overflow-y: scroll;" >	
-	<form action="<?php echo basename(__FILE__)."?id={$_GET['id']}";?>" method="post" enctype="multipart/form-data">
+	<form action="<?php echo basename(__FILE__)."?id={$_GET['id']}&access_mode={$access_mode}";?>" method="post" enctype="multipart/form-data">
 	<input type="hidden" name="action" value="revision"/>
 	<input type="hidden" name="submission_id" id="submission_id_review"/>
 	<input type="hidden" name="revision_structure" value="<?php echo htmlentities($submission_definition['revision_structure']);?>"/>
@@ -140,7 +154,7 @@ else
 	</div>
 	</dialog>
 
-	<form method="post" id="change_status_form">
+	<form id="change_status_form" action="<?php echo basename(__FILE__)."?id={$_GET['id']}&access_mode={$access_mode}";?>" method="post">
 	<input type="hidden" name="action" value="change_status"/>
 	<input type="hidden" name="submission_id" id="change_status_form_submission_id"/>
 	<dialog id="change_status_dialog">
@@ -158,7 +172,7 @@ else
 	</dialog>	
 	</form>
 
-	<form method="post" id="submissions_form">
+	<form id="submissions_form" action="<?php echo basename(__FILE__)."?id={$_GET['id']}&access_mode={$access_mode}";?>" method="post">
 	<input type="hidden" name="action" id="action_hidden_value"/>
 	<dialog id="set_reviewer_dialog" style="display:none">
 	<select name="reviewer">
@@ -337,7 +351,7 @@ else
 	function submission_review(submission_id)
 	{
 		var xhr = new XMLHttpRequest();
-		xhr.open('GET', 'service/submission_review.php?id=' + submission_id);
+		xhr.open('GET', 'service/submission_review_controls.php?id=' + submission_id);
 		xhr.onload = function() {
 		    if (xhr.status === 200) {
 			document.getElementById('submission_id_review').value = submission_id;
@@ -363,16 +377,11 @@ else
 	}
 	function toggleRow(source)
 	{
-		if (source.checked)
-		{
-			source.parentNode.parentNode.classList.add('selected');
-		}
-		else
-		{
-			source.parentNode.parentNode.classList.remove('selected');
-		}
+		if (source.checked) source.parentNode.parentNode.classList.add('selected');
+		else source.parentNode.parentNode.classList.remove('selected');
 	}
 	</script>
+
 	<?php
 	$eve->output_html_footer();
 }

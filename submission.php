@@ -3,7 +3,6 @@ session_start();
 
 require_once 'lib/dynamicform/dynamicform.class.php';
 require_once 'lib/dynamicform/dynamicformhelper.class.php';
-require_once 'lib/dynamicform/dynamicformvalidationerror.class.php';
 require_once 'eve.class.php';
 require_once 'eveg11n.class.php';
 require_once 'evesubmissionservice.class.php';
@@ -61,29 +60,9 @@ else
 	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $submission_definition['description'], null);
 
 	// Success/error messages
-	if (isset($_GET['message'])) switch ($_GET['message'])
-	{
-		case EveSubmissionService::SUBMISSION_CREATE_ERROR_SQL:
-			$eve->output_success_message("Erro no banco de dados ao realizar envio."); //TODO g11n
-			break;
-		case EveSubmissionService::SUBMISSION_DELETE_ERROR_SQL:
-			$eve->output_error_message("Erro no banco de dados ao apagar submissão."); //TODO g11n
-			break;
-		case EveSubmissionService::SUBMISSION_DELETE_ERROR_FORBIDDEN:
-			$eve->output_error_message("Erro ao apagar submissão. Permissão negada."); //TODO g11n
-			break;	
-		case EveSubmissionService::SUBMISSION_DELETE_ERROR_NOT_FOUND:
-			$eve->output_error_message("Erro ao apagar submissão. Submissão não encontrada."); //TODO g11n
-			break;		
-		case EveSubmissionService::SUBMISSION_DELETE_SUCCESS:
-			$eve->output_success_message("Submissão apagada com sucesso."); //TODO g11n
-			break;
-	}
+	if (isset($_GET['message'])) $eve->output_service_message($_GET['message']);
 	// Validation error messages
-	if (!empty($validation_errors))
-	{
-		$eve->output_error_list_message($validation_errors);
-	}
+	if (!empty($validation_errors))	$eve->output_error_list_message($validation_errors);
 
 	$eveG11n = new EveG11n($eve);
 	$within_the_deadline = (!$submission_definition['deadline'] || time() < strtotime($submission_definition['deadline']));
@@ -92,7 +71,7 @@ else
 	// Displaying previous submissions // TODO: Consistent style of "wiew" dialog
 	if (!empty($submissions_sent_by_user))
 	{
-		?>
+		?><!-- Viewer -->
 		<div id="viewer" style="display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgb(0,0,0); background-color: rgba(0,0,0,0.4);">
 		<div style="background-color: white; margin: 15% auto; border: 2px solid #333; width: 80%;" >
 		<button type="button" style="background-color:#333; color: white; float: right; border-radius: 0;" onclick="document.getElementById('viewer').style.display = 'none';"> X </button>
@@ -142,7 +121,7 @@ else
 		<?php
 		if ($submission_definition['allow_multiple_submissions'])
 		{
-			// Multiple submissions allowed. Display a list
+			// Multiple submissions allowed. Displaying a list of them
 			?>
 			<table class="data_table">
 			<tr>
@@ -161,12 +140,11 @@ else
 				echo "<td style=\"text-align:center\">".$eve->_("submission.revision_status.ownerview.{$submission['revision_status']}")."</td>";
 				echo "<td><button type=\"button\" onclick=\"view_submission({$submission['id']},'formatted_content');\"><img src=\"style/icons/view.png\"></button></td>";
 				echo "<td>";			
-				if ($submission['revision_status'] >= 2)	
+				if ($submission['revision_status'] >= 2) // Revision visible to user after final revision (status == 2)
 					echo "<button type=\"button\" onclick=\"view_submission({$submission['id']},'formatted_review');\"><img src=\"style/icons/revision.png\"></button>";			
 				echo "</td>";			
 				echo "<td>";
-				// Delete option is shown if whithin deadline (or no deadline at all)  and is not reviewed.
-				if ((!$submission_definition['deadline'] || $within_the_deadline) && $submission['revision_status'] == 0)
+				if ($within_the_deadline && $submission['revision_status'] == 0) // Delete available only if whithin deadline and is not reviewed.
 					echo "<button type=\"button\" onclick=\"delete_submission({$submission['id']});\"><img src=\"style/icons/delete.png\" /></button>";
 				echo "</td>";
 				echo "</tr>";
@@ -178,26 +156,24 @@ else
 		else
 		{
 			// Only one submission allowed, display it
-			?>
-			<div class="section">Envio em <?php echo $eveG11n->compact_date_time_format(strtotime($submissions_sent_by_user[0]['date'])); ?>
-				<button onclick="alert('todo')">Apagar</button>
-				<button onclick="alert('todo')">Resultado da Revisão</button>
-			</div>
-			<?php
+			echo "<div class=\"section\">Envio em ".$eveG11n->compact_date_time_format(strtotime($submissions_sent_by_user[0]['date']))." ";
+			if ($submissions_sent_by_user[0]['revision_status'] >= 2) // Revision visible to user after final revision (status == 2)
+				echo "<button onclick=\"view_submission({$submissions_sent_by_user[0]['id']}, 'formatted_review')\">Resultado da Revisão</button>";
+			if ($within_the_deadline && $submissions_sent_by_user[0]['revision_status'] == 0) // Delete available only if whithin deadline and is not reviewed.
+				echo "<button onclick=\"delete_submission({$submissions_sent_by_user[0]['id']})\">Apagar</button>";			
+			echo "</div>";
 			$dynamicForm = new DynamicForm($submissions_sent_by_user[0]['structure'], json_decode($submissions_sent_by_user[0]['content']));
 			echo $dynamicForm->getHtmlFormattedContent('data_table');
-			?>
-			<?php
 		}
 	}
 
 	// A new submission is allowed if the submission definition allows multiple submissions or there is no submission sent
 	$new_submission_allowed = $submission_definition['allow_multiple_submissions'] || (count($submissions_sent_by_user) ==  0);
 	
-	// Displaying submission form, if we are before the deadline or user has a 'submission_after_deadline' access restriction (permission, in this case)
+	// Checking if user has any special permission in case the deadline is over
 	$submission_after_deadline = $eveSubmissionService->submission_after_deadline_allowed($_GET['id'], $_SESSION['screenname']);
 
-	// Showing the submission form if $new_submission_allowed (previously explainded) AND under the cases below:
+	// Showing the submission form if $new_submission_allowed AND if one of the cases below is true:
 	// - If it is within the deadline
 	// - If there's a special permission for user to submit after the deadline
 	echo "<div class=\"section\">Novo envio</div>";
@@ -223,8 +199,7 @@ else
 	}
 	else if (!$new_submission_allowed)
 	{
-		?>
-		<!--  A new submission is not possible because there is a submission sent -->
+		// A new submission is not possible because there is a submission sent ?>
 		<div class="user_dialog_panel_large">
 		<p>Envio já realizado.</p>
 		</div>
@@ -232,8 +207,7 @@ else
 	}
 	else
 	{
-		?>
-		<!--  A new submission is not possible because there is a submission sent -->
+		// A new submission is not possible because the deadline is over ?>
 		<div class="user_dialog_panel_large">
 		<p>Prazo encerrado para envios.</p>
 		</div>

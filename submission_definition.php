@@ -95,7 +95,7 @@ else
 	}
 	?>
 	</select>
-	<p>Estrutura de submissão: Marque com atributo personalizado <strong>noreview</strong> para os campos não acessíveis ao revisor.</p>
+	<p>Estrutura de submissão<br/><small> Marque com atributo personalizado <strong>maininfo</strong> os campos que aparecerão nas tabelas de listagem do sistema e <strong>noreview</strong> para os campos não acessíveis ao revisor.</small></p>
 	<?php
 	// TODO: g11n text above
 	DynamicFormHelper::$locale = $eve->getSetting('system_locale');

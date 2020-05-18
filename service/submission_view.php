@@ -66,7 +66,8 @@ else if (
 	$submission['revision_structure'] = json_decode($submission['revision_structure']);
 	$submission['revision_content'] = json_decode($submission['revision_content']);
 
-	// Removing all the not-unrestrict items from structure, if customattribute == 'noreview'
+	// Removing all items from structure that are not supposed to be vieweb by reviewer
+	// they are marked with the custom attribute 'noreview'
 	if ($only_unrestrict_view)
 	{
 		foreach($submission['structure'] as $i => $submission_structure_item)

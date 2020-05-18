@@ -8,14 +8,14 @@ class EveSubmissionService
 	private $eve;
 	private $evemail;
 
-	const SUBMISSION_CREATE_SUCCESS = 1;
-	const SUBMISSION_CREATE_ERROR_SQL = 2;
-	const SUBMISSION_DELETE_ERROR_SQL = 3;
-	const SUBMISSION_DELETE_ERROR_FORBIDDEN = 4;
-	const SUBMISSION_DELETE_ERROR_NOT_FOUND = 5;	
-	const SUBMISSION_DELETE_SUCCESS = 6;
-	const SUBMISSION_UPDATE_SUCCESS = 7;
-	const SUBMISSION_UPDATE_ERROR_SQL = 8;
+	const SUBMISSION_CREATE_SUCCESS = 'submission.create.success';
+	const SUBMISSION_CREATE_ERROR_SQL = 'submission.create.error.sql';
+	const SUBMISSION_DELETE_ERROR_SQL = 'submission.delete.error.sql';
+	const SUBMISSION_DELETE_ERROR_FORBIDDEN = 'submission.delete.error.forbidden';
+	const SUBMISSION_DELETE_ERROR_NOT_FOUND = 'submission.delete.error.not.found';	
+	const SUBMISSION_DELETE_SUCCESS = 'submission.delete.success';
+	const SUBMISSION_UPDATE_SUCCESS = 'submission.update.success';
+	const SUBMISSION_UPDATE_ERROR_SQL = 'submission.update.error.sql';
 
 	const SUBMISSION_DEFINITION_CREATE_ERROR_SQL = 9;
 	const SUBMISSION_DEFINITION_CREATE_SUCCESS = 10;

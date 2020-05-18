@@ -7,9 +7,9 @@ require_once '../evesubmissionservice.class.php';
 require_once '../eve.class.php';
 require_once '../evecustominputservice.class.php';
 
+// TODO SESSION VERIFICATION
 
-// TODO ALL THE SECURITY VERIFICATIONS
-$eve = new Eve("../");
+$eve = new Eve("../"); // TODO !!!!
 $eveSubmissionService = new EveSubmissionService($eve);
 $eveCustomInputService = new EveCustomInputService($eve);
 

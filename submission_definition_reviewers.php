@@ -5,126 +5,110 @@ require_once 'evesubmissionservice.class.php';
 
 $eve = new Eve();
 $eveSubmissionService = new EveSubmissionService($eve);
+$submission_definition = (isset($_GET['id'])) ? $eveSubmissionService->submission_definition_get($_GET['id']) : null;
 
-// Session verification.
 if (!isset($_SESSION['screenname']))
 {	
+	// If there is no session, redirect to front page
 	$eve->output_redirect_page("userarea.php?sessionexpired=1");
 }
-// Administrative privileges verification.
-else if (!$eve->is_admin($_SESSION['screenname']))
+else if ($submission_definition == null)
+{
+	// If $_GET['id'] is not passed or does not refer to a valid submission, show error.
+	$eve->output_error_page('common.message.invalid.parameter');
+}
+else if
+(
+	// This page is only accessible to system admins and final reviewer; If none of these
+	// cases apply, an error is shown.
+	!$eve->is_admin($_SESSION['screenname']) &&
+	!$eveSubmissionService->is_final_reviewer($_SESSION['screenname'], $submission_definition['id'])
+)
 {
 	$eve->output_error_page('common.message.no.permission');
 }
-// Checking whether an id was passed and whether it is valid
-else if (!isset($_GET['id']) || !$eveSubmissionService->submission_definition_get($_GET['id']))
+else 
 {
-	$eve->output_error_page('common.message.invalid.parameter');
-}
-// Checking whether there are post actions. If so, perform these actions and reload
-// current page without post actions. It's done this way to prevent repeating actions
-// when page is reloaded.
-else if (isset($_POST['action']))
-{
-	switch ($_POST['action'])
+	$message = null;
+
+	if (isset($_POST['action'])) switch ($_POST['action'])
 	{
 		case 'add_reviewer':
-			$msg = $eveSubmissionService->submission_definition_reviewer_add($_GET['id'], $_POST['email'], 'reviewer');
+			$message = $eveSubmissionService->submission_definition_reviewer_add($_GET['id'], $_POST['email'], 'reviewer');
 			break;
 		case 'add_final_reviewer':
-			$msg = $eveSubmissionService->submission_definition_reviewer_add($_GET['id'], $_POST['email'], 'final_reviewer');
+			$message = $eveSubmissionService->submission_definition_reviewer_add($_GET['id'], $_POST['email'], 'final_reviewer');
 			break;
 		case 'delete_reviewer':
-			$msg = $eveSubmissionService->submission_definition_reviewer_delete($_POST['id']);
+			$message = $eveSubmissionService->submission_definition_reviewer_delete($_POST['id']);
 			break;
 	}
-	$eve->output_redirect_page(basename(__FILE__)."?id={$_GET['id']}&message=$msg");
-}
-// If there's a valid session, and the current user is administrator and there are no
-// actions, display the regular listing page.
-else
-{
-	$submission_definition = $eveSubmissionService->submission_definition_get($_GET['id']);
+	
 	$eve->output_html_header();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('submission_definitions'), "submission_definitions.php", $submission_definition['description'], "submission_definition.php?id={$_GET['id']}", $eve->_('submission_definition.reviewers'), null);
+	if (isset($_GET['backlink']) && $_GET['backlink'] == 'submissions_final_reviewer')
+		$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $submission_definition['description'], "submissions.php?id={$_GET['id']}&access_mode=final_reviewer", $eve->_('submission_definition.reviewers'), null);
+	else
+		$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('submission_definitions'), "submission_definitions.php", $submission_definition['description'], "submission_definition.php?id={$_GET['id']}", $eve->_('submission_definition.reviewers'), null);
 
-	if (isset($_GET['message'])) switch ($_GET['message'])
-	{
-		// TODO g11n
-		case EveSubmissionService::SUBMISSION_DEFINITION_REVIEWER_ADD_ERROR_INVALID_EMAIL:
-			$eve->output_error_message("Erro ao adicionar avaliador: e-mail inválido.");
-			break;
-		case EveSubmissionService::SUBMISSION_DEFINITION_REVIEWER_ADD_ERROR_USER_DOES_NOT_EXIST:
-			$eve->output_error_message("Erro ao adicionar avaliador: usuário não existe.");
-			break;
-		case EveSubmissionService::SUBMISSION_DEFINITION_REVIEWER_ADD_ERROR_INVALID_TYPE:
-			$eve->output_error_message("Erro ao adicionar avaliador: tipo inválido.");
-			break;
-		case EveSubmissionService::SUBMISSION_DEFINITION_REVIEWER_ADD_ERROR_REVIEWER_ALREADY_EXISTS:
-			$eve->output_error_message("Erro ao adicionar avaliador: avaliador já existe.");
-			break;
-		case EveSubmissionService::SUBMISSION_DEFINITION_REVIEWER_ADD_ERROR_SQL:
-			$eve->output_error_message("Erro no banco de dados ao adicionar avaliador.");
-			break;
-		case EveSubmissionService::SUBMISSION_DEFINITION_REVIEWER_ADD_SUCCESS:
-			$eve->output_success_message("Sucesso ao adicionar avaliador.");
-			break;
-		case EveSubmissionService::SUBMISSION_DEFINITION_REVIEWER_DELETE_ERROR_SQL:
-			$eve->output_error_message("Erro no banco de dados ao apagar avaliador.");
-			break;
-		case EveSubmissionService::SUBMISSION_DEFINITION_REVIEWER_DELETE_SUCCESS:
-			$eve->output_success_message("Sucesso ao apagar avaliador.");
-			break;
-	}
+	// Success/error messages
+	if (!is_null($message)) $eve->output_service_message($message);
 
 	?>
-
 	<div class="section">		
-	<button type="button" onclick="add_reviewer();">Adicionar avaliador</button>
-	<button type="button" onclick="add_final_reviewer();">Adicionar avaliador final</button>
+	<button type="button" onclick="add_reviewer('reviewer');">Adicionar avaliador</button>
+	<button type="button" onclick="add_reviewer('final_reviewer');">Adicionar avaliador final</button>
 	</div>
 
-	<form method="post" id="submission_definition_reviewers_form">
-	<input type="hidden" name="action" id="submission_definition_reviewers_action"/>
-	<input type="hidden" name="email" id="submission_definition_reviewers_email"/>
-	</form>
-
-	<form method="post" id="submission_definition_reviewers_delete_form">
-	<input type="hidden" name="action" value="delete_reviewer"/>
-	<input type="hidden" name="id" id="submission_definition_reviewers_delete_id"/>
-	</form>
-
 	<script>
-	function add_reviewer()
+	function add_reviewer(type)
 	{
-		var reviewer_email = prompt("Digite o e-mail do avaliador");
+		// TODO G11n
+		var message = (type == 'final_reviewer') ? 'Digite o e-mail do avaliador final' : 'Digite o e-mail do avaliador';
+		var action  = (type == 'final_reviewer') ? 'add_final_reviewer' : 'add_reviewer';
+		var url = '<?php echo basename(__FILE__)."?id=".$_GET['id']; if (isset($_GET['backlink']) && $_GET['backlink'] == 'submissions_final_reviewer') echo "&backlink=submissions_final_reviewer";?>';
+		var reviewer_email = prompt(message);
 		if (reviewer_email != null)
 		{
-			document.getElementById('submission_definition_reviewers_action').value='add_reviewer';
-			document.getElementById('submission_definition_reviewers_email').value=reviewer_email;
-			document.forms['submission_definition_reviewers_form'].submit();
-		}
-		return false;
-	}
-
-	function add_final_reviewer()
-	{
-		var reviewer_email = prompt("Digite o e-mail do avaliador final");
-		if (reviewer_email != null)
-		{
-			document.getElementById('submission_definition_reviewers_action').value='add_final_reviewer';
-			document.getElementById('submission_definition_reviewers_email').value=reviewer_email;
-			document.forms['submission_definition_reviewers_form'].submit();
+			form = document.createElement('form');
+			form.setAttribute('method', 'POST');
+			form.setAttribute('action', url);
+			var1 = document.createElement('input');
+			var1.setAttribute('type', 'hidden');
+			var1.setAttribute('name', 'action');
+			var1.setAttribute('value', action);
+			form.appendChild(var1);
+			var2 = document.createElement('input');
+			var2.setAttribute('type', 'hidden');
+			var2.setAttribute('name', 'email');
+			var2.setAttribute('value', reviewer_email);
+			form.appendChild(var2);
+			document.body.appendChild(form);
+			form.submit();
 		}
 		return false;
 	}
 
 	function delete_reviewer(reviewer_id, reviewer_email)
 	{
+		var url = '<?php echo basename(__FILE__)."?id=".$_GET['id']; if (isset($_GET['backlink']) && $_GET['backlink'] == 'submissions_final_reviewer') echo "&backlink=submissions_final_reviewer";?>';
+		// TODO G11n
 		if (confirm("Confirma a exclusão do avaliador " + reviewer_email + "?"))
 		{
-			document.getElementById('submission_definition_reviewers_delete_id').value=reviewer_id;
-			document.forms['submission_definition_reviewers_delete_form'].submit();
+			form = document.createElement('form');
+			form.setAttribute('method', 'POST');
+			form.setAttribute('action', url);
+			var1 = document.createElement('input');
+			var1.setAttribute('type', 'hidden');
+			var1.setAttribute('name', 'action');
+			var1.setAttribute('value', 'delete_reviewer');
+			form.appendChild(var1);
+			var2 = document.createElement('input');
+			var2.setAttribute('type', 'hidden');
+			var2.setAttribute('name', 'id');
+			var2.setAttribute('value', reviewer_id);
+			form.appendChild(var2);
+			document.body.appendChild(form);
+			form.submit();
 		}
 		return false;
 	}

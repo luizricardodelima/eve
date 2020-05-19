@@ -206,7 +206,7 @@ class Eve
 	 */
 	function output_service_message($message)
 	{
-		if (strpos($_GET['message'], 'success') === false)
+		if (strpos($message, 'success') === false)
 			$this->output_error_message($message);
 		else
 			$this->output_success_message($message);

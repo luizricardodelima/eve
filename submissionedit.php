@@ -24,7 +24,7 @@ else if
 (
 	// This page is meant to be accessed by system admins, the final reviewer of the
 	// submission definition or the reviewer of the current submission. If none of these
-	// cases apply, the user is not alowed to acces this page and an error is shown.
+	// cases apply, the user is not alowed to access this page and an error is shown.
 	!$eve->is_admin($_SESSION['screenname']) &&
 	!$eveSubmissionService->is_final_reviewer($_SESSION['screenname'], $submission['submission_definition_id']) &&
 	$submission['reviewer_email'] != $_SESSION['screenname']
@@ -42,6 +42,7 @@ else
 	$files = (isset($_FILES) && isset($_FILES['content'])) ? $_FILES['content'] : null;
 	$dynamicForm = new DynamicForm($structure, $content, $files, 'upload/submission/');
 	$validation_errors = null; // If form is not sent because of validation errors, this page will display them
+	$message = null;
 
 	// Performing actions, if there are post data
 	if (isset($_POST['action'])) switch ($_POST['action'])
@@ -49,10 +50,7 @@ else
 		case 'update':
 			$validation_errors = $dynamicForm->validate();
 			if(empty($validation_errors)) // validation returns no errors
-			{
-				$msg = $eveSubmissionService->submission_update($_GET['id'], json_encode($content));
-				$eve->output_redirect_page(basename(__FILE__)."?id={$_GET['id']}&message=$msg");
-			}
+				$message = $eveSubmissionService->submission_update($_GET['id'], json_encode($content));
 			break;
 	}
 
@@ -61,7 +59,7 @@ else
 	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('submission_definitions'), "submission_definitions.php", $submissiondefinition['description'], "submissions.php?id={$submissiondefinition['id']}", "ID {$submission['id']}", null);
 
 	// Success/error messages
-	if (isset($_GET['message'])) $eve->output_service_message($_GET['message']);
+	if (!is_null($message)) $eve->output_service_message($_GET['message']);
 	// Validation error messages
 	if (!empty($validation_errors))	$eve->output_error_list_message($validation_errors);
 

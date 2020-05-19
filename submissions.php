@@ -1,12 +1,12 @@
 <?php
 session_start();
+require_once 'lib/dynamicform/dynamicform.class.php';
+require_once 'lib/dynamicform/dynamicformhelper.class.php';
 require_once 'eve.class.php';
-require_once 'evecustominputservice.class.php';
 require_once 'evesubmissionservice.class.php';
 
 $eve = new Eve();
 $eveSubmissionService = new EveSubmissionService($eve);
-$eveCustomInputService = new EveCustomInputService($eve);
 
 // Session verification.
 if (!isset($_SESSION['screenname']))
@@ -27,18 +27,32 @@ else
 
 	$submission_definition = $eveSubmissionService->submission_definition_get($_GET['id']);
 	
-	$access_mode = null;
-	if 	($eve->is_admin($_SESSION['screenname']) && $_GET['access_mode'] != 'final_reviewer' && $_GET['access_mode'] != 'reviewer')
+	// $access_mode is passed as a get variable or cannot be passed. Therefore it is 
+	// necessary to normalize its value given the user.
+	$access_mode = isset($_GET['access_mode']) ? $_GET['access_mode'] : '';
+	if
+	(
+		$eve->is_admin($_SESSION['screenname']) &&
+		!in_array($access_mode, array('final_reviewer', 'reviewer', 'owner'))
+	)
 		$access_mode = 'admin';
-	else if ($eveSubmissionService->is_final_reviewer($_SESSION['screenname'], $_GET['id'])  && $_GET['access_mode'] != 'reviewer')
+	else if
+	(	
+		$eveSubmissionService->is_final_reviewer($_SESSION['screenname'], $_GET['id']) &&
+		!in_array($access_mode, array('reviewer', 'owner'))
+	)
 		$access_mode = 'final_reviewer';
-	else if ($eveSubmissionService->is_reviewer($_SESSION['screenname'], $_GET['id']))
+	else if
+	(
+		$eveSubmissionService->is_reviewer($_SESSION['screenname'], $_GET['id']) &&
+		!in_array($access_mode, array('owner'))
+	)
 		$access_mode = 'reviewer';
 	else
 		$access_mode = 'owner';
 
-	$message == null;
-	$validation_errors == null;
+	$message = null;
+	$validation_errors = null;
 	
 	if (isset($_POST['action'])) switch ($_POST['action'])
 	{ // TODO RESOLVE SECURITY FLAWS: 'set_revierer' only for admins and final_reviewers - revision: only for admins, final_reviewers and reviewers
@@ -49,27 +63,30 @@ else
 			// $eve->output_redirect_page(basename(__FILE__)."?id={$_GET['id']}&access_mode={$access_mode}&success=3");
 			break;
 		case 'set_reviewer':
-			foreach ($_POST['submission'] as $submission_id) // TODO SUM UP THE MESSAGES!
+			$submissions_to_set_reviewer = json_decode($_POST['submissions_to_set_reviewer']);
+			foreach ($submissions_to_set_reviewer as $submission_id)
 				$message = $eveSubmissionService->submission_set_reviewer($submission_id, $_POST['reviewer']);
-			// $eve->output_redirect_page(basename(__FILE__)."?id={$_GET['id']}&access_mode={$access_mode}&success=1");
 			break;
 		case 'revision':
-			$validation_errors = $eveCustomInputService->custom_input_validate(json_decode($_POST['revision_structure']), $_POST['revision_content'], $_FILES['revision_content'], 'upload/submission');
+			$files = (isset($_FILES['revision_content'])) ? $_FILES['revision_content'] : null;
+			DynamicFormHelper::$locale = $eve->getSetting('system_locale');
+			$dynamicForm = new DynamicForm($_POST['revision_structure'], $_POST['revision_content'], $_FILES['revision_content'], 'upload/submission/');
+			$validation_errors = $dynamicForm->validate();
 			if (empty($validation_errors))
 			{
+				// TODO submission_review tem que receber DynamicForm porque ele pode ter sido modificado por upload de arquivo
 				$message = $eveSubmissionService->submission_review($_POST['submission_id'], json_decode($_POST['revision_structure']), $_POST['revision_content'], $_SESSION['screenname']);
 				//$eve->output_redirect_page(basename(__FILE__)."?id={$_GET['id']}&access_mode={$access_mode}&success=2");
-			}
-			else
-			{
-				//$eve->output_redirect_page(basename(__FILE__)."?id={$_GET['id']}&access_mode={$access_mode}&validation=".serialize($validation_errors));
 			}
 			break;
 	} 
 
 	$eve->output_html_header();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('submission_definitions'), "submission_definitions.php", $submission_definition['description'], null);
-
+	if ($access_mode == 'admin')
+		$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('submission_definitions'), "submission_definitions.php", $submission_definition['description'], null);
+	else
+		$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $submission_definition['description'], null);
+	
 	// Success/error messages
 	if (!is_null($message)) $eve->output_service_message($message);
 	// Validation error messages
@@ -128,19 +145,39 @@ else
 	?>
 	<div class="section">
 	<!-- TODO --> <button type="button" onclick="alert('Implement - Filtro no DynamicForm, deixar lista em javascript client-side e atualizar view')">Filtrar</button>
-	<?php if ($access_mode == 'admin' || $access_mode == 'final_reviewer') { ?><button type="button" onclick="alert('Implement - Avaliador final pode gerenciar avaliadores - passar referencia para a tela de gerenciamento de avaliadores pra voltar a esta tela depois');">Gerenciar avaliadores</button><?php } ?>
-	<!-- TODO --><?php if ($access_mode == 'admin' || $access_mode == 'final_reviewer') { ?><button type="button" onclick="set_reviewer_show_dialog();">Atribuir avaliador</button><?php } ?>
-	<!-- TODO PARA admins, final_reviewers and reviewers --><button type="button" onclick="alert('To be implemented');">Exportar</button>
+	<?php if ($access_mode == 'admin' || $access_mode == 'final_reviewer') { ?><button type="button" onclick="window.location.href = 'submission_definition_reviewers.php?id=<?php echo $_GET['id'];?>&backlink=submissions_<?php echo $access_mode;?>';">Gerenciar avaliadores</button><?php } ?>
+	<!-- TODO --><?php if ($access_mode == 'admin' || $access_mode == 'final_reviewer') { ?><button type="button" onclick="set_reviewer()"><!--onclick="set_reviewer_show_dialog();">-->Atribuir avaliador</button><?php } ?>
+	<!-- TODO PARA admins, final_reviewers and reviewers --><button type="button" onclick="alert('To be implemented - remover exportar tudo. se nada estiver selecionado, perguntar por exportar tudo');">Exportar</button>
 	<?php if ($access_mode == 'admin' || $access_mode == 'final_reviewer') { ?><button type="button" onclick="window.location.href = 'submissionsexport.php?id=<?php echo $_GET['id'];?>';">Exportar tudo</button><?php } ?>
 	
 	</div>
 	
-	<!--
-	<dialog id="submission_view_dialog" style="position: fixed; top: 0; left: 0; width: 99%; height: 99%;">
-	<div style="width:99%; height: 1.5em;"> <button type="button" onclick="document.getElementById('submission_view_dialog').close();">Fechar</button></div>	
-	<div style="width:99%; height: calc(99% - 2em); overflow-y: scroll;" id="submission_view_container"></div>
-	</dialog>
-	-->
+	<!-- Viewer -->
+	<div id="viewer" style="display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgb(0,0,0); background-color: rgba(0,0,0,0.4);">
+	<div style="background-color: white; margin: 15% auto; border: 2px solid #333; width: 80%;" >
+	<button type="button" style="background-color:#333; color: white; float: right; border-radius: 0;" onclick="document.getElementById('viewer').style.display = 'none';"> X </button>
+	<div id="viewer_content" style="padding: 20px; display: grid; grid-gap: 0.5em; grid-template-columns: 1fr;"></div>
+	</div></div>
+
+	<!-- Set reviewer dialog -->
+	<div id="set_reviewer_dialog" style="display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgb(0,0,0); background-color: rgba(0,0,0,0.4);">
+	<div style="background-color: white; margin: 15% auto; border: 2px solid #333; width: 80%;" >
+	<button type="button" style="background-color:#333; color: white; float: right; border-radius: 0;" onclick="document.getElementById('set_reviewer_dialog').style.display = 'none';"> X </button>
+	<div style="padding: 20px; display: grid; grid-gap: 0.5em; grid-template-columns: 1fr;">
+	<form method="post" action="<?php echo basename(__FILE__)."?id={$_GET['id']}&access_mode={$access_mode}";?>">
+	<select name="reviewer">
+	<?php
+	$reviewers = $eveSubmissionService->submission_definition_reviewers($_GET['id'], 'reviewer');
+	foreach ($reviewers as $reviewer) echo "<option value=\"{$reviewer['email']}\">{$reviewer['name']}</option>";
+	?>
+	</select>
+	<input type="hidden" name="action" value="set_reviewer"/>
+	<input type="hidden" name="submissions_to_set_reviewer" id="submissions_to_set_reviewer"/>
+	<button type="submit">Atribuir</button>
+	<button type="button" onclick="document.getElementById('set_reviewer_dialog').style.display = 'none';">Cancelar</button>
+	</form>
+	</div>
+	</div></div>
 
 	<dialog id="submission_review_dialog" style="position: fixed; top: 0; left: 0; width: 99%; height: 99%;">
 	<div style="width:99%; height: 1.5em;"> <button type="button" onclick="document.getElementById('submission_review_dialog').close();">Fechar</button></div>	
@@ -161,9 +198,10 @@ else
 	<label id="change_status_label"></label>
 	<select name="status">
 	<?php
-	for ($i = 0; $i <= 2; $i++) //TODO Implement a enum with status codes in eve submission service
+	//TODO Implement a enum with status codes in eve submission service
+	for ($i = 0; $i <= 2; $i++) 
 	{
-		echo "<option value=\"$i\">".$eve->_("submission.revision_status.$i")."</option>";
+		echo "<option value=\"$i\" id=\"change_status_option[$i]\">".$eve->_("submission.revision_status.$i")."</option>";
 	}
 	?>
 	</select>
@@ -171,19 +209,6 @@ else
 	<button type="button" onclick="document.getElementById('change_status_dialog').close();">Cancelar</button>
 	</dialog>	
 	</form>
-
-	<form id="submissions_form" action="<?php echo basename(__FILE__)."?id={$_GET['id']}&access_mode={$access_mode}";?>" method="post">
-	<input type="hidden" name="action" id="action_hidden_value"/>
-	<dialog id="set_reviewer_dialog" style="display:none">
-	<select name="reviewer">
-	<?php
-	$reviewers = $eveSubmissionService->submission_definition_reviewers($_GET['id'], 'reviewer');
-	foreach ($reviewers as $reviewer) echo "<option value=\"{$reviewer['email']}\">{$reviewer['name']}</option>";
-	?>
-	</select>
-	<button type="button" onclick="set_reviewer();">Atribuir</button>
-	<button type="button" onclick="document.getElementById('set_reviewer_dialog').style.display = 'none';">Cancelar</button>
-	</dialog>
 
 	<table class="data_table">
 	<tr>
@@ -229,125 +254,62 @@ else
 			if ($access_mode == 'admin') echo "<button type=\"button\" onclick=\"window.location.href = 'submissionedit.php?id={$submission['id']}';\"><img src=\"style/icons/edit.png\"></button>";
 		echo "</td>";
 
-		echo "<td style=\"text-align:center\"><button type=\"button\" onclick=\"submission_show(this, {$submission['id']});\"><img src=\"style/icons/view.png\"></button></td>";
-
-		//echo "<td style=\"text-align:center\"><button type=\"button\" onclick=\"submission_view({$submission['id']});\"><img src=\"style/icons/view.png\"></button></td>";
+		echo "<td style=\"text-align:center\"><button type=\"button\" onclick=\"submission_view({$submission['id']});\"><img src=\"style/icons/view.png\"></button></td>";
 		
 		echo "<td style=\"text-align:center\"><button type=\"button\" onclick=\"submission_review({$submission['id']});\"><img src=\"style/icons/revision.png\"></button></td>";
 		echo "<td>";		
 		if ($access_mode == 'admin' || $access_mode == 'final_reviewer')
-			echo "<button type=\"button\" onclick=\"change_status({$submission['id']});\"><img src=\"style/icons/revision_change_status.png\"></button>";
+			echo "<button type=\"button\" onclick=\"change_status({$submission['id']}, {$submission['revision_status']});\"><img src=\"style/icons/revision_change_status.png\"></button>";
 		echo "</td>";		
 		echo "</tr>";
 	}
 	?>
 	</table>
-	</form>
+
 	<script>
-	function change_status(submission_id)
+	function change_status(submission_id, submission_current_status)
 	{
 		document.getElementById('change_status_form_submission_id').value = submission_id;
 		document.getElementById('change_status_label').innerHTML = "Alterar o status de " + submission_id + " para: ";
+		document.getElementById('change_status_option['+submission_current_status+']').selected = 'true';
 		document.getElementById('change_status_dialog').show();
 		return false;
 	}
 
 	function set_reviewer()
 	{
-		document.getElementById('action_hidden_value').value = "set_reviewer";
-		document.forms['submissions_form'].submit();
-		return false;
-	}
-
-	function set_reviewer_show_dialog()
-	{
-		var selected_checkboxes = 0;
+		var selected_submissions = [];
 		var checkboxes = document.getElementsByName('submission[]');
-		for(var i=0, n=checkboxes.length;i<n;i++)
-			if (checkboxes[i].checked) selected_checkboxes++;
-		
-		if (selected_checkboxes == 0)
-			alert('É necessário selecionar as submissões primeiro.');
+		for(var i=0;i < checkboxes.length; i++)
+			if (checkboxes[i].checked) selected_submissions.push(checkboxes[i].value);
+		if (selected_submissions.length == 0)
+		{
+			alert('Nenhuma submissão selecionada.');
+		}
 		else
+		{
+			document.getElementById('submissions_to_set_reviewer').value = JSON.stringify(selected_submissions);
 			document.getElementById('set_reviewer_dialog').style.display = 'block';
-		return false;
+		}
 	}
 
-	// TODO: This code probably wont work anymore. change for the code used in submisson.php
-	function submission_show(el, submission_id)
-	{
-		alert('reimplement!');
-		/*
-		el.disabled = true;
-		var currTR = el.parentNode.parentNode;
-		var newTR = document.createElement("tr");
-		newTR.className = currTR.className;	
-		var newTD = document.createElement("td");
-		var closeButton = document.createElement("button");
-		closeButton.innerHTML = "&#10060; Fechar"; // TODO g11n
-		closeButton.type = "button";
-		closeButton.onclick = function(x) { el.disabled = false; currTR.parentNode.removeChild(newTR) }
-		closeButton.style = "float: right;";
-		
-		newTD.colSpan = 10;
-		newTD.appendChild(closeButton);
-
-		var xhr = new XMLHttpRequest();
-		xhr.open('GET', 'service/submission_view.php?id=' + submission_id);
-		xhr.onload = function() {
-		    if (xhr.status === 200) {
-			var data = JSON.parse(xhr.responseText);
-			var tbl = document.createElement("table");
-			for (var i in data.formatted_content)
-			{
-				var tr = document.createElement("tr");
-				tr.innerHTML = "<td><strong>" + i + "</strong></td><td>" + data.formatted_content[i] + "</td>";
-				tbl.appendChild(tr);
-			}
-			newTD.appendChild(tbl);
-		    }
-		    else {
-		        newTD.innerHTML = '<p>Erro na requisição: Erro HTTP ' + xhr.status + '</p>';
-		    }
-		};
-		xhr.send();
-		newTR.appendChild(newTD);
-		currTR.parentNode.insertBefore(newTR, currTR.nextSibling);*/
-	}
-
-/*
 	function submission_view(submission_id)
 	{
 		var xhr = new XMLHttpRequest();
-		xhr.open('GET', 'service/submission_view.php?id=' + submission_id);
-		xhr.onload = function() {
-		    if (xhr.status === 200) {
-			var data = JSON.parse(xhr.responseText);
-			const container = document.getElementById('submission_view_container');
-			while (container.firstChild) container.removeChild(container.firstChild);
-			var tbl = document.createElement("table");
-			tbl.className = 'data_table';
-			for (var i in data.formatted_content)
-			{
-				var tr = document.createElement("tr");
-				var td1 = document.createElement("td");
-				td1.innerHTML = i;
-				tr.appendChild(td1);
-				var td2 = document.createElement("td");
-				td2.innerHTML = data.formatted_content[i];
-				tr.appendChild(td2);			
-				tbl.appendChild(tr);
-			}
-			container.appendChild(tbl);
-		    }
-		    else {
-		        document.getElementById('submission_view_container').innerHTML = '<p>Erro na requisição: Erro HTTP ' + xhr.status + '</p>';
-		    }
-		};
-		xhr.send();
-		document.getElementById('submission_view_dialog').show();
+			xhr.open('GET', 'service/submission_view.php?id=' + submission_id);
+			xhr.onload = function() {
+			    if (xhr.status === 200) {
+					var data = JSON.parse(xhr.responseText);
+					document.getElementById('viewer_content').innerHTML = data['formatted_content'];
+			    }
+			    else {
+					document.getElementById('viewer_content').innerHTML = '<p>Erro na requisição: Erro HTTP ' + xhr.status + '</p>';
+			    }
+			};
+			xhr.send();
+			document.getElementById('viewer').style.display = 'block';
 	}
-*/
+
 	function submission_review(submission_id)
 	{
 		var xhr = new XMLHttpRequest();

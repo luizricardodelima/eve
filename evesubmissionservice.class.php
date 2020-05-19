@@ -31,14 +31,14 @@ class EveSubmissionService
 	const SUBMISSION_DEFINITION_ACCESS_DELETE_ERROR_SQL = 19;
 	const SUBMISSION_DEFINITION_ACCESS_DELETE_SUCCESS = 20;
 
-    const SUBMISSION_DEFINITION_REVIEWER_ADD_ERROR_INVALID_EMAIL = 21;
-	const SUBMISSION_DEFINITION_REVIEWER_ADD_ERROR_USER_DOES_NOT_EXIST = 22;
-	const SUBMISSION_DEFINITION_REVIEWER_ADD_ERROR_INVALID_TYPE = 23;
-	const SUBMISSION_DEFINITION_REVIEWER_ADD_ERROR_REVIEWER_ALREADY_EXISTS = 24;
-	const SUBMISSION_DEFINITION_REVIEWER_ADD_ERROR_SQL = 25;
-	const SUBMISSION_DEFINITION_REVIEWER_ADD_SUCCESS = 26;
-	const SUBMISSION_DEFINITION_REVIEWER_DELETE_ERROR_SQL = 27;
-	const SUBMISSION_DEFINITION_REVIEWER_DELETE_SUCCESS = 28;
+    const SUBMISSION_DEFINITION_REVIEWER_ADD_ERROR_INVALID_EMAIL = 'submission.definition.reviewer.add.error.invalid.email';
+	const SUBMISSION_DEFINITION_REVIEWER_ADD_ERROR_USER_DOES_NOT_EXIST = 'submission.definition.reviewer.add.error.user.does.not.exist';
+	const SUBMISSION_DEFINITION_REVIEWER_ADD_ERROR_INVALID_TYPE = 'submission.definition.reviewer.add.error.invalid.type';
+	const SUBMISSION_DEFINITION_REVIEWER_ADD_ERROR_REVIEWER_ALREADY_EXISTS = 'submission.definition.reviewer.add.error.reviewer.already.exists';
+	const SUBMISSION_DEFINITION_REVIEWER_ADD_ERROR_SQL = 'submission.definition.reviewer.add.error.sql';
+	const SUBMISSION_DEFINITION_REVIEWER_ADD_SUCCESS = 'submission.definition.reviewer.add.success';
+	const SUBMISSION_DEFINITION_REVIEWER_DELETE_ERROR_SQL = 'submission.definition.reviewer.delete.error.sql';
+	const SUBMISSION_DEFINITION_REVIEWER_DELETE_SUCCESS = 'submission.definition.reviewer.delete.success';
 
 	const SUBMISSION_DEFINITION_SAVE_ERROR_SQL = 29;
 	const SUBMISSION_DEFINITION_SAVE_SUCCESS = 30;
@@ -427,6 +427,9 @@ class EveSubmissionService
 
 	function submission_set_reviewer($submission_id, $reviewer_screenname)
 	{
+		// TODO RECEBBER LISTA DE IDS, SE UNS DER CERTO E OUTROS ERRADO, ROLLBACK!
+
+		// TODO RETURN CUSTOMIZED ERROR
 		// Verifying if $reviewer_screenname refers to a valid user
 		if (!$this->eve->user_exists($reviewer_screenname)) return false;
 		
@@ -449,7 +452,7 @@ class EveSubmissionService
 		}
 		$stmt2->close();
 
-		// Sending e-mail
+		// Sending e-mail // TODO DYNAMICFORM
 		if ($this->eve->getSetting('reviewer_attribution_email_send'))
 		{
 			$submission = $this->submission_get($submission_id);
@@ -471,6 +474,7 @@ class EveSubmissionService
 		return true;
 	}
 
+	// TODO PASS DYNAMIC FORM SINCE IT REPRESENTS THE CONTENT
 	/* $structure and $content have to be passed as json encoded objects */
 	function submission_update($submission_id, $new_content)
 	{

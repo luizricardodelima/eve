@@ -1,7 +1,9 @@
 <?php
+require_once 'lib/dynamicform/dynamicform.class.php';
+require_once 'lib/dynamicform/dynamicformhelper.class.php';
 require_once 'eve.class.php';
 require_once 'evemail.php';
-require_once 'evecustominputservice.class.php';
+
 
 class EveSubmissionService
 {
@@ -16,6 +18,11 @@ class EveSubmissionService
 	const SUBMISSION_DELETE_SUCCESS = 'submission.delete.success';
 	const SUBMISSION_UPDATE_SUCCESS = 'submission.update.success';
 	const SUBMISSION_UPDATE_ERROR_SQL = 'submission.update.error.sql';
+
+	const SUBMISSION_SET_REVIEWER_ERROR_INVALID_IDS = 'submission.set.reviewer.error.invalid.ids';
+	const SUBMISSION_SET_REVIEWER_ERROR_INVALID_REVIEWER = 'submission.set.reviewer.error.invalid.reviewer';
+	const SUBMISSION_SET_REVIEWER_ERROR_SQL = 'submission.set.reviewer.error.sql';
+	const SUBMISSION_SET_REVIEWER_SUCCESS = 'submission.set.reviewer.success';
 
 	const SUBMISSION_DEFINITION_CREATE_ERROR_SQL = 9;
 	const SUBMISSION_DEFINITION_CREATE_SUCCESS = 10;
@@ -274,7 +281,16 @@ class EveSubmissionService
 		}	
 	}
 	
-	/** $access_mode can be 'admin', 'final_reviewer', 'reviewer' and 'owner'*/
+	/**
+	 * List all the submissions for the submission definition referred by
+	 * `$submission_definition_id` according to the `$access_mode`. If `$access_mode`
+	 * == admin' or 'final_reviewer', this function returns all active submissions.
+	 * If 'reviewer', returns all the submissions for the reviewer set in `$email`. If
+	 * 'owner', returns all the active submissionsm the user `$email` has sent.
+	 * 
+	 * @param String $access_mode Should be one of the following values:
+	 * 'admin', 'final_reviewer', 'reviewer' and 'owner'
+	 * */
 	function submission_list($submission_definition_id, $access_mode = 'admin', $email = null)
 	{
 		$access_constraints = "";
@@ -406,72 +422,99 @@ class EveSubmissionService
 	function submission_change_revision_status($submission_id, $new_status)
 	{
 		// Storing changes on database
-		$stmt2 = $this->eve->mysqli->prepare
+		$stmt = $this->eve->mysqli->prepare
 		("
 			update `{$this->eve->DBPref}submission` set `revision_status` = ? where `id`=?;
 		");
-		if ($stmt2 === false)
+		if ($stmt === false)
 		{
 			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
 			return false; // TODO return errorcode
 		}
-		$stmt2->bind_param('ii', $new_status, $submission_id);
-		$stmt2->execute();
-		if ($stmt2 === false)
+		$stmt->bind_param('ii', $new_status, $submission_id);
+		$stmt->execute();
+		if (!empty($stmt->error)) 
 		{
 			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
 			return false; //TODO return errorcode
 		}
-		$stmt2->close();
+		$stmt->close();
 	}
 
-	function submission_set_reviewer($submission_id, $reviewer_screenname)
+	/**
+	 * Sets the reviewer `$reviewer_screenname` for the submissions given by
+	 * `$submission_ids`
+	 * 
+	 * @param array $submission_ids An array with the ids of submission definitions
+	 * @param String $reviewer_screenname The screenname of the reviewer
+	 * @return String Success/Error message
+	 */
+	function submission_set_reviewer($submission_ids, $reviewer_screenname)
 	{
-		// TODO RECEBBER LISTA DE IDS, SE UNS DER CERTO E OUTROS ERRADO, ROLLBACK!
-
-		// TODO RETURN CUSTOMIZED ERROR
-		// Verifying if $reviewer_screenname refers to a valid user
-		if (!$this->eve->user_exists($reviewer_screenname)) return false;
+		// Validating parameters
+		if (!is_array($submission_ids))
+			return self::SUBMISSION_SET_REVIEWER_ERROR_INVALID_IDS;
+		foreach ($submission_ids as $submission_id)
+			if (!is_numeric($submission_id))
+				return self::SUBMISSION_SET_REVIEWER_ERROR_INVALID_IDS;
+		if (!$this->eve->user_exists($reviewer_screenname))
+			return self::SUBMISSION_SET_REVIEWER_ERROR_INVALID_REVIEWER;
 		
-		// Storing changes on database
-		$stmt2 = $this->eve->mysqli->prepare
+		// Starting transaction. If something goes wrong will do a rollback and
+		// Return an error message. This function will only commit the changes and
+		// Return a success message if all updates are successful.
+		$this->eve->mysqli->autocommit(FALSE);
+		$this->eve->mysqli->begin_transaction();
+		// Preparing statement
+		$stmt = $this->eve->mysqli->prepare
 		("
 			update `{$this->eve->DBPref}submission` set `reviewer_email` = ? where `id`=?;
 		");
-		if ($stmt2 === false)
+		if ($stmt === false)
 		{
-			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
-			return false; // TODO return errorcode
+			$this->eve->mysqli->rollback();
+			$this->eve->mysqli->autocommit(TRUE);
+			return self::SUBMISSION_SET_REVIEWER_ERROR_SQL;
 		}
-		$stmt2->bind_param('si', $reviewer_screenname, $submission_id);
-		$stmt2->execute();
-		if ($stmt2 === false)
+		foreach ($submission_ids as $submission_id)
 		{
-			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
-			return false; //TODO return errorcode
+			$stmt->bind_param('si', $reviewer_screenname, $submission_id);
+			$stmt->execute();
+			if (!empty($stmt->error))
+			{
+				$this->eve->mysqli->rollback();
+				$this->eve->mysqli->autocommit(TRUE);
+				$stmt->close();
+				return self::SUBMISSION_SET_REVIEWER_ERROR_SQL;
+			}
 		}
-		$stmt2->close();
+		$this->eve->mysqli->commit();
+		$stmt->close();
 
-		// Sending e-mail // TODO DYNAMICFORM
+		// Sending e-mail to reviewer
 		if ($this->eve->getSetting('reviewer_attribution_email_send'))
 		{
-			$submission = $this->submission_get($submission_id);
-			$submission_structure = json_decode($submission['structure']);
-			$submisson_content = json_decode($submission['content']);
-			$eveCustomInputService = new EveCustomInputService($this->eve);
-			$submission_formatted_contents = $eveCustomInputService->custom_input_format_content_HTML($submission_structure, $submisson_content, true);
-		
-			$placeholders = array
-			(
-				'$email' => $reviewer_screenname,
-				'$support_email_address' => $this->eve->getSetting('support_email_address'),
-				'$system_name' => $this->eve->getSetting('system_name'),
-				'$site_url' => $this->eve->url(),
-				'$submission_content' => $submission_formatted_contents
-			);
-			$this->evemail->send_mail($reviewer_screenname, $placeholders, $this->eve->getSetting('reviewer_attribution_email_subject'), $this->eve->getSetting('reviewer_attribution_email_body'));
+			DynamicFormHelper::$locale = $this->eve->getSetting('system_locale');
+			foreach ($submission_ids as $submission_id) {
+				$submission = $this->submission_get($submission_id);
+				$dynamicForm = new DynamicForm($submission['structure'], json_decode($submission['content']));
+				// Removing fields not visible to the reviewer
+				foreach ($dynamicForm->structure as $i => $dynamicFormSubmissionItem)
+				if ($dynamicFormSubmissionItem->customattribute == 'noreview')
+					unset($dynamicForm->structure[$i]);
+				$submission_formatted_content = $dynamicForm->getHtmlFormattedContent();
+				$placeholders = array
+				(
+					'$email' => $reviewer_screenname,
+					'$support_email_address' => $this->eve->getSetting('support_email_address'),
+					'$system_name' => $this->eve->getSetting('system_name'),
+					'$site_url' => $this->eve->url(),
+					'$submission_content' => $submission_formatted_content
+				);
+				$this->evemail->send_mail($reviewer_screenname, $placeholders, $this->eve->getSetting('reviewer_attribution_email_subject'), $this->eve->getSetting('reviewer_attribution_email_body'));
+			}
 		}
-		return true;
+		return self::SUBMISSION_SET_REVIEWER_SUCCESS;
 	}
 
 	// TODO PASS DYNAMIC FORM SINCE IT REPRESENTS THE CONTENT

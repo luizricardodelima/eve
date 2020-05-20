@@ -20,15 +20,12 @@ else if (!isset($_GET['id']) || !$eveSubmissionService->submission_definition_ge
 }
 else 
 {
-	
-
-// If there's a valid session, and the current user is administrator and there are no
-// actions, display the regular listing page.
-
+	// If there's a valid session and the security validations apply,
+	// display the regular listing page.
 	$submission_definition = $eveSubmissionService->submission_definition_get($_GET['id']);
 	
 	// $access_mode is passed as a get variable or cannot be passed. Therefore it is 
-	// necessary to normalize its value given the user.
+	// necessary to normalize its value according the user to avoid malicious access.
 	$access_mode = isset($_GET['access_mode']) ? $_GET['access_mode'] : '';
 	if
 	(
@@ -57,15 +54,13 @@ else
 	if (isset($_POST['action'])) switch ($_POST['action'])
 	{ // TODO RESOLVE SECURITY FLAWS: 'set_revierer' only for admins and final_reviewers - revision: only for admins, final_reviewers and reviewers
 		// TODO MAYBE DO IT IN THE SERVICES...
-		// TODO submission services have to return the correct messages! Reloading is probably not necessary anymore
 		case 'change_status':
 			$message = $eveSubmissionService->submission_change_revision_status($_POST['submission_id'], $_POST['status']);
 			// $eve->output_redirect_page(basename(__FILE__)."?id={$_GET['id']}&access_mode={$access_mode}&success=3");
 			break;
 		case 'set_reviewer':
 			$submissions_to_set_reviewer = json_decode($_POST['submissions_to_set_reviewer']);
-			foreach ($submissions_to_set_reviewer as $submission_id)
-				$message = $eveSubmissionService->submission_set_reviewer($submission_id, $_POST['reviewer']);
+			$message = $eveSubmissionService->submission_set_reviewer($submissions_to_set_reviewer, $_POST['reviewer']);
 			break;
 		case 'revision':
 			$files = (isset($_FILES['revision_content'])) ? $_FILES['revision_content'] : null;
@@ -81,6 +76,7 @@ else
 			break;
 	} 
 
+	// Page header
 	$eve->output_html_header();
 	if ($access_mode == 'admin')
 		$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('submission_definitions'), "submission_definitions.php", $submission_definition['description'], null);
@@ -92,56 +88,6 @@ else
 	// Validation error messages
 	if (!empty($validation_errors))	$eve->output_error_list_message($validation_errors);
 	
-	/* THIS BLOCKED WILL BE REMOVED BECAUSE ERRROR MESSAGES ARE THROWN BY SERVICES AND
-	 * TRANSLATED IN EVE CLASS. VALIDATION MESSAGES ARE THROWN ALREADY TRANSLATED BY
-	 * DYNAMIC FORM
-	//TODO: CASE 3
-	if (isset($_GET['success'])) switch ($_GET['success'])
-	{
-		case '1':
-			$eve->output_success_message("Avaliador atribuído com sucesso");
-			break;
-		case '2':
-			$eve->output_success_message("Submissão avaliada com sucesso");
-			break;
-	}
-	// Necessary because revision is done here. This will go to a separate screen
-	if (isset($_GET['validation']))
-	{
-		//There are validation errors on revisition.
-		$validation_errors = unserialize($_GET['validation']);
-		$validation_errors_messages = array();
-		$structure = json_decode($submission_definition['revision_structure']);
-		foreach ($validation_errors as $pos => $validation_error)
-		{
-			switch ($validation_error)
-			{
-				case EveCustomInputService::CUSTOM_INPUT_VALIDATION_ERROR_MANDATORY:
-					$validation_errors_messages[] = "Campo {$structure[$pos]->description}: Obrigatório";
-					break;
-				case EveCustomInputService::CUSTOM_INPUT_VALIDATION_ERROR_UNDER_MIN_WORDS:
-					$validation_errors_messages[] = "Campo {$structure[$pos]->description}: Não tem o número mínimo de palavras exigido.";
-					break;
-				case EveCustomInputService::CUSTOM_INPUT_VALIDATION_ERROR_OVER_MAX_WORDS:
-					$validation_errors_messages[] = "Campo {$structure[$pos]->description}: Ultrapassou o número máximo de palavras permitido.";
-					break;
-				case EveCustomInputService::CUSTOM_INPUT_VALIDATION_ERROR_FILE_ERROR:
-					$validation_errors_messages[] = "Campo {$structure[$pos]->description}: Erro ao fazer upload do arquivo.";
-					break;
-				case EveCustomInputService::CUSTOM_INPUT_VALIDATION_ERROR_FILE_EXCEEDED_SIZE:
-					$validation_errors_messages[] = "Campo {$structure[$pos]->description}: Arquivo maior que o permitido.";
-					break;
-				case EveCustomInputService::CUSTOM_INPUT_VALIDATION_ERROR_FILE_WRONG_TYPE:
-					$validation_errors_messages[] = "Campo {$structure[$pos]->description}: Tipo de arquivo não permitido.";
-					break;
-			}
-			
-		}
-		// TODO usar função internacionalizável
-		$eve->output_error_list_message($validation_errors_messages);
-		
-	}*/
-
 	?>
 	<div class="section">
 	<!-- TODO --> <button type="button" onclick="alert('Implement - Filtro no DynamicForm, deixar lista em javascript client-side e atualizar view')">Filtrar</button>
@@ -222,24 +168,9 @@ else
 	</tr>
 	<?php
 
-	$submissions = array();
-	switch ($access_mode)
-	{
-		case 'admin':
-			$submissions = $eveSubmissionService->submission_list($_GET['id'], 'admin');
-			break;
-		case 'final_reviewer':
-			$submissions = $eveSubmissionService->submission_list($_GET['id'], 'final_reviewer');
-			break;
-		case 'reviewer':
-			$submissions = $eveSubmissionService->submission_list($_GET['id'], 'reviewer', $_SESSION['screenname']);
-			break;
-		case 'owner':
-			$submissions = $eveSubmissionService->submission_list($_GET['id'], 'owner', $_SESSION['screenname']);
-			break;
-	}
-
-	
+	// Listing submissions. If $access_mode == 'admin' or 'final_reviewer', the third parameter
+	// of submission_list function will be ignored
+	$submissions = $eveSubmissionService->submission_list($_GET['id'], $access_mode, $_SESSION['screenname']);
 	foreach ($submissions as $submission)
 	{	
 		echo "<tr>";
@@ -284,7 +215,7 @@ else
 			if (checkboxes[i].checked) selected_submissions.push(checkboxes[i].value);
 		if (selected_submissions.length == 0)
 		{
-			alert('Nenhuma submissão selecionada.');
+			alert('Nenhuma submissão selecionada.'); // TODO G11n
 		}
 		else
 		{
@@ -334,9 +265,9 @@ else
 		{	
 			checkboxes[i].checked = source.checked;
 			toggleRow(checkboxes[i]);
-		}
-			
+		}			
 	}
+
 	function toggleRow(source)
 	{
 		if (source.checked) source.parentNode.parentNode.classList.add('selected');

@@ -141,7 +141,7 @@ else
 				echo "<td><button type=\"button\" onclick=\"view_submission({$submission['id']},'formatted_content');\"><img src=\"style/icons/view.png\"></button></td>";
 				echo "<td>";			
 				if ($submission['revision_status'] >= 2) // Revision visible to user after final revision (status == 2)
-					echo "<button type=\"button\" onclick=\"view_submission({$submission['id']},'formatted_review');\"><img src=\"style/icons/revision.png\"></button>";			
+					echo "<button type=\"button\" onclick=\"view_submission({$submission['id']},'formatted_revision');\"><img src=\"style/icons/revision.png\"></button>";			
 				echo "</td>";			
 				echo "<td>";
 				if ($within_the_deadline && $submission['revision_status'] == 0) // Delete available only if whithin deadline and is not reviewed.
@@ -158,7 +158,7 @@ else
 			// Only one submission allowed, display it
 			echo "<div class=\"section\">Envio em ".$eveG11n->compact_date_time_format(strtotime($submissions_sent_by_user[0]['date']))." ";
 			if ($submissions_sent_by_user[0]['revision_status'] >= 2) // Revision visible to user after final revision (status == 2)
-				echo "<button onclick=\"view_submission({$submissions_sent_by_user[0]['id']}, 'formatted_review')\">Resultado da Revisão</button>";
+				echo "<button onclick=\"view_submission({$submissions_sent_by_user[0]['id']}, 'formatted_revision')\">Resultado da Revisão</button>";
 			if ($within_the_deadline && $submissions_sent_by_user[0]['revision_status'] == 0) // Delete available only if whithin deadline and is not reviewed.
 				echo "<button onclick=\"delete_submission({$submissions_sent_by_user[0]['id']})\">Apagar</button>";			
 			echo "</div>";

@@ -5,100 +5,100 @@ require_once 'evemail.php';
 
 $eve = new Eve();
 
-// Session verification.
 if (!isset($_SESSION['screenname']))
-{	
+{
+	// Session verification.	
 	$eve->output_redirect_page("userarea.php?sessionexpired=1");
 }
-// Administrative privileges verification.
 else if (!$eve->is_admin($_SESSION['screenname']))
 {
+	// Administrative privileges verification.
 	$eve->output_error_page('common.message.no.permission');
 }
-else if (sizeof($_POST) > 0) switch($_POST['action'])
+else 
 {
-	case 'save':
-		unset($_POST['action']);
-		// There are POST variables.  Saving settings to database.
-		foreach ($_POST as $key => $value)
-		{
-			$value = $eve->mysqli->real_escape_string($value);
-			$eve->mysqli->query("UPDATE `{$eve->DBPref}settings` SET `value` = '$value' WHERE `key` = '$key';");
-		}
-				
-		// Reloading this page with the new settngs. Success informations is passed through a simple get parameter
-		$eve->output_redirect_page(basename(__FILE__)."?saved=1");
-		break;
-	case 'mailtest':
-		// TODO Improve logs and error outputs
-		$output  = "";
-		$evemail = new EveMail($eve);
-		$output .= "Criando EveMail\n";
-		$output .= var_export($evemail, true);
-		$output .= "\nEnviando e-mail para {$_POST['emailaddress']}\n";
-		$evemail->send_mail($_POST['emailaddress'], null, "EVE TEST - SUBJECT", "EVE TEST - HTML BODY", "EVE TEST - PLAIN TEXT BODY");
-		$output .= "\nErros: \n";
-		$output .= $evemail->phpmailer_error_info;
-		$eve->output_redirect_page(basename(__FILE__)."?output=".urlencode($output));
-		break;
-}
-else
-{
+	$saved = null;
+	$output = null;
+
+	if (isset($_POST['action'])) switch($_POST['action'])
+	{
+		case 'save':
+			unset($_POST['action']);
+			// Saving settings to database.
+			foreach ($_POST as $key => $value)
+			{
+				$value = $eve->mysqli->real_escape_string($value);
+				$eve->mysqli->query("UPDATE `{$eve->DBPref}settings` SET `value` = '$value' WHERE `key` = '$key';");
+			}
+					
+			$saved = 1;
+			break;
+		case 'mailtest':
+			// TODO Improve logs and error outputs
+			$output  = "";
+			$output .= "Criando EveMail\n";
+			$evemail = new EveMail($eve);
+			$output .= "\nEnviando e-mail para {$_POST['emailaddress']}\n";
+			$evemail->send_mail($_POST['emailaddress'], null, "EVE TEST - SUBJECT", "EVE TEST - HTML BODY", "EVE TEST - PLAIN TEXT BODY");
+			$output .= "\nError / Logs: \n";
+			$output .= $evemail->phpmailer_error_info;
+			$output .= $evemail->log;
+			break;
+	}
+
 	$eve->output_html_header();
 	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Ajustes do sistema", "settings.php", "Envio de e-mail", null);
 	$eve->output_wysiwig_editor_code();
-
-	if (isset($_GET['saved']))
-		$eve->output_success_message("Ajustes salvos com sucesso.");
-	if (isset($_GET['output']))
-		$eve->output_success_message("<textarea rows=\"10\" cols=\"50\">{$_GET['output']}</textarea>");
 
 	// Retrieving settings from database.
 	$settings = array();
 	$result = $eve->mysqli->query
 	("
-		SELECT * FROM `{$eve->DBPref}settings` WHERE
-		`key` = 'phpmailer_host' OR
-		`key` = 'phpmailer_username' OR
-		`key` = 'phpmailer_password' OR
-		`key` = 'phpmailer_fromname' OR
-		`key` = 'phpmailer_smtpauth' OR
-		`key` = 'phpmailer_smtpsecure' OR
-		`key` = 'phpmailer_port' OR
-		`key` = 'phpmailer_smtpdebug'
-		;
+		select * from `{$eve->DBPref}settings` where `key` in
+		('phpmailer_host', 'phpmailer_username', 'phpmailer_password', 'phpmailer_fromname', 'phpmailer_smtpauth', 'phpmailer_smtpsecure', 'phpmailer_port', 'phpmailer_smtpdebug');
 	");
 	while ($row = $result->fetch_assoc()) $settings[$row['key']] = $row['value'];
 	
 	?>
-
-	<div class="section">
+	<div class="section">Configurações PHPMailer 
 	<button type="button" onclick="document.forms['settings_form'].submit();"/>Salvar</button>
 	<button type="button" onclick="mailtest();"/>Testar</button><br/>
 	</div>
+	<?php
 
-	<form id="settings_form" method="post">
+	if ($saved)
+		$eve->output_success_message("Ajustes salvos com sucesso.");
+	if ($output)
+	{
+		?>
+		<div class="user_dialog_panel"><p>Saída</p>
+		<textarea rows="10"><?php echo $output;?></textarea>
+		<button type="button" onclick="this.parentNode.style.display='none';">Fechar</button>
+		</div>
+		<?php
+	}
 
-	<div class="section">Configurações PHPMailer</div>
+	?>
+	<form id="settings_form" method="post" class="user_dialog_panel">
+	<p></p>
 	<input type="hidden" name="action" value="save"/>
-	<table style="width: 100%">
-	<tr><td>Host (host)</td></tr>
-	<tr><td><textarea rows="1" cols="50" name="phpmailer_host"><?php echo $settings['phpmailer_host'];?></textarea></td></tr>
-	<tr><td>Nome do usuário (username)</td></tr>
-	<tr><td><textarea rows="1" cols="50" name="phpmailer_username"><?php echo $settings['phpmailer_username'];?></textarea></td></tr>
-	<tr><td>Senha (password)</td></tr>
-	<tr><td><textarea rows="1" cols="50" name="phpmailer_password"><?php echo $settings['phpmailer_password'];?></textarea></td></tr>
-	<tr><td>Nome do remetente (fromname)</td></tr>
-	<tr><td><textarea rows="1" cols="50" name="phpmailer_fromname"><?php echo $settings['phpmailer_fromname'];?></textarea></td></tr>
-	<tr><td>Autenticação SMTP (smtpauth) </td></tr>
-	<tr><td><textarea rows="1" cols="50" name="phpmailer_smtpauth"><?php echo $settings['phpmailer_smtpauth'];?></textarea></td></tr>
-	<tr><td>SMTP Seguro (smtpsecure)</td></tr>
-	<tr><td><textarea rows="1" cols="50" name="phpmailer_smtpsecure"><?php echo $settings['phpmailer_smtpsecure'];?></textarea></td></tr>
-	<tr><td>Porta (port)</td></tr>
-	<tr><td><textarea rows="1" cols="50" name="phpmailer_port"><?php echo $settings['phpmailer_port'];?></textarea></td></tr>
-	<tr><td>Debug (smtpdebug)</td></tr>
-	<tr><td><textarea rows="1" cols="50" name="phpmailer_smtpdebug"><?php echo $settings['phpmailer_smtpdebug'];?></textarea></td></tr>
-	</table>
+	<label for="phpmailer_host">Host (host)</label>
+	<input  id="phpmailer_host" name="phpmailer_host" type="text" value="<?php echo $settings['phpmailer_host'];?>"/>
+	<label for="phpmailer_username">Nome do usuário (username)</label>
+	<input  id="phpmailer_username" name="phpmailer_username" type="text" value="<?php echo $settings['phpmailer_username'];?>"/>
+	<label for="phpmailer_password">Senha (password)</label>
+	<input  id="phpmailer_password" name="phpmailer_password" type="text" value="<?php echo $settings['phpmailer_password'];?>"/>
+	<label for="phpmailer_fromname">Nome do remetente (fromname)</label>
+	<input  id="phpmailer_fromname" name="phpmailer_fromname" type="text" value="<?php echo $settings['phpmailer_fromname'];?>"/>
+	<label for="phpmailer_smtpauth">Autenticação SMTP (smtpauth)</label>
+	<input  id="phpmailer_smtpauth" name="phpmailer_smtpauth" type="text" value="<?php echo $settings['phpmailer_smtpauth'];?>"/>
+	<label for="phpmailer_smtpsecure">SMTP Seguro (smtpsecure)</label>
+	<input  id="phpmailer_smtpsecure" name="phpmailer_smtpsecure" type="text" value="<?php echo $settings['phpmailer_smtpsecure'];?>"/>
+	<label for="phpmailer_port">Porta (port)</label>
+	<input  id="phpmailer_port" name="phpmailer_port" type="text" value="<?php echo $settings['phpmailer_port'];?>"/>
+	<label for="phpmailer_smtpdebug">Debug (smtpdebug)<br/><small>Aceita números de 0 a 4, onde 4 significa informaões mais detalhadas de debug. As mensagens são capturadas pela classe EveMail e somente mostradas aqui no teste. Para produção, utilize 0.</small></label>
+	<input  id="phpmailer_smtpdebug" name="phpmailer_smtpdebug" type="text" value="<?php echo $settings['phpmailer_smtpdebug'];?>"/>
+	<p></p>
 	</form>
 
 	<form id="mailtest_form" method="post">
@@ -118,7 +118,6 @@ else
 		return false;
 	}
 	</script>
-	
 	<?php
 
 	$eve->output_html_footer();

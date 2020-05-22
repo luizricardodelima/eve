@@ -76,6 +76,8 @@
 	"submission.set.reviewer.error.invalid.reviewer":"Erro ao atribuir avaliador: Avaliador inválido.",
 	"submission.set.reviewer.error.sql":"Erro no banco de dados ao atribuir avaliador.",
 	"submission.set.reviewer.success":"Avaliador atribuído com sucesso.",
+	"submission.review.error.sql":"Erro no banco de dados ao realizar revisão",
+	"submission.review.success":"Revisão atribuída com sucesso",
 	"submission.definition.reviewer.add.error.invalid.email":"Erro ao adicionar avaliador: e-mail inválido.",
 	"submission.definition.reviewer.add.error.user.does.not.exist":"Erro ao adicionar avaliador: usuário não existe.",
 	"submission.definition.reviewer.add.error.invalid.type":"Erro ao adicionar avaliador: tipo inválido.",

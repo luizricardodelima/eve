@@ -24,6 +24,9 @@ class EveSubmissionService
 	const SUBMISSION_SET_REVIEWER_ERROR_SQL = 'submission.set.reviewer.error.sql';
 	const SUBMISSION_SET_REVIEWER_SUCCESS = 'submission.set.reviewer.success';
 
+	const SUBMISSION_REVIEW_ERROR_SQL = 'submission.review.error.sql';
+	const SUBMISSION_REVIEW_SUCCESS = 'submission.review.success';
+
 	const SUBMISSION_DEFINITION_CREATE_ERROR_SQL = 9;
 	const SUBMISSION_DEFINITION_CREATE_SUCCESS = 10;
 	const SUBMISSION_DEFINITION_DELETE_ERROR_SQL  = 11;
@@ -335,8 +338,10 @@ class EveSubmissionService
 			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
 			return null;
 		}
-		if ($email == null) $stmt->bind_param('i', $submission_definition_id);
-		else $stmt->bind_param('is', $submission_definition_id, $email);
+		if (in_array($access_mode, array('admin', 'final_reviewer')))
+			$stmt->bind_param('i', $submission_definition_id);
+		else
+			$stmt->bind_param('is', $submission_definition_id, $email);
 		$stmt->execute();
 		// Binding result variable - Column by column to ensure compability
 		// From PHP Verions 5.3+ there is the get_result() method
@@ -363,32 +368,37 @@ class EveSubmissionService
 		return $list;		
 	}
 
-	/* Revision parameters have to be passed as objects */ 
-	function submission_review($submission_id, $revision_structure, $revision_content, $reviewer)
+	/* Revision parameters passed as a DynamicForm */ 
+	function submission_review($submission_id, $reviewer, $contentDynamicForm)
 	{
 		$submission = $this->submission_get($submission_id);
-		if (($submission['revision_status'] == 0 && $submission['reviewer_email'] == $reviewer) || ($submission['revision_status'] == 1 && $this->is_final_reviewer($reviewer, $submission['submission_definition_id'])))
+		if 
+		(
+			($submission['revision_status'] == 0 && $submission['reviewer_email'] == $reviewer) ||
+			($submission['revision_status'] == 1 && $this->is_final_reviewer($reviewer, $submission['submission_definition_id']))
+		)
 		{
 			$new_status = ($submission['revision_status'] == 0)? 1 : 2;
 			$stmt = $this->eve->mysqli->prepare
 			("
 				update	`{$this->eve->DBPref}submission`
 				set 	`{$this->eve->DBPref}submission`.`revision_structure` = ?,
-					`{$this->eve->DBPref}submission`.`revision_content` = ?,
-					`{$this->eve->DBPref}submission`.`revision_status` = ?
+						`{$this->eve->DBPref}submission`.`revision_content` = ?,
+						`{$this->eve->DBPref}submission`.`revision_status` = ?
 				where 	`{$this->eve->DBPref}submission`.`id` = ?
 			");
 			if ($stmt === false)
 			{
-				trigger_error($this->eve->mysqli->error, E_USER_ERROR);
+				return self::SUBMISSION_REVIEW_ERROR_SQL;
 			}
-			$revision_structure_enc = json_encode($revision_structure);
-			$revision_content_enc = json_encode($revision_content);
-			$stmt->bind_param('ssii', $revision_structure_enc, $revision_content_enc, $new_status, $submission_id);
+			$revision_structure_json = $contentDynamicForm->getJSONStructure();
+			$revision_content_json = $contentDynamicForm->getJSONContent();
+			$stmt->bind_param('ssii', $revision_structure_json, $revision_content_json, $new_status, $submission_id);
 			$stmt->execute();
 			if (!empty($stmt->error))
 			{
-				trigger_error($this->eve->mysqli->error, E_USER_ERROR);
+				$stmt->close();
+				return self::SUBMISSION_REVIEW_ERROR_SQL;
 			}
 			$stmt->close();
 
@@ -397,24 +407,21 @@ class EveSubmissionService
 				// Sending e-mail
 				if ($this->eve->getSetting('submission_revision_email_send'))
 				{
-					$submission_structure = json_decode($submission['structure']);
-					$submisson_content = json_decode($submission['content']);
-				
-					$eveCustomInputService = new EveCustomInputService($this->eve);
-					$submission_formatted_contents = $eveCustomInputService->custom_input_format_content_HTML($submission_structure, $submisson_content, false);
-					$revision_formatted_contents = $eveCustomInputService->custom_input_format_content_HTML($revision_structure, $revision_content, false);
+					$submissionDynamicForm = new DynamicForm($submission['structure'], json_decode($submission['content']));
+					$submission_formatted_content = $submissionDynamicForm->getHtmlFormattedContent();
+					$revision_formatted_content = $contentDynamicForm->getHtmlFormattedContent();
 					$placeholders = array
 					(
 						'$email' => $submission['email'],
 						'$support_email_address' => $this->eve->getSetting('support_email_address'),
 						'$system_name' => $this->eve->getSetting('system_name'),
 						'$site_url' => $this->eve->url(),
-						'$submission_content' => $submission_formatted_contents,
-						'$revision_content' => $revision_formatted_contents,
+						'$submission_content' => $submission_formatted_content,
+						'$revision_content' => $revision_formatted_content,
 					);
 					$this->evemail->send_mail($submission['email'], $placeholders, $this->eve->getSetting('submission_revision_email_subject'), $this->eve->getSetting('submission_revision_email_body'));
 				}
-				return true;
+				return self::SUBMISSION_REVIEW_SUCCESS;
 			}
 		}
 	}

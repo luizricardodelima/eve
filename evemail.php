@@ -8,6 +8,7 @@ class EveMail
 	private $eve;
 	private $mail_settings;
 	public  $phpmailer_error_info;
+	public  $log;
 	
 	// $placeholders_map can be null
 	function send_mail($emailaddress, $placeholders_map, $subject, $message_html, $message_plain = null)
@@ -16,14 +17,17 @@ class EveMail
 		$mail->CharSet = 'UTF-8';
 		$mail->IsSMTP();
 		$mail->SMTPAuth = 	$this->mail_settings['smtpauth'];
-		$mail->SMTPSecure = 	$this->mail_settings['smtpsecure'];
+		$mail->SMTPSecure = $this->mail_settings['smtpsecure'];
 		$mail->Port = 		$this->mail_settings['port'];
-		$mail->SMTPDebug  = 	$this->mail_settings['smtpdebug'];
+		$mail->SMTPDebug  = $this->mail_settings['smtpdebug'];
 		$mail->Host = 		$this->mail_settings['host'];
 		$mail->Username = 	$this->mail_settings['username'];
 		$mail->Password = 	$this->mail_settings['password'];
 		$mail->From = 		$this->mail_settings['username'];
 		$mail->FromName = 	$this->mail_settings['fromname'];
+		$mail->Debugoutput = function($str, $level) {
+			$this->log .= "$level: $str\n";
+		};
 		$mail->AddAddress($emailaddress); 
 		$mail->IsHTML(true);
 		if ($placeholders_map != null)
@@ -55,15 +59,16 @@ class EveMail
 		$this->eve = $eve;		
 		$this->mail_settings = array
 		(
-			'host' => 	$this->eve->getSetting('phpmailer_host'),
+			'host' => 		$this->eve->getSetting('phpmailer_host'),
 			'username' => 	$this->eve->getSetting('phpmailer_username'),
 			'password' => 	$this->eve->getSetting('phpmailer_password'),
 			'fromname' => 	$this->eve->getSetting('phpmailer_fromname'),
 			'smtpauth' => 	$this->eve->getSetting('phpmailer_smtpauth'),
 			'smtpsecure' => $this->eve->getSetting('phpmailer_smtpsecure'),
-			'port' => 	$this->eve->getSetting('phpmailer_port'),
+			'port' => 		$this->eve->getSetting('phpmailer_port'),
 			'smtpdebug' => 	$this->eve->getSetting('phpmailer_smtpdebug')
 		);
+		$this->log = "";
 	}
 }
 

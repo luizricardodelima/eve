@@ -55,15 +55,7 @@ else
 				break;
 		}
 		?> 
-		<script>
-		function disable_submit_button()
-		{
-			document.getElementById('submit_button').disabled = 1;
-			document.getElementById('submit_button').innerHTML = '<?php echo $eve->_('common.action.pleasewait');?>';
-		}
-		</script>
-		
-		<form method="post" autocomplete="off" onsubmit="disable_submit_button();" class="user_dialog_panel">
+		<form method="post" autocomplete="off" class="user_dialog_panel">
 		<p><?php echo $eve->_('signup.intro');?></p>
 		<label for="signup_email_ipt"><?php echo $eve->_('signup.email');?></label>
 		<input id="signup_email_ipt" type="text" name="screenname" value="<?php if (isset($_POST['screenname'])){ echo $_POST['screenname'];}?>"/>
@@ -71,10 +63,20 @@ else
 		<input id="signup_password_ipt" type="password" name="password" autocomplete="off"/>
 		<label for="signup_passwordrepeat_ipt"><?php echo $eve->_('signup.passwordrepeat');?></label>
 		<input id="signup_passwordrepeat_ipt" type="password" name="passwordrepeat" autocomplete="off"/>
-		<button class="submit" type="submit" id="submit_button"><?php echo $eve->_('signup.submit');?></button>
+		<button class="submit" type="submit" id="submit_button" onclick="deactivate_button(this)"><?php echo $eve->_('signup.submit');?></button>
 		<p><a href="userarea.php"><?php echo $eve->_('common.action.back');?></a></p>
 		</form>
 		
+		<script>
+		function deactivate_button(e)
+		{
+			var el = document.createElement("p");
+			el.style.textAlign = 'center';
+			el.innerHTML = '<img src="style/icons/loading.gif" style="height: 2rem; width: 2rem;"/>';
+			e.parentNode.insertBefore(el, e);
+			e.style.display = 'none';
+		}
+		</script>
 		<?php	
 	}
 }

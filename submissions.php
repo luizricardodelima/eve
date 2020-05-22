@@ -52,7 +52,7 @@ else
 	$validation_errors = null;
 	
 	if (isset($_POST['action'])) switch ($_POST['action'])
-	{ // TODO RESOLVE SECURITY FLAWS: 'set_revierer' only for admins and final_reviewers - revision: only for admins, final_reviewers and reviewers
+	{ // TODO RESOLVE SECURITY FLAWS: 'set_reviewer' only for admins and final_reviewers - revision: only for admins, final_reviewers and reviewers
 		// TODO MAYBE DO IT IN THE SERVICES...
 		case 'change_status':
 			$message = $eveSubmissionService->submission_change_revision_status($_POST['submission_id'], $_POST['status']);
@@ -65,13 +65,11 @@ else
 		case 'revision':
 			$files = (isset($_FILES['revision_content'])) ? $_FILES['revision_content'] : null;
 			DynamicFormHelper::$locale = $eve->getSetting('system_locale');
-			$dynamicForm = new DynamicForm($_POST['revision_structure'], $_POST['revision_content'], $_FILES['revision_content'], 'upload/submission/');
+			$dynamicForm = new DynamicForm($_POST['revision_structure'], $_POST['revision_content'], $files, 'upload/submission/');
 			$validation_errors = $dynamicForm->validate();
 			if (empty($validation_errors))
 			{
-				// TODO submission_review tem que receber DynamicForm porque ele pode ter sido modificado por upload de arquivo
-				$message = $eveSubmissionService->submission_review($_POST['submission_id'], json_decode($_POST['revision_structure']), $_POST['revision_content'], $_SESSION['screenname']);
-				//$eve->output_redirect_page(basename(__FILE__)."?id={$_GET['id']}&access_mode={$access_mode}&success=2");
+				$message = $eveSubmissionService->submission_review($_POST['submission_id'], $_SESSION['screenname'], $dynamicForm);
 			}
 			break;
 	} 
@@ -125,17 +123,26 @@ else
 	</div>
 	</div></div>
 
-	<dialog id="submission_review_dialog" style="position: fixed; top: 0; left: 0; width: 99%; height: 99%;">
-	<div style="width:99%; height: 1.5em;"> <button type="button" onclick="document.getElementById('submission_review_dialog').close();">Fechar</button></div>	
-	<div style="width:99%; height: calc(99% - 2em); overflow-y: scroll;" >	
-	<form action="<?php echo basename(__FILE__)."?id={$_GET['id']}&access_mode={$access_mode}";?>" method="post" enctype="multipart/form-data">
+	<!-- Review dialog -->
+	<div id="review_dialog" style="display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgb(0,0,0); background-color: rgba(0,0,0,0.4);">
+	<div style="background-color: white; margin: 15% auto; border: 2px solid #333; width: 80%;" >
+	<button type="button" style="background-color:#333; color: white; float: right; border-radius: 0;" onclick="document.getElementById('review_dialog').style.display = 'none';"> X </button>
+	<form style="padding: 20px;" method="post" action="<?php echo basename(__FILE__)."?id={$_GET['id']}&access_mode={$access_mode}";?>" enctype="multipart/form-data" class="user_dialog_panel">
 	<input type="hidden" name="action" value="revision"/>
 	<input type="hidden" name="submission_id" id="submission_id_review"/>
-	<input type="hidden" name="revision_structure" value="<?php echo htmlentities($submission_definition['revision_structure']);?>"/>
 	<div id="submission_review_container" class="user_dialog_panel_large"></div>
 	</form>
-	</div>
-	</dialog>
+	<script>
+		function deactivate_button(e)
+		{
+			var el = document.createElement("p");
+			el.style.textAlign = 'center';
+			el.innerHTML = '<img src="style/icons/loading.gif" style="height: 2rem; width: 2rem;"/>';
+			e.parentNode.insertBefore(el, e);
+			e.style.display = 'none';
+		}
+	</script>
+	</div></div>
 
 	<form id="change_status_form" action="<?php echo basename(__FILE__)."?id={$_GET['id']}&access_mode={$access_mode}";?>" method="post">
 	<input type="hidden" name="action" value="change_status"/>
@@ -144,7 +151,7 @@ else
 	<label id="change_status_label"></label>
 	<select name="status">
 	<?php
-	//TODO Implement a enum with status codes in eve submission service
+	//TODO Implement enum with status codes in eve submission service
 	for ($i = 0; $i <= 2; $i++) 
 	{
 		echo "<option value=\"$i\" id=\"change_status_option[$i]\">".$eve->_("submission.revision_status.$i")."</option>";
@@ -158,13 +165,13 @@ else
 
 	<table class="data_table">
 	<tr>
-	<th style="width:2%"><input type="checkbox" onClick="toggle(this, 'submission[]')"/></th>
-	<th style="width:4%">ID</th>
+	<th style="width:3%"><input type="checkbox" onClick="toggle(this, 'submission[]')"/></th>
+	<th style="width:3%">ID</th>
 	<th style="width:14%">Data</th>
 	<?php if ($access_mode != 'reviewer') { ?><th style="width:20%">E-mail do autor</th><?php } // TODO HARDCODED - Reviewers dont see who has sent the submission ?>
 	<th style="width:20%">E-mail do avaliador</th>
 	<th style="width:20%">Status da avaliação</th>
-	<th style="width:10%" colspan="5"><?php echo $eve->_('common.table.header.options');?></th>		
+	<th style="width:20%" colspan="5"><?php echo $eve->_('common.table.header.options');?></th>		
 	</tr>
 	<?php
 
@@ -182,12 +189,12 @@ else
 		echo "<td style=\"text-align:left\">".$eve->_("submission.revision_status.{$submission['revision_status']}")."</td>";
 		
 		echo "<td>";
-			if ($access_mode == 'admin') echo "<button type=\"button\" onclick=\"window.location.href = 'submissionedit.php?id={$submission['id']}';\"><img src=\"style/icons/edit.png\"></button>";
+			if ($access_mode == 'admin') echo "<button type=\"button\" onclick=\"window.location.href = 'submissionedit.php?id={$submission['id']}';\"><img src=\"style/icons/edit.png\"> Editar</button>";
 		echo "</td>";
 
-		echo "<td style=\"text-align:center\"><button type=\"button\" onclick=\"submission_view({$submission['id']});\"><img src=\"style/icons/view.png\"></button></td>";
+		echo "<td style=\"text-align:center\"><button type=\"button\" onclick=\"submission_view({$submission['id']});\"><img src=\"style/icons/view.png\"> Visualizar</button></td>";
 		
-		echo "<td style=\"text-align:center\"><button type=\"button\" onclick=\"submission_review({$submission['id']});\"><img src=\"style/icons/revision.png\"></button></td>";
+		echo "<td style=\"text-align:center\"><button type=\"button\" onclick=\"submission_review({$submission['id']});\"><img src=\"style/icons/revision.png\"> Revisar</button></td>";
 		echo "<td>";		
 		if ($access_mode == 'admin' || $access_mode == 'final_reviewer')
 			echo "<button type=\"button\" onclick=\"change_status({$submission['id']}, {$submission['revision_status']});\"><img src=\"style/icons/revision_change_status.png\"></button>";
@@ -255,7 +262,7 @@ else
 		    }
 		};
 		xhr.send();
-		document.getElementById('submission_review_dialog').show();
+		document.getElementById('review_dialog').style.display = 'block';
 	}
 
 	function toggle(source, elementname)

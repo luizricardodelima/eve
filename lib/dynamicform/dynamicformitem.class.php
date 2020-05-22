@@ -2,8 +2,8 @@
 
 abstract class DynamicFormItem
 {
-    protected $content;
-    protected $type;
+    public $content;
+    public $type;
     public $spec;
     public $description;
     public $customattribute;

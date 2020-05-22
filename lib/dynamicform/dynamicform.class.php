@@ -64,7 +64,7 @@ class DynamicForm
     function getJSONContent() {
         $result = '[';
         foreach ($this->structure as $structureItem)
-            $result .= "'".$structureItem->content."',";
+            $result .= '"'.$structureItem->content.'",';
         $result = rtrim($result,',');
         $result .= ']';
         return $result;

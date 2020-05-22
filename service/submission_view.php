@@ -4,7 +4,6 @@ require_once '../eve.class.php';
 require_once '../evesubmissionservice.class.php';
 require_once '../lib/dynamicform/dynamicform.class.php';
 require_once '../lib/dynamicform/dynamicformhelper.class.php';
-//require_once '../evecustominputservice.class.php';
 
 // This service returns the contents of a submission for a user if
 // - they are its owner
@@ -13,30 +12,21 @@ require_once '../lib/dynamicform/dynamicformhelper.class.php';
 
 $eve = new Eve("../");
 $eveSubmissionService = new EveSubmissionService($eve);
-//$eveCustomInputService = new EveCustomInputService($eve);
+$submission = (isset($_GET['id'])) ? $eveSubmissionService->submission_get($_GET['id']) : null;
 
-// Verifying session
 if (!isset($_SESSION['screenname']))
-{	
+{
+	// If there's no session, return error	
 	header("Content-Type: text/plain");	
 	echo "Error: Invalid session";
 }
-// Verifying if id was passed
-else if (!isset($_GET['id']))
+else if (is_null($submission))
 {
+	// If there is no id passed as parameter or it is invalid, return error
 	header("Content-Type: text/plain");
 	echo "Error: Invalid parameter";
 	exit();
 }
-// Verifying if id is valid
-else if (!$eveSubmissionService->submission_get($_GET['id']))
-{
-	header("Content-Type: text/plain");
-	echo "Error: Invalid parameter";
-} 
-// Verifying user can access the submission
-// User needs to be admin, a final reviewer for the submission, a reviewer for the submission
-// or the owner of the submission
 else if (
 	$eve->is_admin($_SESSION['screenname']) ||
 	$eveSubmissionService->is_final_reviewer($_SESSION['screenname'], $submission['submission_definition_id']) ||
@@ -44,7 +34,8 @@ else if (
 	$submission['email'] == $_SESSION['screenname']
 	)
 {
-	$submission = $eveSubmissionService->submission_get($_GET['id']);
+	// If user is admin, final reviewer, reviewer or the owner of the submission
+	// return submission's contents
 
 	$only_unrestrict_view = false;
 	if (
@@ -74,7 +65,7 @@ else if (
 			if ($submission_structure_item->customattribute == 'noreview')
 			{
 				unset($submission['structure'][$i]);
-				unset($submisson['content'][$i]);
+				unset($submission['content'][$i]);
 			}
 		foreach ($dynamicFormSubmission->structure as $i => $dynamicFormSubmissionItem)
 			if ($dynamicFormSubmissionItem->customattribute == 'noreview')

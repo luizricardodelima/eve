@@ -32,8 +32,9 @@ else
 	<?php $eve->output_medium_goto_button("credential", "Credenciais", "settingscredential.php");?>
 	<?php $eve->output_medium_goto_button("payments", "Pagamentos", "settingspayments.php");?>
 	<?php $eve->output_medium_goto_button("paymentslisting", "Listagem dos Pagamentos", "settingspaymentslisting.php");?>
-	<div class="section">Trabalhos e certificados</div>
-	<?php $eve->output_medium_goto_button("reviewers", "Revisores de trabalhos", "settingsreviewers.php");?>
+	<div class="section">Submissões e certificados</div>
+	<?php $eve->output_medium_goto_button("submissions", "Submissões", "settingssubmissions.php");?>
+	<?php $eve->output_medium_goto_button("reviewers", "Revisores e revisões", "settingsreviewers.php");?>
 	<?php $eve->output_medium_goto_button("certification", "Certificados", "settingscertification.php");?>
 
 	<?php

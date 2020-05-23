@@ -40,9 +40,9 @@ else
 	$result = $eve->mysqli->query
 	("
 		SELECT * FROM `{$eve->DBPref}settings` WHERE
-		`key` = 'certification_send_email_on_update' OR
-		`key` = 'certification_email_subject' OR
-		`key` = 'certification_email_body_html'
+		`key` = 'email_snd_certification' OR
+		`key` = 'email_sbj_certification' OR
+		`key` = 'email_msg_certification'
 		;
 	");
 	while ($row = $result->fetch_assoc()) $settings[$row['key']] = $row['value'];
@@ -65,13 +65,14 @@ else
 
 	<form id="settings_form" method="post">
 	<div class="section">Certificado - Email de aviso <button type="button" onclick="certification_email_help()">?</button></div>
-	<table style="width: 100%">
-	<tr><td><input type="hidden" name="certification_send_email_on_update" value="0"/> <input type="checkbox" name="certification_send_email_on_update" value="1" <?php if ($settings['certification_send_email_on_update']) echo "checked=\"checked\"";?> /> Enviar e-mail ao gerar certificado para usuário</td></tr>
-	<tr><td>Assunto</td></tr>
-	<tr><td><textarea rows="1" cols="50" name="certification_email_subject"><?php echo $settings['certification_email_subject'];?></textarea></td></tr>
-	<tr><td>Mensagem - HTML</td></tr>
-	<tr><td><textarea class="htmleditor" rows="6" cols="50" name="certification_email_body_html"><?php echo $settings['certification_email_body_html'];?></textarea></td></tr>
-	</table>
+	<div class="user_dialog_panel">
+	<label for="email_snd_certification">
+	<input  id="email_snd_certification" type="checkbox" name="email_snd_certification" value="1" <?php if ($settings['email_snd_certification']) echo "checked=\"checked\"";?> /><input type="hidden" name="email_snd_certification" value="0"/>Enviar e-mail ao gerar certificado para o usuário</label>
+	<label for="email_sbj_certification">Assunto</label>
+	<input  id="email_sbj_certification" type="text" name="email_sbj_certification" value="<?php echo $settings['email_sbj_certification'];?>"/>
+	<label for="email_msg_certification">Mensagem</label>
+	<textarea id="email_msg_certification" class="htmleditor" rows="6" name="email_msg_certification"><?php echo $settings['email_msg_certification'];?></textarea>
+	</div>
 	</form>
 
 	<?php

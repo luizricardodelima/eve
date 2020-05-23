@@ -124,7 +124,7 @@ class EveCertificationService
 		$stmt2->execute();
 		if ($this->eve->mysqli->affected_rows)
 		{
-			if (!$locked && $this->eve->getSetting('certification_send_email_on_update'))
+			if (!$locked && $this->eve->getSetting('email_snd_certification'))
 			$this->send_certification_mail($stmt2->insert_id);
 			$stmt2->close();
 			return self::CERTIFICATION_ATTRIBUITION_SUCCESS;
@@ -161,7 +161,7 @@ class EveCertificationService
 		{
 			$stmt2->bind_param('isii', $certificationtemplate_id, $user_screennames[$key], $submission_id, $locked);
 			$stmt2->execute();
-			if (!$locked && $this->eve->getSetting('certification_send_email_on_update'))
+			if (!$locked && $this->eve->getSetting('email_snd_certification'))
 				$this->send_certification_mail($stmt2->insert_id);
 		}
 		$stmt2->close();
@@ -186,7 +186,7 @@ class EveCertificationService
 		{
 			$stmt2->bind_param('isi', $certificationtemplate_id, $user, $locked);
 			$stmt2->execute();
-			if (!$locked && $this->eve->getSetting('certification_send_email_on_update'))
+			if (!$locked && $this->eve->getSetting('email_snd_certification'))
 				$this->send_certification_mail($stmt2->insert_id);
 		}
 		$stmt2->close();
@@ -305,7 +305,7 @@ class EveCertificationService
 		{
 			$stmt->bind_param('i', $certification);
 			$stmt->execute();
-			if ($this->eve->getSetting('certification_send_email_on_update'))
+			if ($this->eve->getSetting('email_snd_certification'))
 				$this->send_certification_mail($certification);
 		}
 		$stmt->close();
@@ -373,7 +373,7 @@ class EveCertificationService
 			'$system_name' => $this->eve->getSetting('system_name'),
 			'$site_url' => $this->eve->url()
 		);
-		$this->evemail->send_mail($certification['owner'], $placeholders, $this->eve->getSetting('certification_email_subject'), $this->eve->getSetting('certification_email_body_html'));
+		$this->evemail->send_mail($certification['owner'], $placeholders, $this->eve->getSetting('email_sbj_certification'), $this->eve->getSetting('email_msg_certification'));
 	}
 
 	function certificationmodel_create($name = "")

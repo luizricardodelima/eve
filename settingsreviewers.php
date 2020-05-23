@@ -29,7 +29,7 @@ else if (sizeof($_POST) > 0)
 else
 {
 	$eve->output_html_header();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Ajustes do sistema", "settings.php", "Revisores", null);	
+	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Ajustes do sistema", "settings.php", "Revisores e revisões", null);	
 	$eve->output_wysiwig_editor_code();
 
 	if (isset($_GET['saved']))
@@ -40,12 +40,12 @@ else
 	$result = $eve->mysqli->query
 	("
 		SELECT * FROM `{$eve->DBPref}settings` WHERE
-		`key` = 'reviewer_attribution_email_send' OR
-		`key` = 'reviewer_attribution_email_subject' OR
-		`key` = 'reviewer_attribution_email_body' OR
-		`key` = 'submission_revision_email_send' OR
-		`key` = 'submission_revision_email_subject' OR
-		`key` = 'submission_revision_email_body'
+		`key` = 'email_snd_reviewer' OR
+		`key` = 'email_sbj_reviewer' OR
+		`key` = 'email_msg_reviewer' OR
+		`key` = 'email_snd_revision' OR
+		`key` = 'email_sbj_revision' OR
+		`key` = 'email_msg_revision'
 		;
 	");
 	while ($row = $result->fetch_assoc()) $settings[$row['key']] = $row['value'];
@@ -79,22 +79,24 @@ else
 	<form id="settings_form" method="post">
 
 	<div class="section">E-mail de atribuição para o revisor <button type="button" onclick="reviewer_attribution_help()">?</button></div>
-	<table style="width: 100%">
-	<tr><td><input type="hidden" name="reviewer_attribution_email_send" value="0"/><input type="checkbox" name="reviewer_attribution_email_send" value="1" <?php if ($settings['reviewer_attribution_email_send']) echo "checked=\"checked\"";?> /> Enviar e-mail de atribuição para revisor</td></tr>
-	<tr><td>Assunto</td></tr>
-	<tr><td><textarea rows="1" cols="50" name="reviewer_attribution_email_subject"><?php echo $settings['reviewer_attribution_email_subject'];?></textarea></td></tr>
-	<tr><td>Mensagem</td></tr>
-	<tr><td><textarea class="htmleditor" rows="6" cols="50" name="reviewer_attribution_email_body"><?php echo $settings['reviewer_attribution_email_body'];?></textarea></td></tr>
-	</table>
+	<div class="user_dialog_panel">
+	<label for="email_snd_reviewer">
+	<input  id="email_snd_reviewer" type="checkbox" name="email_snd_reviewer" value="1" <?php if ($settings['email_snd_reviewer']) echo "checked=\"checked\"";?> /><input type="hidden" name="email_snd_reviewer" value="0"/>Enviar e-mail de atribuição para revisor</label>
+	<label for="email_sbj_reviewer">Assunto</label>
+	<input  id="email_sbj_reviewer" type="text" name="email_sbj_reviewer" value="<?php echo $settings['email_sbj_reviewer'];?>"/>
+	<label for="email_msg_reviewer">Mensagem</label>
+	<textarea id="email_msg_reviewer" class="htmleditor" rows="6" name="email_msg_reviewer"><?php echo $settings['email_msg_reviewer'];?></textarea>
+	</div>
 
 	<div class="section">E-mail de revisão concluída <button type="button" onclick="submission_revision_email_help()">?</button></div>
-	<table style="width: 100%">
-	<tr><td><input type="hidden" name="submission_revision_email_send" value="0"/><input type="checkbox" name="submission_revision_email_send" value="1" <?php if ($settings['submission_revision_email_send']) echo "checked=\"checked\"";?> /> Enviar e-mail de revisão concluída para quem enviou o trabalho</td></tr>
-	<tr><td>Assunto</td></tr>
-	<tr><td><textarea rows="1" cols="50" name="submission_revision_email_subject"><?php echo $settings['submission_revision_email_subject'];?></textarea></td></tr>
-	<tr><td>Mensagem</td></tr>
-	<tr><td><textarea class="htmleditor" rows="6" cols="50" name="submission_revision_email_body"><?php echo $settings['submission_revision_email_body'];?></textarea></td></tr>
-	</table>
+	<div class="user_dialog_panel">
+	<label for="email_snd_revision">
+	<input  id="email_snd_revision" type="checkbox" name="email_snd_revision" value="1" <?php if ($settings['email_snd_revision']) echo "checked=\"checked\"";?> /><input type="hidden" name="email_snd_revision" value="0"/>Enviar e-mail de revisão concluída para quem fez submissão</label>
+	<label for="email_sbj_revision">Assunto</label>
+	<input  id="email_sbj_revision" type="text" name="email_sbj_revision" value="<?php echo $settings['email_sbj_revision'];?>"/>
+	<label for="email_msg_revision">Mensagem</label>
+	<textarea id="email_msg_revision" class="htmleditor" rows="6" name="email_msg_revision"><?php echo $settings['email_msg_revision'];?></textarea>
+	</div>
 	
 	</form>
 	<?php

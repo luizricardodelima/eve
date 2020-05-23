@@ -39,16 +39,10 @@ else
 	$settings = array();
 	$result = $eve->mysqli->query
 	("
-		SELECT * FROM `{$eve->DBPref}settings` WHERE
-		`key` = 'user_signup_closed' OR
-		`key` = 'user_signup_closed_message' OR
-		`key` = 'verification_email_subject' OR
-		`key` = 'verification_email_body_html' OR
-		`key` = 'welcome_email_subject' OR
-		`key` = 'welcome_email_body_html' OR
-		`key` = 'password_retrieval_email_subject' OR
-		`key` = 'password_retrieval_email_body_html'
-		;
+		select * from `{$eve->DBPref}settings` where `key` in
+		('user_signup_closed', 'user_signup_closed_message', 'email_sbj_user_verification',
+		'email_msg_user_verification',  'email_sbj_welcome', 'email_msg_welcome',
+		'email_sbj_password_retrieval', 'email_msg_password_retrieval');
 	");
 	while ($row = $result->fetch_assoc()) $settings[$row['key']] = $row['value'];
 	?>
@@ -81,39 +75,43 @@ else
 	}
 	</script>
 
-	<div class="section">
+	<div class="section">Inscrições 
 	<button type="button" onclick="document.forms['settings_form'].submit();"/>Salvar</button>
 	</div>
 
 	<form id="settings_form" method="post">
 	
 	<div class="section">Novas inscri&ccedil;&otilde;es</div>
-	<table style="width: 100%">
-	<tr><td><input type="hidden" name="user_signup_closed" value="0"/><input type="checkbox" name="user_signup_closed" value="1" <?php if ($settings['user_signup_closed']) echo "checked=\"checked\"";?> /> Sistema fechado para novas inscri&ccedil;&otilde;es</td></tr>
-	<tr><td>Mensagem para sistema fechado para novas inscri&ccedil;&otilde;es</td></tr>
-	<tr><td><textarea class="htmleditor" rows="6" cols="50" name="user_signup_closed_message"><?php echo $settings['user_signup_closed_message'];?></textarea></td></tr>
-	</table>
+	<div class="user_dialog_panel">
+	<label for="user_signup_closed">
+	<input  id="user_signup_closed" type="checkbox" name="user_signup_closed" value="1" <?php if ($settings['user_signup_closed']) echo "checked=\"checked\"";?> /><input type="hidden" name="user_signup_closed" value="0"/> Sistema fechado para novas inscri&ccedil;&otilde;es</label>
+	<label for="user_signup_closed_message"></label>Mensagem para sistema fechado para novas inscri&ccedil;&otilde;es</label>
+	<textarea id="user_signup_closed_message" class="htmleditor" rows="6" name="user_signup_closed_message"><?php echo $settings['user_signup_closed_message'];?></textarea>
+	</div>
+
 	<div class="section">E-mail de verifica&ccedil;&atilde;o <button type="button" onclick="verification_email_help()">?</button></div>
-	<table style="width: 100%">
-	<tr><td>Assunto</td></tr>
-	<tr><td><textarea rows="1" cols="50" name="verification_email_subject"><?php echo $settings['verification_email_subject'];?></textarea></td></tr>
-	<tr><td>Mensagem - HTML</td></tr>
-	<tr><td><textarea class="htmleditor" rows="6" cols="50" name="verification_email_body_html"><?php echo $settings['verification_email_body_html'];?></textarea></td></tr>
-	</table>
+	<div class="user_dialog_panel">
+	<label for="email_sbj_user_verification">Assunto</label>
+	<input  id="email_sbj_user_verification" type="text" name="email_sbj_user_verification" value="<?php echo $settings['email_sbj_user_verification'];?>"/>
+	<label for="email_msg_user_verification">Mensagem</label>
+	<textarea id="email_msg_user_verification" class="htmleditor" rows="6" name="email_msg_user_verification"><?php echo $settings['email_msg_user_verification'];?></textarea></td></tr>
+	</div>
+	
 	<div class="section">E-mail de boas vindas <button type="button" onclick="welcome_email_help()">?</button></div>
-	<table style="width: 100%">
-	<tr><td>Assunto</td></tr>
-	<tr><td><textarea rows="1" cols="50" name="welcome_email_subject"><?php echo $settings['welcome_email_subject'];?></textarea></td></tr>
-	<tr><td>Mensagem - HTML</td></tr>
-	<tr><td><textarea class="htmleditor" rows="6" cols="50" name="welcome_email_body_html"><?php echo $settings['welcome_email_body_html'];?></textarea></td></tr>
-	</table>
+	<div class="user_dialog_panel">
+	<label for="email_sbj_welcome">Assunto</label>
+	<input  id="email_sbj_welcome" type="text" name="email_sbj_welcome" value="<?php echo $settings['email_sbj_welcome'];?>"/>
+	<label for="email_msg_welcome">Mensagem</label>
+	<textarea id="email_msg_welcome" class="htmleditor" rows="6" name="email_msg_welcome"><?php echo $settings['email_msg_welcome'];?></textarea>
+	</div>
+	
 	<div class="section">E-mail de recupera&ccedil;&atilde;o de senha <button type="button" onclick="password_retrieval_email_help()">?</button></div>
-	<table style="width: 100%">
-	<tr><td>Assunto</td></tr>
-	<tr><td><textarea rows="1" cols="50" name="password_retrieval_email_subject"><?php echo $settings['password_retrieval_email_subject'];?></textarea></td></tr>
-	<tr><td>Mensagem - HTML</td></tr>
-	<tr><td><textarea class="htmleditor" rows="6" cols="50" name="password_retrieval_email_body_html"><?php echo $settings['password_retrieval_email_body_html'];?></textarea></td></tr>
-	</table>
+	<div class="user_dialog_panel">
+	<label for="email_sbj_password_retrieval">Assunto</label>
+	<input  id="email_sbj_password_retrieval" type="text" name="email_sbj_password_retrieval" value="<?php echo $settings['email_sbj_password_retrieval'];?>"/>
+	<label for="email_msg_password_retrieval">Mensagem - HTML</label>
+	<textarea id="email_msg_password_retrieval" class="htmleditor" rows="6" name="email_msg_password_retrieval"><?php echo $settings['email_msg_password_retrieval'];?></textarea>
+	</div>
 
 	</form>
 	<?php

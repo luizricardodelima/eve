@@ -150,7 +150,7 @@ else
 		foreach ($submissionDefinitionsForFinalReviewer as $submissionDefinitionReviewer)
 		{
 			$submission_definition = $eveSubmissionService->submission_definition_get($submissionDefinitionReviewer['submission_definition_id']);
-			$eve->output_big_goto_button("Avaliação final: ".$submission_definition['description'], "&#113;", "submissions.php?id={$submission_definition['id']}&access_mode=final_reviewer");
+			$eve->output_big_goto_button($eve->_('userarea.option.finalreview').$submission_definition['description'], "&#113;", "submissions.php?id={$submission_definition['id']}&access_mode=final_reviewer");
 		}		
 		echo "</div>";
 	}
@@ -164,7 +164,7 @@ else
 		foreach ($submissionDefinitionsForFinalReviewer as $submissionDefinitionReviewer)
 		{
 			$submission_definition = $eveSubmissionService->submission_definition_get($submissionDefinitionReviewer['submission_definition_id']);
-			$eve->output_big_goto_button("Avaliação: ".$submission_definition['description'], "&#113;", "submissions.php?id={$submission_definition['id']}&access_mode=reviewer");
+			$eve->output_big_goto_button($eve->_('userarea.option.review').$submission_definition['description'], "&#113;", "submissions.php?id={$submission_definition['id']}&access_mode=reviewer");
 		}		
 		echo "</div>";
 	}

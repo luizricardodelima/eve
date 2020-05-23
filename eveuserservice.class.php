@@ -277,7 +277,7 @@ class EveUserServices
 			'$verification_code' => $verification_code,
 			'$verification_url' => $verification_url
 		);
-		$this->evemail->send_mail($email, $placeholders, $this->eve->getSetting('verification_email_subject'), $this->eve->getSetting('verification_email_body_html'));
+		$this->evemail->send_mail($email, $placeholders, $this->eve->getSetting('email_sbj_user_verification'), $this->eve->getSetting('email_msg_user_verification'));
 
 		return self::UNVERIFIED_USER_SEND_VERIFICATION_EMAIL_SUCCESS;
 	}
@@ -454,7 +454,7 @@ class EveUserServices
 				'$system_name' => $this->eve->getSetting('system_name'),
 				'$site_url' => $this->eve->url()
 			);
-			$this->evemail->send_mail($email, $placeholders, $this->eve->getSetting('welcome_email_subject'), $this->eve->getSetting('welcome_email_body_html'));
+			$this->evemail->send_mail($email, $placeholders, $this->eve->getSetting('email_sbj_welcome'), $this->eve->getSetting('email_msg_welcome'));
 		}
 		return true;
 	}
@@ -511,7 +511,7 @@ class EveUserServices
 				'$system_name' => $this->eve->getSetting('system_name'),
 				'$site_url' => $this->eve->url()
 			);
-			$this->evemail->send_mail($email, $placeholders, $this->eve->getSetting('password_retrieval_email_subject'), $this->eve->getSetting('password_retrieval_email_body_html'));
+			$this->evemail->send_mail($email, $placeholders, $this->eve->getSetting('email_sbj_password_retrieval'), $this->eve->getSetting('email_msg_password_retrieval'));
 		}
 	}
 

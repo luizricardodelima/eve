@@ -90,7 +90,7 @@ else
 	
 	?>
 	<div class="section">
-	<!-- TODO --> <button type="button" onclick="alert('Implement - Filtro no DynamicForm, deixar lista em javascript client-side e atualizar view')">Filtrar</button>  
+	<!-- TODO <button type="button" onclick="alert('Implement - Filtro no DynamicForm')">Filtrar</button>--> 
 	<?php if (in_array($access_mode, array('final_reviewer', 'admin'))) { ?><button type="button" onclick="window.location.href = 'submission_definition_reviewers.php?id=<?php echo $_GET['id'];?>&backlink=submissions_<?php echo $access_mode;?>';">Gerenciar avaliadores</button><?php } ?>
 	<?php if (in_array($access_mode, array('final_reviewer', 'admin'))) { ?><button type="button" onclick="set_reviewer()">Atribuir avaliador</button><?php } ?>
 	<?php if (in_array($access_mode, array('final_reviewer', 'admin'))) { ?><button type="button" onclick="submission_change_status()">Alterar status</button><?php } ?>
@@ -176,7 +176,7 @@ else
 	<th style="width:14%">Data</th>
 	<?php if ($access_mode != 'reviewer') { ?><th style="width:20%">E-mail do autor</th><?php } // TODO HARDCODED - Reviewers dont see who has sent the submission ?>
 	<th style="width:20%">E-mail do avaliador</th>
-	<th style="width:18%">Status da avaliação</th>
+	<th style="width:20%">Status da avaliação</th>
 	<th style="width:22%" colspan="3"><?php echo $eve->_('common.table.header.options');?></th>		
 	</tr>
 	<?php

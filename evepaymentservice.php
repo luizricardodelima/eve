@@ -75,7 +75,7 @@ class EvePaymentService
 			$stmt3->close();
 		}
 		
-		if ($result == self::PAYMENT_SUCCESSFUL && $this->eve->getSetting('payment_send_email_on_update'))
+		if ($result == self::PAYMENT_SUCCESSFUL && $this->eve->getSetting('email_snd_payment'))
 		{
 			$paymenttype_id_sql = intval($paymenttype_id); // Sanitizing value.
 			// TODO USE PREPARED STATEMENTS - CREATE A METHOD IN THIS CLASS
@@ -90,7 +90,7 @@ class EvePaymentService
 				'$system_name' => $this->eve->getSetting('system_name'),
 				'$site_url' => $this->eve->url()
 			);
-			$send_successful = $this->evemail->send_mail($screenname, $placeholders, $this->eve->getSetting('payment_email_subject'), $this->eve->getSetting('payment_email_body_html'));
+			$send_successful = $this->evemail->send_mail($screenname, $placeholders, $this->eve->getSetting('email_sbj_payment'), $this->eve->getSetting('email_msg_payment'));
 			if ($send_successful) $result = self::PAYMENT_SUCCESSFUL_WITH_EMAIL_ALERT;
 		}
 		return $result;
@@ -123,7 +123,7 @@ class EvePaymentService
 			$stmt3->close();
 		}
 
-		if ($this->eve->getSetting('payment_send_email_on_update'))
+		if ($this->eve->getSetting('email_snd_payment'))
 		{
 			$placeholders = array
 			(
@@ -134,7 +134,7 @@ class EvePaymentService
 				'$system_name' => $this->eve->getSetting('system_name'),
 				'$site_url' => $this->eve->url()
 			);
-			$this->evemail->send_mail($payment['email'], $placeholders, $this->eve->getSetting('payment_email_subject'), $this->eve->getSetting('payment_email_body_html'));
+			$this->evemail->send_mail($payment['email'], $placeholders, $this->eve->getSetting('email_sbj_payment'), $this->eve->getSetting('email_msg_payment'));
 		}
 	}
 

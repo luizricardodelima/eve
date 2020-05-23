@@ -44,9 +44,9 @@ else
 		`key` = 'payment_closed' OR
 		`key` = 'payment_information_unverified' OR
 		`key` = 'payment_information_verified' OR
-		`key` = 'payment_send_email_on_update' OR
-		`key` = 'payment_email_subject' OR
-		`key` = 'payment_email_body_html'
+		`key` = 'email_snd_payment' OR
+		`key` = 'email_sbj_payment' OR
+		`key` = 'email_msg_payment'
 		;
 	");
 	while ($row = $result->fetch_assoc()) $settings[$row['key']] = $row['value'];
@@ -80,13 +80,14 @@ else
 	</table>
 
 	<div class="section">Email de aviso <button type="button" onclick="payment_email_help()">?</button></div>
-	<table style="width: 100%">
-	<tr><td><input type="hidden" name="payment_send_email_on_update" value="0"/> <input type="checkbox" name="payment_send_email_on_update" value="1" <?php if ($settings['payment_send_email_on_update']) echo "checked=\"checked\"";?> /> Enviar e-mail ao atualizar pagamento do usuário</td></tr>
-	<tr><td>Assunto</td></tr>
-	<tr><td><textarea rows="1" cols="50" name="payment_email_subject"><?php echo $settings['payment_email_subject'];?></textarea></td></tr>
-	<tr><td>Mensagem - HTML</td></tr>
-	<tr><td><textarea class="htmleditor" rows="6" cols="50" name="payment_email_body_html"><?php echo $settings['payment_email_body_html'];?></textarea></td></tr>
-	</table>
+	<div class="user_dialog_panel">
+	<label for="email_snd_payment">
+	<input  id="email_snd_payment" type="checkbox" name="email_snd_payment" value="1" <?php if ($settings['email_snd_payment']) echo "checked=\"checked\"";?> /><input type="hidden" name="email_snd_payment" value="0"/>Enviar e-mail ao atualizar pagamento do usuário</label>
+	<label for="email_sbj_payment">Assunto</label>
+	<input  id="email_sbj_payment" type="text" name="email_sbj_payment" value="<?php echo $settings['email_sbj_payment'];?>"/>
+	<label for="email_msg_payment">Mensagem</label>
+	<textarea id="email_msg_payment" class="htmleditor" rows="6" name="email_msg_payment"><?php echo $settings['email_msg_payment'];?></textarea>
+	</div>
 	
 	</form>
 	<?php

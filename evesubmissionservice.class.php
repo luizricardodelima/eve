@@ -405,7 +405,7 @@ class EveSubmissionService
 			if (($new_status == 1 & empty($this->submission_definition_reviewers($submission['submission_definition_id'], 'final_reviewer'))) || ($new_status == 2))
 			{
 				// Sending e-mail
-				if ($this->eve->getSetting('submission_revision_email_send'))
+				if ($this->eve->getSetting('email_snd_revision'))
 				{
 					$submissionDynamicForm = new DynamicForm($submission['structure'], json_decode($submission['content']));
 					$submission_formatted_content = $submissionDynamicForm->getHtmlFormattedContent();
@@ -419,7 +419,7 @@ class EveSubmissionService
 						'$submission_content' => $submission_formatted_content,
 						'$revision_content' => $revision_formatted_content,
 					);
-					$this->evemail->send_mail($submission['email'], $placeholders, $this->eve->getSetting('submission_revision_email_subject'), $this->eve->getSetting('submission_revision_email_body'));
+					$this->evemail->send_mail($submission['email'], $placeholders, $this->eve->getSetting('email_sbj_revision'), $this->eve->getSetting('email_msg_revision'));
 				}
 				return self::SUBMISSION_REVIEW_SUCCESS;
 			}
@@ -499,7 +499,7 @@ class EveSubmissionService
 		$stmt->close();
 
 		// Sending e-mail to reviewer
-		if ($this->eve->getSetting('reviewer_attribution_email_send'))
+		if ($this->eve->getSetting('email_snd_reviewer'))
 		{
 			DynamicFormHelper::$locale = $this->eve->getSetting('system_locale');
 			foreach ($submission_ids as $submission_id) {
@@ -518,7 +518,7 @@ class EveSubmissionService
 					'$site_url' => $this->eve->url(),
 					'$submission_content' => $submission_formatted_content
 				);
-				$this->evemail->send_mail($reviewer_screenname, $placeholders, $this->eve->getSetting('reviewer_attribution_email_subject'), $this->eve->getSetting('reviewer_attribution_email_body'));
+				$this->evemail->send_mail($reviewer_screenname, $placeholders, $this->eve->getSetting('email_sbj_reviewer'), $this->eve->getSetting('email_msg_reviewer'));
 			}
 		}
 		return self::SUBMISSION_SET_REVIEWER_SUCCESS;

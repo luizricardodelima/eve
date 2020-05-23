@@ -828,7 +828,6 @@ class EveSubmissionService
 		");
 		if ($stmt === false)
 		{
-			$stmt->close();
 			return self::SUBMISSION_DEFINITION_REVIEWER_ADD_ERROR_SQL;
 		}
 		$stmt->bind_param('iss', $submission_definition_id, $email, $type);

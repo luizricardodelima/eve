@@ -342,15 +342,26 @@ class Eve
 		return $result;
 	}
 
+	/**
+	 * Returns the base url of system.
+	 */
+	function sysurl()
+	{
+		$server_name = isset($_SERVER['HTTP_X_FORWARDED_SERVER']) ?  $_SERVER['HTTP_X_FORWARDED_SERVER'] : $_SERVER["SERVER_NAME"];
+		$path = substr(dirname(__FILE__), strlen($_SERVER['DOCUMENT_ROOT']));
+		return sprintf("%s://%s%s", isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ? 'https' : 'http', $server_name, $path);
+	}
+
+	// TODO #3 test sysurl() and replace all occurrences of url() for sysurl();
 	// This function returns the base url of the system. This works particularly for this system
 	// since all its php codes are located on system's base folder. It depends strongly on the php
 	// code which initially calls the function, the request URI.
+	/** @deprecated use sysurl() insted */
 	function url($without_filename = true)
 	{
 		//TODO: try to understand $SERVER variables to check if this routine works properly on different servers
 		$server_name = isset($_SERVER['HTTP_X_FORWARDED_SERVER']) ?  $_SERVER['HTTP_X_FORWARDED_SERVER'] : $_SERVER["SERVER_NAME"];
 		$result = sprintf("%s://%s%s", isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ? 'https' : 'http', $server_name, $_SERVER['REQUEST_URI']);
-
 		if ($without_filename) 
 		{
 			$i = strlen($result);

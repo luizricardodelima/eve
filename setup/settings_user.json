@@ -1,0 +1,11 @@
+{
+	"phpmailer_host":"smtpout.secureserver.net",
+	"phpmailer_password":"rubber999@",
+	"phpmailer_port":"465",
+	"phpmailer_smtpauth":"true",
+	"phpmailer_smtpdebug":"0",
+	"phpmailer_smtpsecure":"ssl",
+    "phpmailer_username":"leatherlivre@leatherlivre.org",
+    "support_email_address":"",
+    "system_name":"EVE - Gerenciador de eventos"
+}

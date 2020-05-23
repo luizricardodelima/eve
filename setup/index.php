@@ -1,192 +1,153 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>EVE Setup</title>
-<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
-<style>
-body { font-family: sans-serif; }
-.error { color: red; }
-.success { color: #00B030; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVE Setup</title>
+    <style>
+    body { font-family: sans-serif; }
+    .pnl { position: absolute; z-index: 0; left: 0; top: 0; width: 100%; min-height: 100%; display: flex; flex-wrap: wrap; justify-content: center;  align-items: center; padding: 1rem;}
+    .opt { min-height: 17rem; width: 17em; overflow: visible; }
+    .opt img {display: block; height: 50%; width: 50%; text-align: center; margin: 5% auto;}
+    .opt label {font-size: 2em;}
+    .modal {display: none; position: fixed; z-index: 2; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgb(0,0,0); background-color: rgba(0,0,0,0.4);}
+    .modal_close_button {background-color:#333; color: white; float: right; border: 0; border-radius: 0;}
+    .modal_container {background-color: white; margin: 15% auto; border: 2px solid #333; width: 80%;}
+    .modal_content {border: 20px auto; display: grid; grid-gap: 0.5em; grid-template-columns: 1fr; max-width: 50em;}
+    
+    @media screen and (max-width: 975px) {.pnl {display: flex; flex-direction: column; flex-wrap: nowrap;}}
+    </style>
 </head>
 <body>
-<h1>EVE Setup</h1>
-<p>You can use the options options below after editing <code>evedbconfig.php</code> file with the proper database settings. For security reasons, the password for database connection will be asked again on database delete and database create options.</p>
-<?php
-require_once '../evedbconfig.php';
-require_once 'dbcreate4.php';
-if (isset($_POST['action']))
-{
-	// TODO: Clean up redundant code. (database connection check)
-	switch ($_POST['action'])
-	{
-		case "database_check":
-			//Checking connection
-			$link = mysqli_connect(EveDBConfig::$server, EveDBConfig::$user, EveDBConfig::$password, EveDBConfig::$database);
-			if (!$link)
-			{
-				echo "<p class=\"error\">".date("c")." ERROR: Unable to connect to MySQL. </p>";
-				echo "<ul class=\"error\"><li>Debugging errno: " . mysqli_connect_errno(). "</li>";
-				echo "<li>Debugging error: " . mysqli_connect_error()."</li></ul>";
-			}
-			else
-				echo "<p class=\"success\">".date("c")." Success on establishing database connection</p>";
-		break;		
-		case "database_create":
-			//This variable indicates if there are setup errors or not
-			$setup_errors = 0;
+    <div class="pnl">
+    <div class="opt">
+        <h1>Eve Setup</h1>
+        <p>You can use the options after editing <code>evedbconfig.php</code> file with the
+        database connection settings. For security reasons, the password for the database
+        will be asked again on database create and delete.</p>
+        <div id="db_check_info"></div>
+    </div>
+    <button type="button" class="opt" onclick="database_create_dialog()"><img src="create.svg"/><label>Database create</label></button>
+    <button type="button" class="opt" onclick="database_delete_dialog()"><img src="delete.svg"/><label>Database delete</label></button>
+    </div>
+    
+    <!-- Database create options -->
+	<div id="database_create_dialog" class="modal"><div class="modal_container">
+	<button type="button" class="modal_close_button" onclick="document.getElementById('database_create_dialog').style.display = 'none';"> X </button>
+    <!-- Begin of dialog content -->
+    <div id="create_content_1" class="modal_content">
+    <label for="db_password">Database password</label>
+    <input  id="db_password" type="password"/>
+    <label for="su_email">Superuser e-mail</label>
+    <input  id="su_email" type="text"/>
+    <label for="su_password">Superuser password</label>
+    <input  id="su_password" type="text"/>
+    <button onclick="database_create()">Create</button>
+    </div>
+    <div id="create_content_2" style="display: none;" class="modal_content">
+    <p>Aguarde!</p>
+    </div>
+    <div id="create_content_3" style="display: none;" class="modal_content">
+    </div>
+    <script>
+        function database_create_dialog()
+        {
+            document.getElementById('create_content_1').style.display = 'block';
+            document.getElementById('create_content_2').style.display = 'none';
+            document.getElementById('create_content_3').style.display = 'none';
+            document.getElementById('database_create_dialog').style.display = 'block';
+        }
 
-			//Checking connection
-			$link = mysqli_connect(EveDBConfig::$server, EveDBConfig::$user, EveDBConfig::$password, EveDBConfig::$database);
-			if (!$link)
-			{
-				echo "<p class=\"error\">".date("c")." ERROR: Unable to connect to MySQL. </p>";
-				echo "<ul class=\"error\"><li>Debugging errno: " . mysqli_connect_errno(). "</li>";
-				echo "<li>Debugging error: " . mysqli_connect_error()."</li></ul>";
-				$setup_errors++;
-			}
-			else
-				echo "<p class=\"success\">".date("c")." Success on establishing database connection</p>";
-			
-			//Checking if password provided is equal to the password stored in evedbconfig.php
-			if ($_POST['database_password'] != EveDBConfig::$password)
-			{
-				echo "<p class=\"error\">".date("c")." ERROR: Password provided is not the same as the one provided in evedbconfig.php.</p>";
-				$setup_errors++;
-			}			
+        function database_create()
+        {
+            var data = new FormData();
+            data.append('action', 'create');
+            data.append('db_password', document.getElementById('db_password').value);
+            data.append('su_email', document.getElementById('su_email').value);
+            data.append('su_password', document.getElementById('su_password').value);
+            document.getElementById('create_content_2').style.display = 'block';
+            document.getElementById('create_content_1').style.display = 'none';
+            var xhr = new XMLHttpRequest();
+			xhr.open('POST', 'service.php');
+			xhr.onload = function() {
+                if (xhr.status === 200)
+					document.getElementById('create_content_3').innerHTML = xhr.responseText;
+                else
+					document.getElementById('create_content_3').innerHTML = '<p>HTTP Error ' + xhr.status + '</p>';
+                document.getElementById('create_content_3').style.display = 'block';
+                document.getElementById('create_content_2').style.display = 'none';
+                update_db_info();
+            };
+            xhr.send(data);
+        }
+    </script>
+    <!-- End of dialog content -->    
+    </div></div>
+    
+    <!-- Database delete options -->
+	<div id="database_delete_dialog" class="modal"><div class="modal_container">
+	<button type="button" class="modal_close_button" onclick="document.getElementById('database_delete_dialog').style.display = 'none';"> X </button>
+    <!-- Begin of dialog content -->
+    <div id="delete_content_1" class="modal_content">
+    <label for="db_password_del">Database password</label>
+    <input  id="db_password_del" type="password"/>
+    <button onclick="database_delete()">Delete</button>
+    </div>
+    <div id="delete_content_2" style="display: none;" class="modal_content">
+    <p>Aguarde!</p>
+    </div>
+    <div id="delete_content_3" style="display: none;" class="modal_content">
+    <p>Fim!!!</p>
+    </div>
+    <script>
+        function database_delete_dialog()
+        {
+            document.getElementById('delete_content_1').style.display = 'block';
+            document.getElementById('delete_content_2').style.display = 'none';
+            document.getElementById('delete_content_3').style.display = 'none';
+            document.getElementById('database_delete_dialog').style.display = 'block';
+        }
 
-			//Checking username and password
-			if (trim($_POST['admin_screenname']) == "") 
-			{
-				echo "<p class=\"error\">".date("c")." ERROR: Admin email cannot be blank.</p>";
-				$setup_errors++;
-			}
-			else if (!filter_var($_POST['admin_screenname'], FILTER_VALIDATE_EMAIL))
-			{
-				echo "<p class=\"error\">".date("c")." ERROR: Admin email is invalid.</p>";
-				$setup_errors++;
-			}
-			if (trim($_POST['admin_password']) == "")
-			{
-				echo "<p class=\"error\">".date("c")." ERROR: Admin password cannot be blank.</p>";
-				$setup_errors++;
-			}
+        function database_delete()
+        {
+            var data = new FormData();
+            data.append('action', 'delete');
+            data.append('db_password', document.getElementById('db_password_del').value);
+            document.getElementById('delete_content_2').style.display = 'block';
+            document.getElementById('delete_content_1').style.display = 'none';
+            var xhr = new XMLHttpRequest();
+			xhr.open('POST', 'service.php');
+			xhr.onload = function() {
+                if (xhr.status === 200)
+					document.getElementById('delete_content_3').innerHTML = xhr.responseText;
+                else
+					document.getElementById('delete_content_3').innerHTML = '<p>HTTP Error ' + xhr.status + '</p>';
+                document.getElementById('delete_content_3').style.display = 'block';
+                document.getElementById('delete_content_2').style.display = 'none';
+                update_db_info();
+            };
+            xhr.send(data);
+        }
+    </script>
+    <!-- End of dialog content -->    
+    </div></div>
 
-			// If there are not errors, creating database
-			if (!$setup_errors)
-			{
-				$errors =  create_database_4($_POST['admin_screenname'], $_POST['admin_password']);
-				echo "<p class=\"success\">".date("c")." Creating database:</p>";
-				if (empty($errors))
-					echo "<p class=\"success\">".date("c")."&nbsp; Success on creating database.</p>";
-				else
-				{
-					echo "<p class=\"error\">".date("c")." &nbsp;&nbsp; Errors on creating database:</p>";
-					echo "<pre>"; print_r($errors); echo"</pre>";
-				}
-			}
-				
-		break;
-		case "database_erase":
-			$setup_errors = 0;
-			//Checking connection
-			$link = mysqli_connect(EveDBConfig::$server, EveDBConfig::$user, EveDBConfig::$password, EveDBConfig::$database);
-			if (!$link)
-			{
-				echo "<p class=\"error\">".date("c")." ERROR: Unable to connect to MySQL. </p>";
-				echo "<ul class=\"error\"><li>Debugging errno: " . mysqli_connect_errno(). "</li>";
-				echo "<li>Debugging error: " . mysqli_connect_error()."</li></ul>";
-				$setup_errors++;
-			}
-			else
-				echo "<p class=\"success\">".date("c")." Success on establishing database connection</p>";
-
-			//Checking if password provided is equal to the password stored in evedbconfig.php
-			if ($_POST['database_password'] != EveDBConfig::$password)
-			{
-				echo "<p class=\"error\">".date("c")." ERROR: Password provided is not the same as the one provided in evedbconfig.php.</p>";
-				$setup_errors++;
-			}
-			
-			// If there are not errors, erase the database
-			if (!$setup_errors)
-			{
-				$errors = erase_database_4();
-				if (empty($errors))
-					echo "<p class=\"success\">".date("c")." Success on erasing database.</p>";
-				else
-				{
-					echo "<p class=\"error\">".date("c")."Error on erasing database: </p>";
-					echo "<pre>"; print_r($errors); echo"</pre>";
-				}
-					
-				
-				
-			}
-				
-		break;
-	}
-}
-	// No action performed. Displaying setup options
-	?>
-	<h2>Step 1. Check the database connection</h2>
-	<form method="post">
-	<input type="hidden" name="action" value="database_check">
-	<button type="submit">Database check</button>
-	</form>
-
-	<script>
-	function database_create()
-	{
-		var database_password = prompt("In order to continue, please insert the password for the database connection.");
-		if (database_password != null)
-		{
-			document.getElementById('ipt_database_create_password').value=database_password;
-			document.getElementById('frm_database_create').submit();
-		}
-		return false;
-	}
-	</script>
-
-	<h2>Step 2. Create the database structure</h2>
-	<p>Please provide a valid e-mail address, which will be used as the screenname for the system administrator. Also provide a password for this user.</p>
-	<form method="post" id="frm_database_create">
-	<?php
-		// Retrieving values passed for displaying them again on screen
-		$admin_screennname = isset($_POST['admin_screenname']) ? $_POST['admin_screenname'] : '';
-		$admin_password = isset($_POST['admin_password']) ? $_POST['admin_password'] : '';
-	?>
-	<label for="admin_screenname_ipt">Admin email (login)</label>
-	<input id="admin_screenname_ipt" type="text" name="admin_screenname" value="<?php echo $admin_screennname;?>"/>
-	<label for="admin_password_ipt">Admin password</label>
-	<input id="admin_password_ipt" type="text" name="admin_password" value="<?php echo $admin_password;?>"/>
-	<input type="hidden" name="action" value="database_create">
-	<input type="hidden" name="database_password" id="ipt_database_create_password" value="">
-	<button type="button" onclick="database_create()">Database create</button>
-	</form>
-
-	
-	<script>
-	function database_erase()
-	{
-		var database_password = prompt("In order to continue, please insert the password for the database connection.");
-		if (database_password != null)
-		{
-			document.getElementById('ipt_database_erase_password').value=database_password;
-			document.getElementById('frm_database_erase').submit();
-		}
-		return false;
-	}
-	</script>
-	<h2>Advanced. Delete the database structure</h2>
-	<p>Use the option below if you need to delete all the tables from the database (created in the step 2).</p>
-	<form method="post" id="frm_database_erase">
-	<input type="hidden" name="action" value="database_erase">
-	<input type="hidden" name="database_password" id="ipt_database_erase_password" value="">
-	<button type="button" onclick="database_erase()">Database erase</button>
-	</form>
-	<?php
-
-?>
+    <script>
+    function update_db_info()
+    {
+        var data = new FormData();
+        data.append('action', 'check');
+        var xhr = new XMLHttpRequest();
+    	xhr.open('POST', 'service.php');
+		xhr.onload = function() {
+            if (xhr.status === 200)
+				document.getElementById('db_check_info').innerHTML = xhr.responseText;
+            else
+				document.getElementById('db_check_info').innerHTML = '<p>HTTP Error on checking database</p>';
+        };
+        xhr.send(data);
+    }
+    update_db_info();
+    </script>
 </body>
 </html>

@@ -4,10 +4,16 @@ require_once "dynamicformvalidationerror.class.php";
 
 class DynamicFormItemBigtext extends DynamicFormItem
 {
+    public function getFormattedContent()
+    {
+        return $this->content;
+    }
+
     public function getHtmlFormattedContent()
     {
         return htmlentities($this->content, ENT_QUOTES, 'utf-8');
     }
+    
     public static function getType()
     {
         return 'bigtext'; 

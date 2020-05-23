@@ -4,10 +4,14 @@ require_once "dynamicformvalidationerror.class.php";
 
 class DynamicFormItemSingleChoice extends DynamicFormItem
 {
+    public function getFormattedContent()
+    {
+        return ($this->content === '') ? '' : $this->spec->items[$this->content];
+    }
 
     public function getHtmlFormattedContent()
     {
-        return ($this->content === '') ? '' : $this->spec->items[$this->content];
+        return $this->getFormattedContent();
     }
 
     public static function getType()
@@ -109,7 +113,7 @@ class DynamicFormItemSingleChoice extends DynamicFormItem
     public function validate()
     {
         $validationErrors = array();
-        if ($this->mandatory && $this->content == '')
+        if ($this->mandatory && $this->content === '')
             $validationErrors[] = DynamicFormValidationError::MANDATORY;
         return $validationErrors;
     }

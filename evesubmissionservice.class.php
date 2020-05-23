@@ -653,30 +653,20 @@ class EveSubmissionService
 		");
 	}
 
-	function submission_definition_list_for_final_reviewer($screenname)
-	{	// TODO prepared statements
+	function submission_definition_list_for_reviewer($screenname, $reviewer_type)
+	{	
+		// TODO prepared statements
 		$submission_definitions = array();
 		$submission_definitions_res = $this->eve->mysqli->query
 		("
-			select distinct	`{$this->eve->DBPref}submission_definition_reviewer`.`submission_definition_id`
-			from 	`{$this->eve->DBPref}submission_definition_reviewer`
-			where 	`{$this->eve->DBPref}submission_definition_reviewer`.`type` = 'final_reviewer' and
-				`{$this->eve->DBPref}submission_definition_reviewer`.`email` = '$screenname'
-			order by `{$this->eve->DBPref}submission_definition_reviewer`.`submission_definition_id`;
-		");
-		while ($submssion_definition = $submission_definitions_res->fetch_assoc()) $submission_definitions[] = $submssion_definition;
-		return $submission_definitions;
-	}
-
-	function submission_definition_list_for_reviewer($screenname)
-	{	// TODO prepared statements
-		$submission_definitions = array();
-		$submission_definitions_res = $this->eve->mysqli->query
-		("
-			select distinct	`{$this->eve->DBPref}submission_definition_reviewer`.`submission_definition_id`
-			from 	`{$this->eve->DBPref}submission_definition_reviewer`
-			where 	`{$this->eve->DBPref}submission_definition_reviewer`.`type` = 'reviewer' and
-				`{$this->eve->DBPref}submission_definition_reviewer`.`email` = '$screenname'
+			select distinct	
+					`{$this->eve->DBPref}submission_definition_reviewer`.`submission_definition_id`
+			from 	`{$this->eve->DBPref}submission_definition_reviewer`,
+					`{$this->eve->DBPref}submission_definition`
+			where	`{$this->eve->DBPref}submission_definition`.`active` = 1 and
+					`{$this->eve->DBPref}submission_definition_reviewer`.`submission_definition_id` = `{$this->eve->DBPref}submission_definition`.`id` and
+					`{$this->eve->DBPref}submission_definition_reviewer`.`type` = '$reviewer_type' and
+					`{$this->eve->DBPref}submission_definition_reviewer`.`email` = '$screenname'
 			order by `{$this->eve->DBPref}submission_definition_reviewer`.`submission_definition_id`;
 		");
 		while ($submssion_definition = $submission_definitions_res->fetch_assoc()) $submission_definitions[] = $submssion_definition;

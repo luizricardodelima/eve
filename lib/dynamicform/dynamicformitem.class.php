@@ -20,6 +20,7 @@ abstract class DynamicFormItem
         ));
     }
 
+    public abstract function getFormattedContent();
     public abstract function getHtmlFormattedContent();
     public abstract static function getType();
     public abstract static function javascriptEditMethod();

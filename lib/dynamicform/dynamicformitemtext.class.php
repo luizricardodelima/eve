@@ -4,6 +4,10 @@ require_once "dynamicformvalidationerror.class.php";
 
 class DynamicFormItemText extends DynamicFormItem
 {
+    public function getFormattedContent()
+    {
+        return $this->content;
+    }
 
     public function getHtmlFormattedContent()
     {

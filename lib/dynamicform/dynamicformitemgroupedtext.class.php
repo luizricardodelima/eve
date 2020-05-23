@@ -5,6 +5,11 @@ require_once "dynamicformvalidationerror.class.php";
 class DynamicFormItemGroupedText extends DynamicFormItem
 {
 
+    public function getFormattedContent()
+    {
+        return $this->content;
+    }
+
     public function getHtmlFormattedContent()
     {
         $result = "<ul>";

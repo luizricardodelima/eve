@@ -1,178 +1,115 @@
 <?php
 session_start();
-require_once 'eve.class.php';
+require_once 'lib/dynamicform/dynamicform.class.php';
+require_once 'lib/dynamicform/dynamicformhelper.class.php';
 require_once 'lib/phpexcel/PHPExcel.php';
-require_once 'evecustominputservice.class.php';
+require_once 'eve.class.php';
 require_once 'evesubmissionservice.class.php';
 
 $eve = new Eve();
 $eveSubmissionService = new EveSubmissionService($eve);
-$eveCustomInputService = new EveCustomInputService($eve);
+DynamicFormHelper::$locale = $eve->getSetting('system_locale');
+$submission_definition = null;
 
-// Session verification.
 if (!isset($_SESSION['screenname']))
-{	
+{
+	// If there is no session, redirect to front page	
 	$eve->output_redirect_page("userarea.php?sessionexpired=1");
 }
-// Administrative privileges verification. // TODO Change this. Reviewers must have access to this page. even regular users too
-else if (!$eve->is_admin($_SESSION['screenname']))
-{
-	$eve->output_error_page('common.message.no.permission');
-}
-// Checking if $_GET['id'] is valid by trying to retireve the submission_definition from database.
-else if (!isset($_GET['id']) || !$eveSubmissionService->submission_definition_get($_GET['id']))
+else if 
+(
+	// If the post variables are invalid, show error message
+	!isset($_POST['submission_definition_id']) ||
+	($submission_definition = $eveSubmissionService->submission_definition_get($_POST['submission_definition_id'])) === null ||
+	!isset($_POST['submission_id']) ||
+	!is_array($_POST['submission_id'])
+)
 {
 	$eve->output_error_page('common.message.invalid.parameter');
 }
 else
 {
 	// Create new PHPExcel object
-	$objPHPExcel = new PHPExcel();
-
+	$xlsx = new PHPExcel();
 	$row = 1;
 	$col = -1; // Columns start from zero!
 
-	$submission_definition = $eveSubmissionService->submission_definition_get($_GET['id']);
-	$submission_structure = json_decode($submission_definition['submission_structure']);
-	$revision_structure = json_decode($submission_definition['revision_structure']);
-	
-	
+	// TODO ACCESS MODE FOR REVIEWERS. REUSE THE SAME FUNCTION IN SUBMISSIONS.PHP
+	// TODO REMOVE PROTECTED FIELDS FOR REVIEWERS
+	// TODO G11N
+	$submission_structure = new DynamicForm($submission_definition['submission_structure']);
+	$revision_structure = new DynamicForm($submission_definition['revision_structure']);
+	$structures = array_merge($submission_structure->structure, $revision_structure->structure);
 
-	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Id");
-	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Data");
-	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "E-mail do autor");
-	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Nome do autor");
-	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "E-mail do avaliador");
-	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Status da avaliação");
-	foreach ($submission_structure as $submission_structure_item)
+	// Spreadsheet header
+	$xlsx->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Id");
+	$xlsx->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Data");
+	$xlsx->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "E-mail do autor");
+	$xlsx->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "E-mail do avaliador");
+	$xlsx->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Status da avaliação");
+	foreach ($structures as $submission_structure_item)
 	{
-		if ($submission_structure_item->type == "array")
+		switch (get_class($submission_structure_item)) 
 		{
-			foreach ($submission_structure_item->spec->items as $array_item)
-				$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $submission_structure_item->description." - ".$array_item);
+			case DynamicFormItemGroupedText::class:
+			case DynamicFormItemMultipleChoice::class:
+				foreach ($submission_structure_item->spec->items as $array_item)
+					$xlsx->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $submission_structure_item->description." - ".$array_item);
+				break;
+			default:
+				$xlsx->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $submission_structure_item->description);
+				break;
 		}
-		else
-			$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $submission_structure_item->description);
 	}
-	foreach ($revision_structure as $submission_structure_item)
-	{
-		if ($submission_structure_item->type == "array")
-		{
-			foreach ($submission_structure_item->spec->items as $array_item)
-				$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $submission_structure_item->description." - ".$array_item);
-		}
-		else
-			$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $submission_structure_item->description);
-	}
-
-	$submissions = $eveSubmissionService->submission_list($_GET['id']);
-
-	foreach ($submissions as $submission)
+	$xlsx->getActiveSheet()->getStyle('1:1')->getFont()->setBold(true);
+	
+	// Spreadsheet contents
+	foreach ($_POST['submission_id'] as $submission_id)
 	{	
-		++$row;
+		$submission = $eveSubmissionService->submission_get($submission_id);
+		$row++;
 		$col = -1; // Columns start from zero!
-		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $submission['id']);
-		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $submission['date']);
-		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $submission['email']);
-		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $submission['name']);
-		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $submission['reviewer_email']);
-		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $submission['revision_status']);
+		$xlsx->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $submission['id']);
+		$xlsx->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $submission['date']);
+		$xlsx->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $submission['email']);
+		$xlsx->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $submission['reviewer_email']);
+		$xlsx->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $eve->_("submission.revision_status.{$submission['revision_status']}"));
+		
+		$submission_structure = new DynamicForm($submission['structure'], json_decode($submission['content']));
+		$revision_structure = new DynamicForm($submission['revision_structure'], json_decode($submission['revision_content']));
+		$structures = array_merge($submission_structure->structure, $revision_structure->structure);
 
-		// TODO. RELY ON DynamicInput to deliver the values.
-		$submission_content = json_decode($submission['content']);
-		for ($i = 0; $i < count($submission_structure); $i++) {
-			switch ($submission_structure[$i]->type)
-			{
-				case 'text':
-				case 'bigtext':
-					$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $submission_content[$i]);
-					break;
-				case 'array':
-					foreach ($submission_content[$i] as $submission_content_item_item)
-						$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $submission_content_item_item);
-					break;
-				case 'enum':
-					$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $submission_structure[$i]->spec->items[$submission_content[$i]]);
-					break;
-				case 'file': // TODO LINK
-					$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $submission_content[$i]);
-					break;
-				case 'check':
-					if ($submission_content[$i])
-						$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $eve->_('common.label.yes'));
-					else
-						$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $eve->_('common.label.no'));
-					break;
-				
-			}
-		}
-
-		$revision_content = json_decode($submission['revision_content']);
-		for ($i = 0; $i < count($revision_structure); $i++) {
-			switch ($revision_structure[$i]->type)
-			{
-				case 'text':
-				case 'bigtext':
-					$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $revision_content[$i]);
-					break;
-				case 'array':
-					foreach ($revision_content[$i] as $revision_content_item_item)
-						$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $revision_content_item_item);
-					break;
-				case 'enum':
-					$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $revision_structure[$i]->spec->items[$revision_content[$i]]);
-					break;
-				case 'file': // TODO LINK
-					$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $revision_content[$i]);
-					break;
-				case 'check': // TODO LINK
-					if ($revision_content[$i])
-						$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $eve->_('common.label.yes'));
-					else
-						$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $eve->_('common.label.no'));
-					break;
-				
-			}
-		}
-		/*
-		foreach ($submission_content as $submission_content_item)
+		foreach ($structures as $structure_item)
 		{
-	
-			// TODO filetypes
-			if (is_array($submission_content_item))
-			{
-				foreach ($submission_content_item as $submission_content_item_item)
-					$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $submission_content_item_item);
-			}
+			$value = $structure_item->getFormattedContent();
+			if (is_array($value)) foreach($value as $value_item)
+				$xlsx->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $value_item);
 			else
-				$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $submission_content_item);
+				$xlsx->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $value);
 		}
-		*/
 	}
-	// Autofilter!
-	$objPHPExcel->getActiveSheet()->setAutoFilter('A1:' . PHPExcel_Cell::stringFromColumnIndex($col) . $row);
 
 	// Resizing columns
-	foreach ($objPHPExcel->getWorksheetIterator() as $worksheet) {
-
-	    $objPHPExcel->setActiveSheetIndex($objPHPExcel->getIndex($worksheet));
-
-	    $sheet = $objPHPExcel->getActiveSheet();
+	foreach ($xlsx->getWorksheetIterator() as $worksheet) 
+	{
+	    $xlsx->setActiveSheetIndex($xlsx->getIndex($worksheet));
+	    $sheet = $xlsx->getActiveSheet();
 	    $cellIterator = $sheet->getRowIterator()->current()->getCellIterator();
 	    $cellIterator->setIterateOnlyExistingCells(true);
-	    /** @var PHPExcel_Cell $cell */
-	    foreach ($cellIterator as $cell) {
-		$sheet->getColumnDimension($cell->getColumn())->setAutoSize(true);
+		foreach ($cellIterator as $cell) 
+		{
+			$sheet->getColumnDimension($cell->getColumn())->setAutoSize(true);
 	    }
 	}
 
 	// Rename worksheet (checking invalid characters)
-	$invalidCharacters = $objPHPExcel->getActiveSheet()->getInvalidCharacters();
+	$invalidCharacters = $xlsx->getActiveSheet()->getInvalidCharacters();
 	$title = str_replace($invalidCharacters, '', $submission_definition['description']);
-	$objPHPExcel->getActiveSheet()->setTitle($title);
+	$xlsx->getActiveSheet()->setTitle($title);
 
 	// Set active sheet index to the first sheet, so Excel opens this as the first sheet
-	$objPHPExcel->setActiveSheetIndex(0);
+	$xlsx->setActiveSheetIndex(0);
+		
 	// Redirect output to a client’s web browser (Excel2007)
 	ob_end_clean(); // This function is needed in order not to return corrupted files
 	header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -185,7 +122,7 @@ else
 	header ('Last-Modified: '.gmdate('D, d M Y H:i:s').' GMT'); // always modified
 	header ('Cache-Control: cache, must-revalidate'); // HTTP/1.1
 	header ('Pragma: public'); // HTTP/1.0
-	$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+	$objWriter = PHPExcel_IOFactory::createWriter($xlsx, 'Excel2007');
 	$objWriter->save('php://output');
 	exit;
 }

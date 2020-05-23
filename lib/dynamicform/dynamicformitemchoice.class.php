@@ -4,9 +4,14 @@ require_once "dynamicformvalidationerror.class.php";
 
 class DynamicFormItemChoice extends DynamicFormItem
 {
-    public function getHtmlFormattedContent()
+    public function getFormattedContent()
     {
         return ($this->content) ? DynamicFormHelper::_('item.choice.yes') : DynamicFormHelper::_('item.choice.no');
+    }
+
+    public function getHtmlFormattedContent()
+    {
+        return $this->getFormattedContent();
     }
 
     public static function getType()

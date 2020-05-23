@@ -56,7 +56,12 @@ else if ($submission['revision_status'] == 1) // TODO substituir 1 pelo código 
 	}
 else if ($submission['revision_status'] == 2) // TODO substituir 2 pelo código correspondente
 {
-	if (($_SESSION['screenname'] == $submission['email']) || ($_SESSION['screenname'] == $submission['reviewer_email']) || ($eveSubmissionService->is_final_reviewer($_SESSION['screenname'], $submission_definition['id'])))
+	if (
+		($_SESSION['screenname'] == $submission['email']) || 
+		($_SESSION['screenname'] == $submission['reviewer_email']) || 
+		($eveSubmissionService->is_final_reviewer($_SESSION['screenname'], $submission_definition['id'])) ||
+		($eve->is_admin($_SESSION['screenname']))
+		)
 	{
 		echo $dynamicForm->outputControls('revision_structure', 'revision_content', false);
 	}

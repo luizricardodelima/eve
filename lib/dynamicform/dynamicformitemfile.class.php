@@ -8,6 +8,11 @@ class DynamicFormItemFile extends DynamicFormItem
 
     private $uploadedFile;
 
+    public function getFormattedContent()
+    {
+        return $this->content;
+    }
+
     public function getHtmlFormattedContent()
     {
         return "<a href=\"{$this->content}\" download>{$this->content}</a>";

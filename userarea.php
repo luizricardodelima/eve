@@ -142,7 +142,7 @@ else
 	echo "</div>";
 
 	// Options for final reviewers
-	$submissionDefinitionsForFinalReviewer = $eveSubmissionService->submission_definition_list_for_final_reviewer($_SESSION['screenname']);
+	$submissionDefinitionsForFinalReviewer = $eveSubmissionService->submission_definition_list_for_reviewer($_SESSION['screenname'], 'final_reviewer');
 	if (!empty($submissionDefinitionsForFinalReviewer))
 	{
 		echo "<div class=\"section\">{$eve->_('userarea.section.finalrevieweroptions')}</div>";
@@ -156,7 +156,7 @@ else
 	}
 
 	// Options for reviewers
-	$submissionDefinitionsForFinalReviewer = $eveSubmissionService->submission_definition_list_for_reviewer($_SESSION['screenname']);
+	$submissionDefinitionsForFinalReviewer = $eveSubmissionService->submission_definition_list_for_reviewer($_SESSION['screenname'], 'reviewer');
 	if (!empty($submissionDefinitionsForFinalReviewer))
 	{
 		echo "<div class=\"section\">{$eve->_('userarea.section.revieweroptions')}</div>";

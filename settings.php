@@ -22,7 +22,10 @@ else
 
 	?>
 	<div class="section">Geral</div>
-	<?php $eve->output_medium_goto_button("generalinfo", "Informações gerais", "settingsgeneralinfo.php");?>
+	<div class="dialog_panel_thin">
+		<button type="button" class="submit" onclick="window.location.href='settingsgeneralinfo.php'">Informações gerais</button>
+	</div>
+	<?php // $eve->output_medium_goto_button("generalinfo", "Informações gerais", "settingsgeneralinfo.php");?>
 	<?php $eve->output_medium_goto_button("admins", "Administradores do sistema", "settingsadmins.php");?>
 	<?php $eve->output_medium_goto_button("phpmailer", "Envio de e-mail", "settingsphpmailer.php");?>
 	<?php $eve->output_medium_goto_button("appearance", "Aparência", "settingsappearance.php");?>

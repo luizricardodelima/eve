@@ -12,7 +12,7 @@
     .opt img {display: block; height: 50%; width: 50%; text-align: center; margin: 5% auto;}
     .opt label {font-size: 2em;}
     .modal {display: none; position: fixed; z-index: 2; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgb(0,0,0); background-color: rgba(0,0,0,0.4);}
-    .modal_close_button {background-color:#333; color: white; float: right; border: 0; border-radius: 0;}
+    .modal_close_button {background-color:#333; color: white; float: right; border: 0; border-radius: 0; margin: 0 0 0 -1.6rem; width: 1.6rem; height: 1.6rem; padding: 0; font-size: 1.3rem; line-height: 1.3rem; }
     .modal_container {background-color: white; margin: 15% auto; border: 2px solid #333; width: 80%;}
     .modal_content {border: 20px auto; display: grid; grid-gap: 0.5em; grid-template-columns: 1fr; max-width: 50em;}
     #db_check_info ul {list-style: none; padding: 0; font-weight: bold; }
@@ -34,7 +34,7 @@
     
     <!-- Database create options -->
 	<div id="database_create_dialog" class="modal"><div class="modal_container">
-	<button type="button" class="modal_close_button" onclick="document.getElementById('database_create_dialog').style.display = 'none';"> X </button>
+	<button type="button" class="modal_close_button" onclick="this.parentNode.parentNode.style.display = 'none';">&times;</button>
     <!-- Begin of dialog content -->
     <div id="create_content_1" class="dialog_panel">
     <label for="db_password">Database password</label>
@@ -87,7 +87,7 @@
     
     <!-- Database delete options -->
 	<div id="database_delete_dialog" class="modal"><div class="modal_container">
-	<button type="button" class="modal_close_button" onclick="document.getElementById('database_delete_dialog').style.display = 'none';"> X </button>
+	<button type="button" class="modal_close_button" onclick="this.parentNode.parentNode.style.display = 'none';">&times;</button>
     <!-- Begin of dialog content -->
     <div id="delete_content_1" class="dialog_panel">
     <label for="db_password_del">Database password</label>

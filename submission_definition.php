@@ -61,8 +61,7 @@ else
 	<input type="hidden" name="action" value="save"/>
 	<input type="hidden" name="id" value="<?php echo $submission_definition['id'];?>"/>
 
-	<div class="user_dialog_panel_large">
-	<p></p>
+	<div class="dialog_panel_wide">
 
 	<span>
 	<input type="hidden" name="access_restricted" value="0"/>
@@ -95,7 +94,7 @@ else
 	}
 	?>
 	</select>
-	<p>Estrutura de submissão<br/><small> Marque com atributo personalizado <strong>maininfo</strong> os campos que aparecerão nas tabelas de listagem do sistema e <strong>noreview</strong> para os campos não acessíveis ao revisor.</small></p>
+	<label>Estrutura de submissão<br/><small> Marque com atributo personalizado <strong>maininfo</strong> os campos que aparecerão nas tabelas de listagem do sistema e <strong>noreview</strong> para os campos não acessíveis ao revisor.</small></label>
 	<?php
 	// TODO: g11n text above
 	DynamicFormHelper::$locale = $eve->getSetting('system_locale');
@@ -103,7 +102,7 @@ else
 	echo $submissionStructure->outputStructureTable('submission_structure', 'data_table');
 	
 	?>
-	<p>Estrutura de revisão:</p>
+	<label>Estrutura de revisão:</label>
 	<?php
 	// TODO: g11n text above
 	$revisionStructure = new DynamicForm($submission_definition['revision_structure']);

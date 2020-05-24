@@ -18,7 +18,7 @@ if (!isset($_SESSION['screenname']) && empty($_POST))
 	if (isset($_GET['sessionexpired'])) $eve->output_error_message('login.sessionexpired');
 	?>
 	
-	<form method="post" class="user_dialog_panel">
+	<form method="post" class="dialog_panel_thin">
 	<?php
 	if($eve->getSetting('system_custom_login_message'))
 		echo $eve->getSetting('system_custom_login_message_text');
@@ -32,7 +32,7 @@ if (!isset($_SESSION['screenname']) && empty($_POST))
 	<button type="submit" class="submit"><?php echo $eve->_('login.option.login');?></button>
 	
 	<?php if (!$eve->getSetting('user_signup_closed')) { ?>
-	<button type="button" onclick="window.location.href='usersignup.php';"><?php echo $eve->_('login.option.signup');?></button>
+	<button type="button" class="altaction" onclick="window.location.href='usersignup.php';"><?php echo $eve->_('login.option.signup');?></button>
 	<?php } ?>
 
 	<p>
@@ -77,7 +77,6 @@ else if (!isset($_SESSION['screenname']) && !empty($_POST))
 				$eve->output_redirect_page("verificationcode.php?screenname=$screenname");
 				break;
 		}		
-
 	}
 }
 else
@@ -103,11 +102,11 @@ else
 	if($eve->getSetting('system_custom_message'))
 	{
 		echo "<div class=\"section\">{$eve->getSetting('system_custom_message_title')}</div>";
-		echo "<div class=\"default_content_panel\">{$eve->getSetting('system_custom_message_text')}</div>";
+		echo "<div>{$eve->getSetting('system_custom_message_text')}</div>";
 	}
 	
 	echo "<div class=\"section\">{$eve->_('userarea.section.useroptions')} | {$_SESSION['screenname']}</div>";
-	echo "<div class=\"default_content_panel\">";
+	echo "<div>";
 
 	// Displaying user form
 	$eve->output_big_goto_button("userarea.option.userdata", "&#80;", "user.php");
@@ -146,7 +145,7 @@ else
 	if (!empty($submissionDefinitionsForFinalReviewer))
 	{
 		echo "<div class=\"section\">{$eve->_('userarea.section.finalrevieweroptions')}</div>";
-		echo "<div class=\"default_content_panel\">";
+		echo "<div>";
 		foreach ($submissionDefinitionsForFinalReviewer as $submissionDefinitionReviewer)
 		{
 			$submission_definition = $eveSubmissionService->submission_definition_get($submissionDefinitionReviewer['submission_definition_id']);
@@ -160,7 +159,7 @@ else
 	if (!empty($submissionDefinitionsForFinalReviewer))
 	{
 		echo "<div class=\"section\">{$eve->_('userarea.section.revieweroptions')}</div>";
-		echo "<div class=\"default_content_panel\">";
+		echo "<div>";
 		foreach ($submissionDefinitionsForFinalReviewer as $submissionDefinitionReviewer)
 		{
 			$submission_definition = $eveSubmissionService->submission_definition_get($submissionDefinitionReviewer['submission_definition_id']);
@@ -173,7 +172,7 @@ else
 	if ($eve->is_admin($_SESSION['screenname']))
 	{
 		echo "<div class=\"section\">{$eve->_('userarea.section.adminoptions')}</div>";
-		echo "<div class=\"default_content_panel\">";
+		echo "<div>";
 		$eve->output_big_goto_button("userarea.option.admin.unverifiedusers", "&#80;", "unverifiedusers.php");
 		$eve->output_big_goto_button("userarea.option.admin.users", "&#80;", "users.php");
 		$eve->output_big_goto_button("userarea.option.admin.usercategories", "&#80;", "usercategories.php");

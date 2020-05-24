@@ -49,7 +49,7 @@ else
 	}
 
 	?>
-	<form action="<?php echo basename(__FILE__)."?id={$paymenttype['id']}";?>" id="paymenttype_form" method="post" class="user_dialog_panel">
+	<form action="<?php echo basename(__FILE__)."?id={$paymenttype['id']}";?>" id="paymenttype_form" method="post" class="dialog_panel">
 	<p></p>
 	<label for="ipt_id">ID:</label>
 	<input id="ipt_id" type="text" value="<?php echo $paymenttype['id'];?>" maxlength="255" disabled="disabled"/>

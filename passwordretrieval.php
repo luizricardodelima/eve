@@ -17,7 +17,7 @@ if (!isset($_POST['screenname']))
 	}
 	</script>
 		
-	<form method="post" autocomplete="off" onsubmit="disable_submit_button();" class="user_dialog_panel">
+	<form method="post" autocomplete="off" onsubmit="disable_submit_button();" class="dialog_panel">
 	<p><?php echo $eve->_('passwordretrieval.intro');?></p>
 	<label for="screenname_txt">E-mail&nbsp;</label>
 	<input type="text" name="screenname" id="screenname_txt" class="login_form"/>
@@ -34,7 +34,7 @@ else
 	$eveUserServices = new EveUserServices($eve);
 	$eveUserServices->retrievePassword($_POST['screenname']);
 	?>
-	<div class="user_dialog_panel">
+	<div class="dialog_panel">
 	<p>A senha foi enviada para o e-mail informado, caso esteja cadastrado. Se você estiver com dificuldade em recuperar sua senha, entre em contato com o suporte.</p>
 	<p>
 	<a href="userarea.php"><?php echo $eve->_('common.action.back');?></a> | 

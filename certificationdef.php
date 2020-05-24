@@ -114,7 +114,7 @@ else
 
 	<form action="<?php echo basename(__FILE__)."?id={$_GET['id']}";?>" method="post" id="cdef_form">
 	<div class="section"><?php echo $eve->_('certificationmodel.section.general');?></div>
-	<div class="user_dialog_panel">
+	<div class="dialog_panel">
 	<label for="certificationtemplate_id_ipt"><?php echo $eve->_('certificationmodel.id');?></label>
 	<input id="certificationtemplate_id_ipt" type="text" value="<?php echo $_GET['id'];?>" disabled="disabled"/>
 	
@@ -135,7 +135,7 @@ else
 	</div>	
 
 	<div class="section"><?php echo $eve->_('certificationmodel.section.page');?></div>
-	<div class="user_dialog_panel">
+	<div class="dialog_panel">
 	<label for="certificationtemplate_pagesize_ipt"><?php echo $eve->_('certificationmodel.pagesize');?></label>
 	<select id="certificationtemplate_pagesize_ipt" name="pagesize">
 	<?php
@@ -178,7 +178,7 @@ else
 	</div>
 
 	<div class="section"><?php echo $eve->_('certificationmodel.section.text');?></div>
-	<div class="user_dialog_panel">
+	<div class="dialog_panel">
 	<label for="certificationtemplate_text_ipt"><?php echo $eve->_('certificationmodel.text');?><img src="style/icons/help.png" type="button" onclick="certification_help()"/></label>
 	<textarea id="certificationtemplate_text_ipt" name="text" rows="7"><?php echo $data['text'];?></textarea>
 
@@ -199,7 +199,7 @@ else
 	</div>
 
 	<div class="section"><?php echo $eve->_('certificationmodel.section.openermsg');?></div>
-	<div class="user_dialog_panel">
+	<div class="dialog_panel">
 	<label for="certificationtemplate_hasopenermsg_ipt">
 	<input type="hidden" name="hasopenermsg" value="0"/>
 	<input type="checkbox" name="hasopenermsg" id="certificationtemplate_hasopenermsg_ipt" value="1" <?php if ($data['hasopenermsg']) echo "checked=\"checked\"";?> />

@@ -38,11 +38,11 @@ else
 
 	?>
 	<div class="section">Status atual do pagamento</div>
-	<div class="user_dialog_panel">
+	<div class="dialog_panel">
 		<p><strong><?php echo $paymenttype_name;?></strong> - <?php echo $paymenttype_desc;?></p>
 	</div>
 	<div class="section">Informações</div>
-	<div class="user_dialog_panel">
+	<div class="dialog_panel">
 	<?php
 
 	if (!$payment && !$eve->getSetting('payment_closed'))

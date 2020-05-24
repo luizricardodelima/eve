@@ -147,7 +147,7 @@ else
 
 	$mandatory = "<small> (obrigatório)</small>"; //TODO g11n
 	?>
-	<form method="post" id="user_form" class="user_dialog_panel" <?php if ($admin_mode) echo "action=\"".basename(__FILE__)."?user=$email\"";?>>
+	<form method="post" id="user_form" class="dialog_panel" <?php if ($admin_mode) echo "action=\"".basename(__FILE__)."?user=$email\"";?>>
 
 	<?php
 	if (!$user['locked_form'] && !$admin_mode && $eve->getSetting('user_display_custom_message_on_unlocked_form'))

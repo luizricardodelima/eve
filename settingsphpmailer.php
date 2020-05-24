@@ -71,7 +71,7 @@ else
 	if ($output)
 	{
 		?>
-		<div class="user_dialog_panel"><p>Saída</p>
+		<div class="dialog_panel"><p>Saída</p>
 		<textarea rows="10"><?php echo $output;?></textarea>
 		<button type="button" onclick="this.parentNode.style.display='none';">Fechar</button>
 		</div>
@@ -79,7 +79,7 @@ else
 	}
 
 	?>
-	<form id="settings_form" method="post" class="user_dialog_panel">
+	<form id="settings_form" method="post" class="dialog_panel">
 	<p></p>
 	<input type="hidden" name="action" value="save"/>
 	<label for="phpmailer_host">Host (host)</label>

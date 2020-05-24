@@ -65,7 +65,7 @@ else
 	<form id="settings_form" method="post">
 
 	<div class="section">E-mail de recebimento de submissão <button type="button" onclick="submission_email_help()">?</button></div>
-	<div class="user_dialog_panel">
+	<div class="dialog_panel">
 	<label for="email_snd_submission">
 	<input  id="email_snd_submission" type="checkbox" name="email_snd_submission" value="1" <?php if ($settings['email_snd_submission']) echo "checked=\"checked\"";?> /><input type="hidden" name="email_snd_submission" value="0"/>Enviar e-mail de confirmação de recebimento de submissão</label>
 	<label for="email_sbj_submission">Assunto</label>

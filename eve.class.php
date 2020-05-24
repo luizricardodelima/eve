@@ -2,7 +2,6 @@
 require_once 'evedbconfig.php';
 class Eve
 {
-
 	public $DBPref;
 	public $mysqli;
 	public $basepath;
@@ -188,14 +187,12 @@ class Eve
 			case 'success': $class = 'msg_success'; $icon = '&#217;'; break;
 			default: return null; break;
 		}
-		echo "<script>function dismiss(el){ el.parentNode.style.display='none';};</script>";
-		echo "<div class=\"$class\"><span class=\"msg_icon\">$icon</span><span class=\"msg_body\">$text</span> <button class=\"msg_close\" onclick=\"dismiss(this);\">X</button></div>";
+		echo "<div class=\"$class\"><button class=\"msg_close\" onclick=\"this.parentNode.style.display='none';\">X</button><span class=\"msg_icon\">$icon</span><span class=\"msg_body\">$text</span></div>";
 	}
 
 	function output_error_list_message($message_array)
 	{
-		// TODO G11n
-		$error_message = "Os seguintes erros foram encontrados:";
+		$error_message = $this->_('common.message.error.list');
 		foreach($message_array as $message) $error_message .="<li>$message</li>";
 		$this->output_message('error', $error_message);
 	}
@@ -222,32 +219,24 @@ class Eve
 		$this->output_message('success', $message);
 	}
 
-	/** This function outputs the navigation bar of the user area. It receives pairs of arguments,
-	 *  a label and its corresponding link. If the label does not have a link, this link should be
-	 *  a null argument. */
-	// TODO: This throws an error if an odd number of arguments is passed
+	/** 
+	 * This function outputs the navigation bar of the user area. It receives pairs of arguments,
+	 * a label and its corresponding link. If the label does not have a link, this link should be
+	 * a null argument. This throws an error if an odd number of arguments is passed.
+	 */
 	function output_navigation_bar()
 	{
 		$array = array();
-		$back_button_link = null;
-		$n = 0; // Counts the number of elements in the navigation menu
 
-		for ($i = 0; $i < func_num_args(); $i = $i+2)
+		for ($i = 0, $n = 0; $i < func_num_args(); $i = $i+2, $n++)
 		{
 			if (is_null(func_get_arg($i+1)))
-			{
 				$array[$n] = func_get_arg($i);
-			}
 			else
-			{
 				$array[$n] = "<a href=\"".func_get_arg($i+1)."\">".func_get_arg($i)."</a>";
-				$back_button_link = func_get_arg($i+1);
-			}
-			$n++;
 		} 
 
 		echo "<div id=\"navigation_bar\">";
-		echo "<a href=\"$back_button_link\" class=\"navigation_back\">&#119;</a> ";
 		echo implode(' &rarr; ', $array);
 		echo "</div>";
 	}

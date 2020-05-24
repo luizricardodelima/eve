@@ -16,7 +16,7 @@ if (isset($_GET['screenname']) && isset($_GET['verificationcode']))
 	{
 		$eve->output_success_message("Este usuário já está verificado. Volte à tela principal e use este e-mail e a senha para acessar o sistema.");
 		?>		
-		<div class="user_dialog_panel">
+		<div class="dialog_panel">
 		<p></p>
 		<button class="submit" type="button" onclick="window.location='userarea.php';">Voltar</button>
 		<p></p>
@@ -37,7 +37,7 @@ if (isset($_GET['screenname']) && isset($_GET['verificationcode']))
 		$eve->output_error_message(" Usuário não verificado. C&oacute;digo de verifica&ccedil;&atilde;o inválido.");
 		?>
 		
-		<div class="user_dialog_panel">
+		<div class="dialog_panel">
 		<p></p>
 		<button class="submit" type="button" onclick="window.location='<?php echo basename(__FILE__)."?screenname={$_GET['screenname']}"; ?>';">Tentar novamente</button>
 		<p></p>
@@ -54,7 +54,7 @@ else if (isset($_GET['screenname']))
 	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Código de verificação", null);
 
 	?>
-	<form id="verificationcode_form" class="user_dialog_panel" method="get">
+	<form id="verificationcode_form" class="dialog_panel" method="get">
 	<p>Insira o c&oacute;digo de verifica&ccedil;&atilde;o para <strong><?php echo $_GET['screenname'];?></strong>:</p>	
 	
 	<label for="verficationcode_input">C&oacute;digo de verifica&ccedil;&atilde;o:</label>

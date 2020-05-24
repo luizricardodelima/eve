@@ -13,7 +13,8 @@ _Event management system_
 - **(under development usability)** Changed the deprecated phpExcel library to PHP_XLSXWriter (https://github.com/mk-j/PHP_XLSXWriter). Although PHPExcel (Now PHPSpreadsheet) is good, this application perform basic exports and a simpler library will consume less resources and new deploys will be faster (PHPExcel has too many files).
 - **(under development feature)** New Password Retrieval dynamics - An expirable acess is sent to users e-mail. After access this code, user is prompted to change his password.
 - **(under development feature)** Bug fixes for increased compatibility with SQL Strict mode - text fields on database are null by default
-- 2020-05-23 **(feature)** Removed alternate e-mail text (as an alternative of html e-mails) for all e-mails. Some settings screens are now simpler because of this.
+- 2020-05-24 **(usability)** New setup screen. It's much more modern and dynamic. Initial database settings are now stored in json files, with a separate file for custom deployment values.
+- 2020-05-23 **(usability)** Removed alternate e-mail text (as an alternative of html e-mails) for all e-mails. Some settings screens are now simpler because of this.
 - 2020-05-13 **(usability)** `readme.txt` was renamed to `README.md` and its contents were formatted to Markdown format
 - 2020-05-13 **(feature)** Now this project is on github! https://github.com/luizricardodelima/eve/
 - 2020-05-12 **(feature)** The custom field code used in submissions was refactored and now it's a standalone project. Lots of the bugs were fixed and id handles much better with validation. The project has his own page on GitHub https://github.com/luizricardodelima/dynamicform/

@@ -19,7 +19,7 @@ else
 	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "../../userarea.php", "Pagamento via PagSeguro", null);
 	?>
 	<div class="section">Pagamento via PagSeguro</div>
-	<div class="user_dialog_panel">
+	<div class="dialog_panel">
 	<p id="p_message_content"><br/><br/><br/>Aguarde as instruções do PagSeguro...</p>
 	<button id="btn_back" style="display:none;" class="submit" type="button" onclick="document.location.href='../../userarea.php'">Voltar</button>
 	<p></p>

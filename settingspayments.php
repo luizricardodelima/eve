@@ -80,7 +80,7 @@ else
 	</table>
 
 	<div class="section">Email de aviso <button type="button" onclick="payment_email_help()">?</button></div>
-	<div class="user_dialog_panel">
+	<div class="dialog_panel">
 	<label for="email_snd_payment">
 	<input  id="email_snd_payment" type="checkbox" name="email_snd_payment" value="1" <?php if ($settings['email_snd_payment']) echo "checked=\"checked\"";?> /><input type="hidden" name="email_snd_payment" value="0"/>Enviar e-mail ao atualizar pagamento do usuário</label>
 	<label for="email_sbj_payment">Assunto</label>

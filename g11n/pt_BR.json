@@ -30,6 +30,7 @@
 	"common.action.support": "Suporte",
 	"common.label.no": "Não",
 	"common.label.yes": "Sim",
+	"common.message.error.list":"Os seguintes erros foram encontrados:",
 	"common.message.invalid.parameter": "Parâmetro inválido.",
 	"common.message.no.permission": "Você não tem permissão para acessar esta página.",
 	"common.message.page.not.found": "Página não encontrada",

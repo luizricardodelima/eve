@@ -14,13 +14,7 @@
 
 *
 { 
-	font-family:		'OpenSans', sans-serif; 
-}
-
-textarea {
-    -webkit-box-sizing: border-box;
-       -moz-box-sizing: border-box;
-            box-sizing: border-box;
+	font-family:	'OpenSans', sans-serif; 
 }
 
 a, a:hover, a:visited
@@ -31,34 +25,38 @@ a, a:hover, a:visited
 body
 {
 	background-color:	lightgray;
-	margin: 		0em;
+	margin: 			0;
 }
 
 button
 {
-	background-color: #c0ff02;
-	color: black;
-	text-decoration: none;
-	text-align: center;
-	border-width: 0;
-	outline: 0;
-	display: inline;
-	border-radius: 0.8em;
-	transition: 0.5s;
+	background-color:	#c0ff02;
+	border-radius: 		0.8em;
+	border-width:		0;
+	color:				black;
+	text-align: 		center;
+	text-decoration: 	none;	
 }
 
 button:hover
 {
 	background-color: #f4ff00;
+	transition: 0.5s;
 }
 
 button.big
 {
+	box-sizing: border-box;
 	width: 9.0rem;
 	height: 9.0rem;
 	padding: 0em;
-	margin: 0 1rem 1rem 0;
+	margin: 1rem 0 0 1rem;
 	overflow: hidden;
+}
+
+button.big:last-child
+{
+	margin: 1rem 0 1rem 1rem;
 }
 
 button.big .buttonicon
@@ -87,45 +85,39 @@ button.medium
 	margin: 1em 1em 1em 0;
 }
 
-button.small
+.section
 {
-	max-width: 20em;
-	line-height: 2em;
+	background-color: cornflowerblue;
+	color: white;
+	padding: 0.5rem 0.5rem 0.5rem 1rem;
+}
+
+.section a
+{
+	color: white;
+}
+
+.section a:hover
+{
+	text-decoration: underline;
+}
+
+.section button
+{
+	background-color: transparent;
+	border: 1px solid white;
+	border-radius: 0;
+	color: white;
+	font-size: 0.9rem;
+	min-width: 1rem;
+	min-height: 1rem;
+	text-decoration: none;
+	text-align: center;
 	vertical-align: middle;
-	margin: 1em 1em 1em 0;
 }
 
-.user_dialog_panel_large
+table.data_table 
 {
-	margin: auto;
-	display: grid;
-	grid-gap: 0.5em;
-	grid-template-columns: 1fr;
-	max-width: 50em;
-}
-
-.default_content_panel
-{
-	padding: 1em;
-	display: inline-block;	
-}
-
-.user_dialog_panel
-{
-	margin: auto;
-	display: grid;
-	grid-gap: 0.5em;
-	grid-template-columns: 1fr;
-	max-width: 40em;
-}
-
-.user_dialog_panel button.submit, .user_dialog_panel_large button.submit
-{
-	line-height: 2em;
-	font-size: 1.3em;
-}
-
-table.data_table {
 	width: 100%;	
 	border-spacing: 0;
 }
@@ -153,8 +145,8 @@ table.data_table th
 {
 	background-color: cornflowerblue;
 	color: white;
-	padding: 0.5em;
-	font-size: 0.8em;
+	padding: 0.5rem;
+	font-size: 0.8rem;
 	text-transform: uppercase;
 }
 
@@ -175,44 +167,7 @@ table.data_table tr:nth-child(even)
 
 table.data_table tr.selected
 {
-	color: black;	
 	background-color: #c0ff02;
-}
-
-.section
-{
-	background-color: cornflowerblue;
-	color: white;
-	padding: 0.5em;
-	padding-left: 1em;
-
-}
-
-.section a
-{
-	color: white;
-}
-
-.section a:hover
-{
-	text-decoration: underline;
-}
-
-.section button
-{
-	vertical-align: middle;
-	background-color: transparent;
-	outline: none;
-	min-width: 1em;
-	min-height: 1em;
-	color: white;
-	text-decoration: none;
-	text-align: center;
-	border-width: 1px;
-	border-style: solid;
-	border-color: white;
-	font-size: 0.9em;
-	border-radius: 0;
 }
 
 .modal {
@@ -236,31 +191,20 @@ table.data_table tr.selected
 	width: 80%; /* Could be more or less, depending on screen size */
   }
 
-@keyframes msg_animation {
-	0%   {transform: translateY(-100%)}
-	100% {transform: translateY(0)}
+  .msg_error
+  {
+	  background-color: #ff6f00;	
+  }
+  
+  .msg_success
+  {
+	  background-color: limegreen;
   }
 
-.msg_error, .msg_success
+  .msg_error, .msg_success
 {
-	z-index: 0;
-	position: relative;
-	padding: 0.5em;
-	padding-left: 1em;
-	animation-name: msg_animation;
-	animation-duration: 1s;
-}
-
-.msg_error
-{
-	background-color: #ff6f00;	
 	color: white;
-}
-
-.msg_success
-{
-	background-color: limegreen;	
-	color: white;
+	padding: 0.5em 0.5em 0.5em 1em;
 }
 
 .msg_error a:link, .msg_error a:visited, .msg_success a:link, .msg_success a:visited
@@ -271,32 +215,19 @@ table.data_table tr.selected
 
 .msg_icon
 {
-	font-family: 'IconWorks';
-	font-size: 1.5em;
-	margin-top: -0.1em;
-	margin-right: 0.5em;
-	vertical-align: top;
-	color: rgba(255, 255, 255, 0.6);
-	display: inline-block;
-}
-
-.msg_body
-{
-	vertical-align: top;
-	display: inline-block;
+	color: rgba(255, 255, 255, 0.55);
+	font: 1.5rem 'IconWorks';
+	margin: 0 0.5rem 0 -0.5rem;
+	vertical-align: middle;
 }
 
 .msg_close, .msg_close:hover
 {
-	float: right;
-	border-width: 1px;
-	border-style: solid;
-	border-color: white;
-	color: white;
 	background-color: transparent;
+	border: 1px solid white;
 	border-radius: 0;
-	font-size: 0.9em;
-	vertical-align: top;
+	color: white;
+	float: right;
 }
 
 #header
@@ -317,25 +248,25 @@ table.data_table tr.selected
 	display: block;
 }
 
-#main_content, #footer
+#main_content
 {
 	background-color:	white;
-	color: 			black;
-	overflow: 		hidden;
+	color: 				black;
 }
 
 #footer
 {
-	border-style:	dotted none none none;	
-	border-width:	1px;
-	border-color:	gray;
-	padding:		0.5em;
-	font-size: 		0.75em;
+	background-color:	white;
+	border-style:		dotted;	
+	border-width:		1px 0 0 0;
+	border-color:		gray;
+	font-size:	 		0.80rem;
+	padding:			0.5rem;
 }
 
 #footer, #footer a
 {
-	color:			gray;
+	color:				gray;
 }
 
 #menu
@@ -389,9 +320,43 @@ table.data_table tr.selected
 	text-decoration: 	underline;
 }
 
-#navigation_bar a.navigation_back
+.dialog_panel, .dialog_panel_thin, .dialog_panel_wide
 {
-	font-family:		'IconWorks';
-	text-decoration:	none;
-	font-size: 			1.1em;
+	margin: auto;
+	display: grid;
+	padding: 1.5rem;
+	grid-gap: 0.5rem;
+	grid-template-columns: 1fr;
+}
+
+.dialog_panel
+{
+	max-width: 40rem;
+}
+
+.dialog_panel_thin
+{
+	max-width: 25rem;
+}
+
+.dialog_panel_wide
+{
+	max-width: 55rem;
+}
+
+.dialog_panel .submit, .dialog_panel_thin .submit, .dialog_panel_wide .submit
+{
+	border: 			2px solid #c0ff02;
+	font-size: 			1.2rem;
+	line-height: 		1.9rem;	
+	outline:			0;
+}
+
+.dialog_panel .altaction, .dialog_panel_thin .altaction, .dialog_panel_wide .altaction
+{
+	background-color: 	transparent;
+	border: 			2px solid #c0ff02;
+	font-size: 			1.1rem;
+	line-height: 		1.9rem;
+	outline:			0;
 }

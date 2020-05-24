@@ -128,10 +128,10 @@ else
 	<div id="review_dialog" style="display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgb(0,0,0); background-color: rgba(0,0,0,0.4);">
 	<div style="background-color: white; margin: 15% auto; border: 2px solid #333; width: 80%;" >
 	<button type="button" style="background-color:#333; color: white; float: right; border-radius: 0;" onclick="document.getElementById('review_dialog').style.display = 'none';"> X </button>
-	<form style="padding: 20px;" method="post" action="<?php echo basename(__FILE__)."?id={$_GET['id']}&access_mode={$access_mode}";?>" enctype="multipart/form-data" class="user_dialog_panel">
+	<form style="padding: 20px;" method="post" action="<?php echo basename(__FILE__)."?id={$_GET['id']}&access_mode={$access_mode}";?>" enctype="multipart/form-data" class="dialog_panel">
 	<input type="hidden" name="action" value="revision"/>
 	<input type="hidden" name="submission_id" id="submission_id_review"/>
-	<div id="submission_review_container" class="user_dialog_panel_large"></div>
+	<div id="submission_review_container" class="dialog_panel_wide"></div>
 	</form>
 	<script>
 		function deactivate_button(e)

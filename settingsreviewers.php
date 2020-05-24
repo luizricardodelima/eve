@@ -79,7 +79,7 @@ else
 	<form id="settings_form" method="post">
 
 	<div class="section">E-mail de atribuição para o revisor <button type="button" onclick="reviewer_attribution_help()">?</button></div>
-	<div class="user_dialog_panel">
+	<div class="dialog_panel">
 	<label for="email_snd_reviewer">
 	<input  id="email_snd_reviewer" type="checkbox" name="email_snd_reviewer" value="1" <?php if ($settings['email_snd_reviewer']) echo "checked=\"checked\"";?> /><input type="hidden" name="email_snd_reviewer" value="0"/>Enviar e-mail de atribuição para revisor</label>
 	<label for="email_sbj_reviewer">Assunto</label>
@@ -89,7 +89,7 @@ else
 	</div>
 
 	<div class="section">E-mail de revisão concluída <button type="button" onclick="submission_revision_email_help()">?</button></div>
-	<div class="user_dialog_panel">
+	<div class="dialog_panel">
 	<label for="email_snd_revision">
 	<input  id="email_snd_revision" type="checkbox" name="email_snd_revision" value="1" <?php if ($settings['email_snd_revision']) echo "checked=\"checked\"";?> /><input type="hidden" name="email_snd_revision" value="0"/>Enviar e-mail de revisão concluída para quem fez submissão</label>
 	<label for="email_sbj_revision">Assunto</label>

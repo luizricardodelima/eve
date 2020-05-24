@@ -64,7 +64,7 @@ else
 	if (!empty($validation_errors))	$eve->output_error_list_message($validation_errors);
 
 	?>
-	<form action="<?php echo basename(__FILE__)."?id={$_GET['id']}";?>" method="post" enctype="multipart/form-data" class="user_dialog_panel_large">
+	<form action="<?php echo basename(__FILE__)."?id={$_GET['id']}";?>" method="post" enctype="multipart/form-data" class="dialog_panel_wide">
 	<p></p>
 	<input type="hidden" name="action" value="update"/>
 	<?php echo $dynamicForm->outputControls('structure', 'content'); ?>

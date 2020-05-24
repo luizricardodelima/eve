@@ -45,7 +45,7 @@ else
 	{
 		// It shows when password is not changed due to some error or it's a newly loaded page (with no postdata)
 		?>
-		<form method="post" id="passwordchange_form" class="user_dialog_panel">
+		<form method="post" id="passwordchange_form" class="dialog_panel">
 		<p>Alterando a senha para <?php echo $_SESSION['screenname'];?></p>
 		<label for="passwordchange_oldpassword_ipt">Senha atual</label>
 		<input id="passwordchange_oldpassword_ipt" type="password" name="oldpassword" maxlength="255" />
@@ -63,7 +63,7 @@ else
 	{
 		// It shows when password is not changed due to some error or it's a newly loaded page (with no postdata)
 		?>
-		<div class="user_dialog_panel">
+		<div class="dialog_panel">
 		<p>A senha do usuário <?php echo $_SESSION['screenname'];?> foi alterada.</p>
 		<button type="button" class="submit" onclick="window.location.href='userarea.php'"><?php echo $eve->_('common.action.back');?></button>
 		<p></p>

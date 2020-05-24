@@ -30,6 +30,7 @@
 	"common.action.support": "Support",
 	"common.label.no": "No",
 	"common.label.yes": "Yes",
+	"common.message.error.list":"The following errors were encountered:",
 	"common.message.invalid.parameter": "Invalid parameter.",
 	"common.message.no.permission": "You do not have permission to access this page.",
 	"common.message.page.not.found": "Page not found",

@@ -84,7 +84,7 @@ else
 		
 	?>
 	<form action="<?php echo basename(__FILE__)."?screenname={$_GET['screenname']}";?>" method="post">
-	<div class="user_dialog_panel">
+	<div class="dialog_panel">
 	<p></p>
 	<?php 
 		$date_value = "";

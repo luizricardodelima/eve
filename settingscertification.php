@@ -65,7 +65,7 @@ else
 
 	<form id="settings_form" method="post">
 	<div class="section">Certificado - Email de aviso <button type="button" onclick="certification_email_help()">?</button></div>
-	<div class="user_dialog_panel">
+	<div class="dialog_panel">
 	<label for="email_snd_certification">
 	<input  id="email_snd_certification" type="checkbox" name="email_snd_certification" value="1" <?php if ($settings['email_snd_certification']) echo "checked=\"checked\"";?> /><input type="hidden" name="email_snd_certification" value="0"/>Enviar e-mail ao gerar certificado para o usuário</label>
 	<label for="email_sbj_certification">Assunto</label>

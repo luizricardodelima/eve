@@ -73,7 +73,7 @@ else
 	
 	?>
 	<form method="post" id="newuser_form">
-	<div class="user_dialog_panel">
+	<div class="dialog_panel">
 	<label>E-mail</label>
 	<input class="user_form" type="text" name="screenname" value="<?php if(isset($_POST['screenname'])) echo $_POST['screenname'];?>"/></td></tr>
 	<label>Senha</label>

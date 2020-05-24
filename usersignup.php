@@ -11,7 +11,7 @@ $eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", 
 // is performed here for security reasons. 
 if ($eve->getSetting('user_signup_closed'))
 {
-	echo "<div class=\"user_dialog_panel\">";
+	echo "<div class=\"dialog_panel\">";
 	echo $eve->getSetting('user_signup_closed_message');
 	echo "<p><a href=\"userarea.php\">{$eve->_('common.action.back')}</a></p>";
 	echo "</div>";
@@ -27,7 +27,7 @@ else
 	if ($msg == EveUserServices::UNVERIFIED_USER_CREATE_SUCCESS)
 	{
 		?>
-		<div class="user_dialog_panel">
+		<div class="dialog_panel">
 		<span>
 		<p><?php echo $eve->_('signup.success.1');?></p>
 		<p><?php echo $eve->_('signup.success.2');?></p>
@@ -55,7 +55,7 @@ else
 				break;
 		}
 		?> 
-		<form method="post" autocomplete="off" class="user_dialog_panel">
+		<form method="post" autocomplete="off" class="dialog_panel">
 		<p><?php echo $eve->_('signup.intro');?></p>
 		<label for="signup_email_ipt"><?php echo $eve->_('signup.email');?></label>
 		<input id="signup_email_ipt" type="text" name="screenname" value="<?php if (isset($_POST['screenname'])){ echo $_POST['screenname'];}?>"/>

@@ -82,7 +82,7 @@ else
 	<form id="settings_form" method="post">
 	
 	<div class="section">Novas inscri&ccedil;&otilde;es</div>
-	<div class="user_dialog_panel">
+	<div class="dialog_panel">
 	<label for="user_signup_closed">
 	<input  id="user_signup_closed" type="checkbox" name="user_signup_closed" value="1" <?php if ($settings['user_signup_closed']) echo "checked=\"checked\"";?> /><input type="hidden" name="user_signup_closed" value="0"/> Sistema fechado para novas inscri&ccedil;&otilde;es</label>
 	<label for="user_signup_closed_message"></label>Mensagem para sistema fechado para novas inscri&ccedil;&otilde;es</label>
@@ -90,7 +90,7 @@ else
 	</div>
 
 	<div class="section">E-mail de verifica&ccedil;&atilde;o <button type="button" onclick="verification_email_help()">?</button></div>
-	<div class="user_dialog_panel">
+	<div class="dialog_panel">
 	<label for="email_sbj_user_verification">Assunto</label>
 	<input  id="email_sbj_user_verification" type="text" name="email_sbj_user_verification" value="<?php echo $settings['email_sbj_user_verification'];?>"/>
 	<label for="email_msg_user_verification">Mensagem</label>
@@ -98,7 +98,7 @@ else
 	</div>
 	
 	<div class="section">E-mail de boas vindas <button type="button" onclick="welcome_email_help()">?</button></div>
-	<div class="user_dialog_panel">
+	<div class="dialog_panel">
 	<label for="email_sbj_welcome">Assunto</label>
 	<input  id="email_sbj_welcome" type="text" name="email_sbj_welcome" value="<?php echo $settings['email_sbj_welcome'];?>"/>
 	<label for="email_msg_welcome">Mensagem</label>
@@ -106,7 +106,7 @@ else
 	</div>
 	
 	<div class="section">E-mail de recupera&ccedil;&atilde;o de senha <button type="button" onclick="password_retrieval_email_help()">?</button></div>
-	<div class="user_dialog_panel">
+	<div class="dialog_panel">
 	<label for="email_sbj_password_retrieval">Assunto</label>
 	<input  id="email_sbj_password_retrieval" type="text" name="email_sbj_password_retrieval" value="<?php echo $settings['email_sbj_password_retrieval'];?>"/>
 	<label for="email_msg_password_retrieval">Mensagem - HTML</label>

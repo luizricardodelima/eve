@@ -180,7 +180,7 @@ else
 	if ($new_submission_allowed && ($within_the_deadline || $submission_after_deadline))
 	{	
 		?>
-		<form action="<?php echo basename(__FILE__)."?id={$_GET['id']}";?>" method="post" enctype="multipart/form-data" class="user_dialog_panel_large">
+		<form action="<?php echo basename(__FILE__)."?id={$_GET['id']}";?>" method="post" enctype="multipart/form-data" class="dialog_panel_wide">
 		<p><?php if ($submission_definition['deadline'])
 		{
 			echo "Prazo para envio: "; // TODO g11n
@@ -200,7 +200,7 @@ else
 	else if (!$new_submission_allowed)
 	{
 		// A new submission is not possible because there is a submission sent ?>
-		<div class="user_dialog_panel_large">
+		<div class="dialog_panel_wide">
 		<p>Envio já realizado.</p>
 		</div>
 		<?php
@@ -208,7 +208,7 @@ else
 	else
 	{
 		// A new submission is not possible because the deadline is over ?>
-		<div class="user_dialog_panel_large">
+		<div class="dialog_panel_wide">
 		<p>Prazo encerrado para envios.</p>
 		</div>
 		<?php

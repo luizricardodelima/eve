@@ -64,7 +64,7 @@ else
 	<button type="button" onclick="document.forms['category_form'].submit();"/>Salvar</button>
 	</div>
 	<form action="<?php echo basename(__FILE__)."?id=".$_GET['id'];?>" method="post" id="category_form">
-	<div class="user_dialog_panel">
+	<div class="dialog_panel">
 		<p></p>
 		<label for="ipt_description">Descrição</label>
 		<input id="ipt_description" type="text" name="description" value="<?php echo $data['description'];?>"/>

@@ -65,7 +65,6 @@ else
 	</div>
 	<form action="<?php echo basename(__FILE__)."?id=".$_GET['id'];?>" method="post" id="category_form">
 	<div class="dialog_panel">
-		<p></p>
 		<label for="ipt_description">Descrição</label>
 		<input id="ipt_description" type="text" name="description" value="<?php echo $data['description'];?>"/>
 		<span>
@@ -73,7 +72,6 @@ else
 			<input id="ipt_special" type="checkbox" name="special" value="1" <?php if ($data['special']) echo "checked=\"checked\"";?> />
 			<label for="ipt_special">Especial</label>
 		</span>
-		<p></p>
 	</div>
 	</form>
 	

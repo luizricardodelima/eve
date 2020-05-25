@@ -22,7 +22,6 @@ else
 	<div class="dialog_panel">
 	<p id="p_message_content"><br/><br/><br/>Aguarde as instruções do PagSeguro...</p>
 	<button id="btn_back" style="display:none;" class="submit" type="button" onclick="document.location.href='../../userarea.php'">Voltar</button>
-	<p></p>
 	</div>	
 	<?php
 	$paymentRequest = new PagSeguroPaymentRequest();	

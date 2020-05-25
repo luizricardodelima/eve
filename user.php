@@ -382,7 +382,6 @@ else
 	echo "</span>";
 
 	?>
-	<p></p>
 	</form>
 	<?php
 	

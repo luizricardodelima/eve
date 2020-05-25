@@ -50,14 +50,12 @@ else
 
 	?>
 	<form action="<?php echo basename(__FILE__)."?id={$paymenttype['id']}";?>" id="paymenttype_form" method="post" class="dialog_panel">
-	<p></p>
 	<label for="ipt_id">ID:</label>
-	<input id="ipt_id" type="text" value="<?php echo $paymenttype['id'];?>" maxlength="255" disabled="disabled"/>
-	<label for="ipt_name">Nome:</label>
-	<input id="ipt_name" type="text" name="name" value="<?php echo $paymenttype['name'];?>" maxlength="255"/>
+	<input 	id="ipt_id" type="text" value="<?php echo $paymenttype['id'];?>" maxlength="255" disabled="disabled"/>
+	<label for="ipt_name">Nome</label>
+	<input 	id="ipt_name" type="text" name="name" value="<?php echo $paymenttype['name'];?>" maxlength="255"/>
 	<label for="ipt_description">Descrição</label>
-	<input id="ipt_description" type="text" name="description" value="<?php echo $paymenttype['description'];?>" maxlength="255"/>
-	<p></p>
+	<input 	id="ipt_description" type="text" name="description" value="<?php echo $paymenttype['description'];?>" maxlength="255"/>
 	</form>
 	<?php
 

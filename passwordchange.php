@@ -47,14 +47,13 @@ else
 		?>
 		<form method="post" id="passwordchange_form" class="dialog_panel">
 		<p>Alterando a senha para <?php echo $_SESSION['screenname'];?></p>
-		<label for="passwordchange_oldpassword_ipt">Senha atual</label>
-		<input id="passwordchange_oldpassword_ipt" type="password" name="oldpassword" maxlength="255" />
-		<label for="passwordchange_newpassword_ipt">Nova senha</label>
-		<input id="passwordchange_newpassword_ipt" type="password" name="newpassword" maxlength="255" />
-		<label for="passwordchange_newpasswordconfirm_ipt">Confirme a nova senha</label>
-		<input for="passwordchange_newpasswordconfirm_ipt" type="password" name="newpasswordrepeat" maxlength="255" />
+		<label for="oldpassword">Senha atual</label>
+		<input 	id="oldpassword" type="password" name="oldpassword" maxlength="255" />
+		<label for="newpassword">Nova senha</label>
+		<input 	id="newpassword" type="password" name="newpassword" maxlength="255" />
+		<label for="newpasswordrepeat">Confirme a nova senha</label>
+		<input 	id="newpasswordrepeat" type="password" name="newpasswordrepeat" maxlength="255" />
 		<button type="submit" class="submit">Alterar senha</button>
-		<p></p>
 		</form>
 		
 		<?php
@@ -66,7 +65,6 @@ else
 		<div class="dialog_panel">
 		<p>A senha do usuário <?php echo $_SESSION['screenname'];?> foi alterada.</p>
 		<button type="button" class="submit" onclick="window.location.href='userarea.php'"><?php echo $eve->_('common.action.back');?></button>
-		<p></p>
 		</div>
 		
 		<?php

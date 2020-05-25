@@ -16,7 +16,7 @@ else if (!$eve->is_admin($_SESSION['screenname']))
 	$eve->output_error_page('common.message.no.permission');
 }
 // Checking whether a valid screenname was passed
-else if (!$eve->user_exists($_GET['screenname']))
+else if (!isset(($_GET['screenname'])) || !$eve->user_exists($_GET['screenname']))
 {
 	$eve->output_error_page('common.message.invalid.parameter');
 }
@@ -28,16 +28,15 @@ else
 	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Pagamentos", "payments.php", "Pagamento", null);
 
 	?>
-	<div class="section">Pagamento para <?php echo $_GET['screenname'];?></div>
+	<div class="section">Pagamento</div>
 	<?php
 
 	$data = array();
 	
 	// Perform action if there is one
-	if (sizeof($_POST) > 0)
+	if (!empty($_POST))
 	{	
 		// There is postdata. Validating and saving payment info.
-
 		foreach ($_POST as $key => $value) $data[$key] = $value;
 
 		// Validating input // TODO Validation should go to evepaymentservice
@@ -80,19 +79,19 @@ else
 	{
 		// There is no postdata. Retrieving payment info, if any.
 		$data = $evePaymentService->payment_get_by_user($_GET['screenname']);
+		$date_value = date('Y-m-d');
+		// TODO Creating new payment object goes to service
+		if ($data === null) $data = array ('date' => $date_value, 'paymenttype_id' => null, 'value_paid' => 0, 'value_received' => 0, 'note' => null);
 	}
 		
 	?>
 	<form action="<?php echo basename(__FILE__)."?screenname={$_GET['screenname']}";?>" method="post">
 	<div class="dialog_panel">
-	<p></p>
-	<?php 
-		$date_value = "";
-		if (isset($data['date'])) $date_value = $data['date'];
-		else $date_value = date('Y-m-d');
-	?>	
+	
+	<p>Pagamento para <?php echo $_GET['screenname'];?></p>
+
 	<label for="iptdate">Data</label>
-	<input id="iptdate" type="date" name="date" value="<?php echo $date_value;?>"/>
+	<input id="iptdate" type="date" name="date" value="<?php echo $data['date'];?>"/>
 
 	<label for="selpaymenttype">Tipo de pagamento</label>
 	<select id="selpaymenttype" class="user_form" name="paymenttype_id">
@@ -101,23 +100,23 @@ else
 	foreach ($evePaymentService->paymenttype_list() as $paymenttype)
 	{	
 		echo "<option value=\"{$paymenttype['id']}\"";
-		if ($data['paymenttype_id'] == $paymenttype['id']) echo " selected=\"selected\"";
+		if ($data['paymenttype_id'] === $paymenttype['id']) echo " selected=\"selected\"";
 		echo ">{$paymenttype['name']} </option>";
 	}
 	?>
 	</select>
 
-	<label for="value_paid_ipt">Valor pago</label>
-	<input id="value_paid_ipt" type="number" name="value_paid" min="0" step="0.01" onkeyup="mirror_values()" onchange="mirror_values()" value="<?php echo $data['value_paid'];?>"/>
+	<label for="value_paid">Valor pago</label>
+	<input 	id="value_paid" name="value_paid" type="number" min="0" step="0.01" onkeyup="mirror_values()" onchange="mirror_values()" value="<?php echo $data['value_paid'];?>"/>
 
-	<label for="value_received_ipt">Valor recebido</label>
-	<input id="value_received_ipt" type="number" name="value_received" min="0" step="0.01" value="<?php echo $data['value_received'];?>"/>
+	<label for="value_received">Valor recebido</label>
+	<input 	id="value_received" name="value_received" type="number" min="0" step="0.01" value="<?php echo $data['value_received'];?>"/>
 
-	<label for="iptnote">Observação</label>
-	<input id="iptvaluereceived" type="text" name="note" value="<?php echo $data['note'];?>"/>
+	<label for="note">Observação</label>
+	<textarea id="note" name="note" rows="5"><?php echo is_null($data['note']) ? '' : $data['note'];?></textarea>
 
 	<button type="submit" class="submit">Salvar</button>
-	<p></p>
+	<button type="button" class="altaction" onclick="window.location.href='payments.php'">Voltar</button>
 	</div>	
 
 	</form>	

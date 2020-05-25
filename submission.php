@@ -193,7 +193,6 @@ else
 		<?php echo $dynamicForm->outputControls('submission_structure', 'submission_content') ?>
 		<input type="hidden" name="action" value="submission"/>
 		<button type="submit" class="submit">Enviar</button>
-		<p></p>
 		</form>
 		<?php
 	}

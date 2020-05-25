@@ -76,8 +76,8 @@ else
 	if (isset($_GET['removesuccessful']))
 		$eve->output_success_message("Usuário {$_GET['removesuccessful']} removido como administrador.");
 	?>
-	<div class="section">
-	<button type="button" onclick="add_admin();">Adicionar novo administrador</button>	
+	<div class="section">Administradores do sistema 
+	<button type="button" onclick="add_admin();">Adicionar</button>	
 	</div>
 
 	<table class="data_table">

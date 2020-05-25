@@ -49,7 +49,7 @@ else
 	while ($row = $result->fetch_assoc()) $settings[$row['key']] = $row['value'];
 	?>
 	
-	<div class="section">
+	<div class="section">Informações gerais 
 	<button type="button" onclick="document.forms['settings_form'].submit();">Salvar</button>
 	</div>
 

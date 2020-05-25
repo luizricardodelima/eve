@@ -17,9 +17,7 @@ if (isset($_GET['screenname']) && isset($_GET['verificationcode']))
 		$eve->output_success_message("Este usuário já está verificado. Volte à tela principal e use este e-mail e a senha para acessar o sistema.");
 		?>		
 		<div class="dialog_panel">
-		<p></p>
 		<button class="submit" type="button" onclick="window.location='userarea.php';">Voltar</button>
-		<p></p>
 		</div>
 		<?php
 	}
@@ -38,9 +36,7 @@ if (isset($_GET['screenname']) && isset($_GET['verificationcode']))
 		?>
 		
 		<div class="dialog_panel">
-		<p></p>
 		<button class="submit" type="button" onclick="window.location='<?php echo basename(__FILE__)."?screenname={$_GET['screenname']}"; ?>';">Tentar novamente</button>
-		<p></p>
 		</div>
 
 		<?php
@@ -61,7 +57,6 @@ else if (isset($_GET['screenname']))
 	<input type="text" name="verificationcode" id="verficationcode_input"/>
 	<input type="hidden" name="screenname" value="<?php echo $_GET['screenname'];?>">
 	<button class="submit" type="submit" id="submit_button">Verificar</button>	
-	<p></p>
 	</form>
 	<?php
 	

@@ -34,7 +34,6 @@ else
 			$saved = 1;
 			break;
 		case 'mailtest':
-			// TODO Improve logs and error outputs
 			$output  = "";
 			$output .= "Criando EveMail\n";
 			$evemail = new EveMail($eve);
@@ -60,9 +59,9 @@ else
 	while ($row = $result->fetch_assoc()) $settings[$row['key']] = $row['value'];
 	
 	?>
-	<div class="section">Configurações PHPMailer 
-	<button type="button" onclick="document.forms['settings_form'].submit();"/>Salvar</button>
-	<button type="button" onclick="mailtest();"/>Testar</button><br/>
+	<div class="section">Envio de e-mail
+	<button type="button" onclick="document.forms['settings_form'].submit()">Salvar</button>
+	<button type="button" onclick="mailtest()">Testar</button><br/>
 	</div>
 	<?php
 
@@ -80,7 +79,6 @@ else
 
 	?>
 	<form id="settings_form" method="post" class="dialog_panel">
-	<p></p>
 	<input type="hidden" name="action" value="save"/>
 	<label for="phpmailer_host">Host (host)</label>
 	<input  id="phpmailer_host" name="phpmailer_host" type="text" value="<?php echo $settings['phpmailer_host'];?>"/>
@@ -98,7 +96,6 @@ else
 	<input  id="phpmailer_port" name="phpmailer_port" type="text" value="<?php echo $settings['phpmailer_port'];?>"/>
 	<label for="phpmailer_smtpdebug">Debug (smtpdebug)<br/><small>Aceita números de 0 a 4, onde 4 significa informaões mais detalhadas de debug. As mensagens são capturadas pela classe EveMail e somente mostradas aqui no teste. Para produção, utilize 0.</small></label>
 	<input  id="phpmailer_smtpdebug" name="phpmailer_smtpdebug" type="text" value="<?php echo $settings['phpmailer_smtpdebug'];?>"/>
-	<p></p>
 	</form>
 
 	<form id="mailtest_form" method="post">

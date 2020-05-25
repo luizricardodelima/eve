@@ -51,8 +51,7 @@ else
 		echo $eve->getSetting('payment_information_verified');
 
 	?>
-	<button type="button" class="submit" onclick="document.location.href='userarea.php';">Voltar</button>	
-	<p></p>	
+	<button type="button" class="submit" onclick="document.location.href='userarea.php';">Voltar</button>
 	</div>
 	<?php
 	

@@ -4,7 +4,6 @@ require_once 'eve.class.php';
 require_once 'lib/g11n/g11nlocales.php';
 require_once 'lib/g11n/g11ncurrencies.php';
 
-
 $eve = new Eve();
 
 // Session verification.
@@ -40,41 +39,35 @@ else
 
 	// Retrieving settings from database.
 	$settings = array();
-	// TODO this should go to a service, like $eve->get_settings($key1, $key2...) - with prepared statements!
 	$result = $eve->mysqli->query
 	("
-		SELECT * FROM `{$eve->DBPref}settings` WHERE
-		`key` = 'system_name' OR
-		`key` = 'support_email_address' OR
-		`key` = 'userarea_label' OR
-		`key` = 'system_locale' OR
-		`key` = 'system_custom_login_message' OR
-		`key` = 'system_custom_login_message_text'OR
-		`key` = 'system_custom_message' OR
-		`key` = 'system_custom_message_title' OR
-		`key` = 'system_custom_message_text';
+		select * from `{$eve->DBPref}settings` where `key` in
+		('system_name', 'support_email_address', 'userarea_label', 'system_locale',
+		'system_custom_login_message', 'system_custom_login_message_text',
+		'system_custom_message', 'system_custom_message_title', 'system_custom_message_text')
 	");
-
-	$settings = array();	
 	while ($row = $result->fetch_assoc()) $settings[$row['key']] = $row['value'];
 	?>
 	
 	<div class="section">
-	<button type="button" onclick="document.forms['settings_form'].submit();"/>Salvar</button>
+	<button type="button" onclick="document.forms['settings_form'].submit();">Salvar</button>
 	</div>
 
-	<form id="settings_form" method="post">
-	<table style="width: 100%">
-	<tr><td>Nome do sistema</td></tr>
-	<tr><td><textarea rows="1" cols="50" name="system_name"><?php echo $settings['system_name'];?></textarea></td></tr>
-	<tr><td>E-mail de suporte</td></tr>
-	<tr><td><textarea rows="1" cols="50" name="support_email_address"><?php echo $settings['support_email_address'];?></textarea></td></tr>
-	<tr><td>Nome da área restrita</td></tr>
-	<tr><td><textarea rows="1" cols="50" name="userarea_label"><?php echo $settings['userarea_label'];?></textarea></td></tr>
-	<tr><td>Locale</td></tr><tr><td>
+	<form id="settings_form" method="post" class="dialog_panel">
+	
+	<label for="system_name">Nome do sistema</label>
+	<input  id="system_name" name="system_name" type="text" value="<?php echo $settings['system_name'];?>"/>
+
+	<label for="support_email_address">E-mail de suporte</label>
+	<input  id="support_email_address" name="support_email_address" type="text" value="<?php echo $settings['support_email_address'];?>" />
+
+	<label for="userarea_label">Nome da área restrita</label>
+	<input  id="userarea_label" name="userarea_label" type="text" value="<?php echo $settings['userarea_label'];?>" />
+
+	<label for="system_locale">Locale</label>
+	<select id="system_locale" name="system_locale">
 	<?php	
 	
-	echo "<select name=\"system_locale\">";
 	foreach (G11nLocales::$locales as $lcl_code => $lcl_name)
 	{	
 		echo "<option value=\"$lcl_code\"";
@@ -83,17 +76,23 @@ else
 	}
 
 	?>
-	</td></tr>
-	<tr><td><input type="hidden" name="system_custom_login_message" value="0"><input type="checkbox" name="system_custom_login_message" id="system_custom_login_message_cbx" value="1" <?php if($settings['system_custom_login_message']) echo "checked = \"checked\"";?>><label for="system_custom_login_message_cbx">Mensagem Personalizada na tela de login</label></td></tr>
-	<tr><td>Mensagem Personalizada na tela de login - Texto</td></tr>
-	<tr><td><textarea rows="3" cols="50" name="system_custom_login_message_text" class="htmleditor" ><?php echo $settings['system_custom_login_message_text'];?></textarea></td></tr>
+	</select>
+	
+	<label for="system_custom_login_message"><input type="hidden" name="system_custom_login_message" value="0">
+	<input  id="system_custom_login_message" name="system_custom_login_message" type="checkbox" value="1" <?php if($settings['system_custom_login_message']) echo "checked=\"checked\"";?>>Mensagem Personalizada na tela de login</label>
+	
+	<label for="system_custom_login_message_text">Mensagem Personalizada na tela de login - Texto</label>
+	<textarea id="system_custom_login_message_text" name="system_custom_login_message_text" class="htmleditor"><?php echo $settings['system_custom_login_message_text'];?></textarea>
 
-	<tr><td><input type="hidden" name="system_custom_message" value="0"><input type="checkbox" name="system_custom_message" id="system_custom_message_cbx" value="1" <?php if($settings['system_custom_message']) echo "checked = \"checked\"";?>><label for="system_custom_message_cbx">Mensagem Personalizada na área restrita</label></td></tr>
-	<tr><td>Mensagem Personalizada na área restrita - Título</td></tr>
-	<tr><td><textarea rows="1" cols="50" name="system_custom_message_title"><?php echo $settings['system_custom_message_title'];?></textarea></td></tr>
-	<tr><td>Mensagem Personalizada na área restrita - Texto</td></tr>
-	<tr><td><textarea rows="3" cols="50" name="system_custom_message_text" class="htmleditor" ><?php echo $settings['system_custom_message_text'];?></textarea></td></tr>
-	</table>
+	<label for="system_custom_message"><input type="hidden" name="system_custom_message" value="0">
+	<input  id="system_custom_message" name="system_custom_message" type="checkbox" value="1" <?php if($settings['system_custom_message']) echo "checked=\"checked\"";?>>Mensagem Personalizada na área restrita</label>
+	
+	<label for="system_custom_message_title">Mensagem Personalizada na área restrita - Título</label>
+	<input  id="system_custom_message_title" name="system_custom_message_title" type="text" value="<?php echo $settings['system_custom_message_title'];?>"/>
+	
+	<label for="system_custom_message_text">Mensagem Personalizada na área restrita - Texto</label>
+	<textarea id="system_custom_message_text" name="system_custom_message_text" class="htmleditor"><?php echo $settings['system_custom_message_text'];?></textarea>
+	
 	</form>
 	<?php
 

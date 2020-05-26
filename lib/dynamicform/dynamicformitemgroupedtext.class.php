@@ -102,7 +102,7 @@ class DynamicFormItemGroupedText extends DynamicFormItem
         foreach ($this->spec->items as $j => $groupedtextItem)
 		{
             $result .= "
-            <label for=\"{$htmlName}[{$index}][{$j}]\" style=\"text-align: right;\">$groupedtextItem:&nbsp;
+            <label for=\"{$htmlName}[{$index}][{$j}]\" style=\"text-align: right;\">&nbsp;$groupedtextItem
             <input type=\"text\" name=\"{$htmlName}[{$index}][{$j}]\" id=\"{$htmlName}[{$index}][{$j}]\"";
             $result .= " value=\"".htmlentities($this->content[$j], ENT_QUOTES, 'utf-8')."\"";
             $result .= ($active) ? "" : " disabled=\"disabled\"";

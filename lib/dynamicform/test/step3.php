@@ -56,6 +56,10 @@ var_dump($validationErrors);
   <?php echo $dynamicForm->getHtmlFormattedContent("tablename", "tableid"); ?>
   <h3>Table of contents - after removing some DynamicTable items</h3>
   <?php echo $dynamicForm->getHtmlFormattedContent("tablename", "tableid"); ?>
+  <h3>getJSONStructure()</h3>
+  <?php echo $dynamicForm->getJSONStructure(); ?>
+  <h3>getJSONContent()</h3>
+  <?php echo $dynamicForm->getJSONContent(); ?>
 <?php } else { ?>
   <h3>Validation error messages</h3>
   <!-- TODO Validation error messages on form -->

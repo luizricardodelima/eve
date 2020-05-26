@@ -13,7 +13,7 @@ class DynamicFormItemBigtext extends DynamicFormItem
     {
         return htmlentities($this->content, ENT_QUOTES, 'utf-8');
     }
-    
+
     public static function getType()
     {
         return 'bigtext'; 

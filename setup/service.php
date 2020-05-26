@@ -133,7 +133,7 @@ function create_database_4($dbpassword, $screenname, $password)
 		  `pagesize` enum('A3','A4','A5','Letter','Legal') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'A4',
 		  `pageorientation` enum('P','L') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'L',
 		  `backgroundimage` text COLLATE utf8_unicode_ci,
-		  `text` text COLLATE utf8_unicode_ci,
+		  `text` text COLLATE utf8_unicode_ci NOT NULL DEFAULT '[]',
 		  `topmargin` smallint(6) NOT NULL DEFAULT '0',
 		  `leftmargin` smallint(6) NOT NULL DEFAULT '0',
 		  `rightmargin` smallint(6) NOT NULL DEFAULT '0',

@@ -1,4 +1,12 @@
-{
+{	
+	"certification.text.list.and":" and ",
+	"certification.text.list.comma":", ",
+	"certification.text.error.invalid.element":"(ERROR - Invalid element)",
+	"certification.text.error.invalid.list.content":"(ERROR - Invalid content paramater for the list)",
+	"certification.text.error.invalid.parameter":"(ERROR - Invalid parameter)",
+	"certification.text.error.invalid.structure":"(ERROR - Invalid structure)",
+	"certification.text.error.invalid.type":"(ERROR - Invalid type)",
+	"certification.text.error.invalid.value":"(ERROR - Invalid value)",	
 	"certificationmodel.backgroundimage": "Background image",
 	"certificationmodel.id": "Id",
 	"certificationmodel.leftmargin": "Left margin (mm)",

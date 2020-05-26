@@ -146,14 +146,14 @@ class EveSubmissionService
 		return ($result > 0);
 	}
 
-	/* $structure and $content have to be passed as json encoded objects */
-	function submission_create($submission_definition_id, $email, $structure, $content)
+	function submission_create($submission_definition_id, $email, $dynamicform_submission)
 	{
 		$date_sql = date("Y-m-d H:i:s");
+		$structure = $dynamicform_submission->getJSONStructure();
+		$content = $dynamicform_submission->getJSONContent();
 		$stmt = $this->eve->mysqli->prepare
 		("
-			insert into
-				`{$this->eve->DBPref}submission`
+			insert into `{$this->eve->DBPref}submission`
 				(`submission_definition_id`, `structure`, `email`, `date`, `content`)
 			values	(?, ?, ?, ?, ?)
 		");
@@ -524,9 +524,7 @@ class EveSubmissionService
 		return self::SUBMISSION_SET_REVIEWER_SUCCESS;
 	}
 
-	// TODO PASS DYNAMIC FORM SINCE IT REPRESENTS THE CONTENT
-	/* $structure and $content have to be passed as json encoded objects */
-	function submission_update($submission_id, $new_content)
+	function submission_update($submission_id, $dynamicform_submission)
 	{
 		$stmt = $this->eve->mysqli->prepare
 		("
@@ -538,6 +536,7 @@ class EveSubmissionService
 		{
 			return self::SUBMISSION_UPDATE_ERROR_SQL;
 		}
+		$new_content = $dynamicform_submission->getJSONContent();
 		$stmt->bind_param('si', $new_content, $submission_id);
 		$stmt->execute();
 		if (!empty($stmt->error))

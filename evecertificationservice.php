@@ -1,4 +1,6 @@
 <?php
+require_once 'lib/dynamicform/dynamicform.class.php';
+require_once 'lib/dynamicform/dynamicformhelper.class.php';
 require_once 'eve.class.php';
 require_once 'evemail.php';
 require_once 'evesubmissionservice.class.php';
@@ -22,88 +24,139 @@ class EveCertificationService
 	private $eve;
 	private $evemail;
 
-	/** $structure - array of objects */
-	function certification_text_output($structure, $user, $submission)
+	/**
+	 * Generates the certification text defined by the structure defined in $structure
+	 * 
+	 * @param $structure array The content structure is defined as an array of objects
+	 * (created with json and passed to this function decoded with json_decode). The objects
+	 * can be the following:
+	 * 
+	 * - text: shows a fixed text
+	 *   {"type": "text", "value": "The text here will be shown."}
+	 * 
+	 * - variable: shows an attribute from the user or the submission that are associated with
+	 * the certification. If the certification is of type 'user_certification' and if there is
+	 * an attempt to retrieve an certificaion variable, it will simply return '', not an error.
+	 *   {"type": "variable", "entity": "user", "parameter" : "name"}
+	 *   {"type": "variable", "entity": "submission-content", "parameter" : "1"}
+	 *   {"type": "variable", "entity": "submission-content", "parameter" : "1-1"}
+	 * 
+	 * Parameters for the entity "user": admin, locked_form, name, address, city, state, country,
+	 * postalcode, birthday, gender, phone1, phone2, instituition, category_id, customtext1,
+	 * customtext2, customtext3, customtext4, customtext5, customflag1, customflag2, customflag3,
+	 * customflag4, customflag5, note.
+	 * 
+	 * Parameter for the entity "submission-content": The number indicating the position. If the
+	 * element content is an array (such as grouped texts or multiple choice items), the array
+	 * position has to be specified ater an hypen.
+	 * 
+	 * - list: shows a list of the other objects, separated according grammatical rules. For
+	 * example in english, if it is a list of three objects, it displays "[object1], [object2]
+	 * and [object3]". Objects that are output with an empty string '' are not included in the
+	 * list.
+	 *   {"type": "list", "content":
+	 * 		   [{"type": "variable", "entity": "submission-content", "parameter" : "1"},
+	 * 			{"type": "variable", "entity": "submission-content", "parameter" : "2"}]
+	 *    }
+	 * 
+	 * All objects accept the "uppercase" parameter, which returns the content in uppercase.
+	 */
+	public function certification_text($structure, $user, $submission)
 	{
 		$output = "";
+		$submission_structure = is_array($submission) ? $submission['structure'] : null;
+		$submission_content = is_array($submission)? $submission['content'] : null;
+		DynamicFormHelper::$locale = $this->eve->getSetting('system_locale');
+		$submission_dform = new DynamicForm($submission_structure, json_decode($submission_content));
 		if(is_array($structure)) foreach ($structure as $structure_item) 
-			$output .= $this->certification_text_output_item($structure_item, $user, $submission);
-		return $output;
+			$output .= $this->certification_text_item($structure_item, $user, $submission, $submission_dform);
+		else
+			$output = $this->eve->_('certification.text.error.invalid.structure');
+			return $output;
 	}
 	
-	private function certification_text_output_item($structure_item, $user, $submission)
+	private function certification_text_item($structure_item, $user, $submission, $submission_dform)
 	{
-		switch ($structure_item->type)
+		$text = "";
+		if (!isset($structure_item->type)) 
+			$text = $this->eve->_('certification.text.error.invalid.element');
+		else switch ($structure_item->type)
 		{
 			case "text":
-				return $this->certification_text_output_text($structure_item);
+				$text = $this->certification_text_text($structure_item);
+				break;
 			case "variable":
-				return $this->certification_text_output_variable($structure_item, $user, $submission);
+				$text = $this->certification_text_variable($structure_item, $user, $submission, $submission_dform);
+				break;
 			case "list":
-				return $this->certification_text_output_list($structure_item, $user, $submission);
-		}
-	}
-
-	private function certification_text_output_text($structure_item)
-	{	
-		return $structure_item->value;
-	}
-
-	private function certification_text_output_variable($structure_item, $user, $submission)
-	{	
-		$text = "";	
-		switch ($structure_item->entity)
-		{
-			case "user":
-				$text = $user[$structure_item->parameter];
+				$text = $this->certification_text_list($structure_item, $user, $submission, $submission_dform);
 				break;
-			case "submission-content":
-				$structure = json_decode($submission['structure']);
-				$content = json_decode($submission['content']);
-				$parameter = explode("-", $structure_item->parameter);
-					
-				// TODO this should be handled by DynamicInput
-				switch ($structure[$parameter[0] - 1]->type)
-				{
-					case "array":
-						$text = $content[$parameter[0] - 1][$parameter[1] - 1];
-						break;
-					case "text":
-					case "bigtext":
-						$text = $content[$parameter[0] - 1];
-						break;
-					case "enum":
-						$text = $structure[$parameter[0] - 1]->spec->items[$content[$parameter[0] - 1]];
-						break;
-					case "check":
-						if ($content[$parameter[0] - 1])
-							$text = $this->eve->_('common.label.yes');
-						else
-							$text = $this->eve->_('common.label.no');
-						break;
-					case "file":
-						$text =  $content[$parameter[0] - 1];
-						break;
-				}
+			default:
+				$text = $this->eve->_('certification.text.error.invalid.type');
 				break;
-		}
-		if ($structure_item->uppercase) $text = mb_strtoupper($text);
+			}
+		if (isset($structure_item->uppercase) && $structure_item->uppercase) $text = mb_strtoupper($text);
 		return $text;
 	}
 
-	private function certification_text_output_list($structure_item, $user, $submission)
+	private function certification_text_text($structure_item)
+	{	
+		if (!isset($structure_item->value)) return $this->eve->_('certification.text.error.invalid.value');
+		else return $structure_item->value;
+	}
+
+	private function certification_text_variable($structure_item, $user, $submission, $submission_dform)
+	{	
+		if (!isset($structure_item->parameter)) return $this->eve->_('certification.text.error.invalid.parameter');
+		switch ($structure_item->entity)
+		{
+			case "user":
+				if ($user === null) // For the cases of template viewing
+					return ""; 
+				else if (!isset($user[$structure_item->parameter]))
+					return $this->eve->_('certification.text.error.invalid.parameter');
+				else
+					return $user[$structure_item->parameter];
+				break;
+			case "submission-content":
+				
+				if ($submission === null) // For the cases of template viewing
+					return "";
+				$parameter = explode("-", $structure_item->parameter);
+				if(!is_numeric($parameter[0]) || !isset($submission_dform->structure[$parameter[0] - 1]))
+					return $this->eve->_('certification.text.error.invalid.parameter');
+				$content = $submission_dform->structure[$parameter[0] - 1]->getFormattedContent();
+				if (is_array($content))
+				{
+					if(!is_numeric($parameter[1]) || !isset($content[$parameter[1] - 1]))
+						return $this->eve->_('certification.text.error.invalid.parameter');
+					else
+						return $content[$parameter[1] - 1];
+				}
+				else
+					return $content;
+				break;
+		}
+	}
+
+	private function certification_text_list($structure_item, $user, $submission, $submission_dform)
 	{
 		$output_array = array();
+		if(!isset($structure_item->content) || !is_array($structure_item->content))
+			return $this->eve->_('certification.text.error.invalid.list.content');
 		foreach ($structure_item->content as $item)
 		{
-			$text = $this->certification_text_output_item($item, $user, $submission);
-			if (!empty($text))
-				$output_array[] = $text;
+			$text = $this->certification_text_item($item, $user, $submission, $submission_dform);
+			if (!empty($text)) $output_array[] = $text;
 		}
-		if (count($output_array) > 1)
-			return implode(", ", array_slice($output_array, 0, count($output_array)-1)) . " e " . $output_array[count($output_array)-1];
-		else
+		$comma = $this->eve->_('certification.text.list.comma');
+		$and = $this->eve->_('certification.text.list.and');
+		if (count($output_array) == 0)
+			return '';
+		else if (count($output_array) == 1)
 			return $output_array[0];
+		else // (count($output_array) >= 2)
+			return implode($comma, array_slice($output_array, 0, count($output_array)-1)) . $and . $output_array[count($output_array)-1];
 	}
 
 	function certification_attribuition($certificationtemplate_id, $screenname, $submission_id, $locked = 0)
@@ -482,22 +535,11 @@ class EveCertificationService
 		}
 	}
 
-	function certificationmodel_list($orderby = "id")
+	function certificationmodel_list($orderby = 'id')
 	{
-		// Sanitizing input		
-		switch ($orderby)
-		{
-			case "id":			
-			case "type":
-			case "name":
-			case "text":
-				// Everything is fine, these are the acceptable values.
-				break;
-			default:		
-				// Unnacceptable value. Changing it to "id".
-				$orderby = "id";
-				break;
-		}
+		// Checking if $orderby is one of the accepted values.
+		// If not, changing it for the default value
+		$orderby = (in_array($orderby, array('id', 'type', 'name', 'text'))) ? $orderby : 'id';
 		return $this->eve->mysqli->query
 		("	
 			select *

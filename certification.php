@@ -11,7 +11,6 @@ $eveCertificationService = new EveCertificationService($eve);
 $eveSubmissionService = new EveSubmissionService($eve);
 $eveUserService = new EveUserServices($eve);
 
-// TODO View more than one certification
 // Session verification.
 if (!isset($_SESSION['screenname']))
 {
@@ -69,23 +68,20 @@ else
 		{
 			// TODO use method from service
 			$certification = $eve->mysqli->query("SELECT * FROM `{$eve->DBPref}certification` WHERE `id`={$_GET['id']};")->fetch_assoc();
-			//$certificationdef = $eve->mysqli->query("SELECT * FROM `{$eve->DBPref}certificationdef` WHERE `id`={$certification['certificationdef_id']};")->fetch_assoc();
 			$certificationdef = $eveCertificationService->certificationmodel_get($certification['certificationdef_id']);			
-			//$user = $eve->mysqli->query("SELECT * FROM `{$eve->DBPref}userdata` WHERE `email`='{$certification['screenname']}';")->fetch_assoc();
 			$user = $eveUserService->get_user($certification['screenname']);			
 			$submission = $eveSubmissionService->submission_get($certification['submissionid']);
 		}
 		else if (isset($_GET['templateid']))
 		{
 			$certificationdef = $eveCertificationService->certificationmodel_get($_GET['templateid']);
-			//$certificationdef = $eve->mysqli->query("SELECT * FROM `{$eve->DBPref}certificationdef` WHERE `id`={$_GET['templateid']};")->fetch_assoc();
 		}
 		
 		// Replacing the certificate text variables
 		if (isset($_GET['id']))
-			$certificate_text = $eveCertificationService->certification_text_output(json_decode($certificationdef['text']), $user, $submission);		
+			$certificate_text = $eveCertificationService->certification_text(json_decode($certificationdef['text']), $user, $submission);		
 		else if (isset($_GET['templateid']))
-			$certificate_text = $eveCertificationService->certification_text_output(json_decode($certificationdef['text']), $user, $submission);
+			$certificate_text = $eveCertificationService->certification_text(json_decode($certificationdef['text']), $user, $submission);
 
 		// Only Reporting Errors. If less critical messages (such as warnings) are displayed, the pdf cannot be sent.
 		error_reporting(E_ERROR);

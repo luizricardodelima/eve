@@ -46,7 +46,7 @@ else
 			$validation_errors = $dynamicForm->validate();
 			if(empty($validation_errors)) // validation returns no errors
 			{
-				$msg = $eveSubmissionService->submission_create($_GET['id'], $_SESSION['screenname'], $_POST['submission_structure'], json_encode($_POST['submission_content']));
+				$msg = $eveSubmissionService->submission_create($_GET['id'], $_SESSION['screenname'], $dynamicForm);
 				if ($msg == EveSubmissionService::SUBMISSION_CREATE_SUCCESS)					
 					$eve->output_redirect_page("userarea.php?systemmessage=submission.sent");
 				else					
@@ -181,14 +181,14 @@ else
 	{	
 		?>
 		<form action="<?php echo basename(__FILE__)."?id={$_GET['id']}";?>" method="post" enctype="multipart/form-data" class="dialog_panel_wide">
-		<p><?php if ($submission_definition['deadline'])
+		<?php if ($submission_definition['deadline'])
 		{
-			echo "Prazo para envio: "; // TODO g11n
+			echo "<p>Prazo para envio: "; // TODO g11n
 			echo $eveG11n->full_date_time_format(strtotime($submission_definition['deadline']));
 			if($submission_after_deadline) echo "&nbsp;(O prazo para envio foi prorrogado para você)."; // TODO g11n
+			echo "</p>";
 		}
 		?>
-		</p>
 		<?php echo $submission_definition['information']; ?>
 		<?php echo $dynamicForm->outputControls('submission_structure', 'submission_content') ?>
 		<input type="hidden" name="action" value="submission"/>

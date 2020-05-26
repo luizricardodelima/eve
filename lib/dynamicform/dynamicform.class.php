@@ -53,21 +53,17 @@ class DynamicForm
     }
 
     function getJSONStructure() {
-        $result = '[';
+        $contents = array();
         foreach ($this->structure as $structureItem)
-            $result .= $structureItem->getJSONStructure().",";
-        $result = rtrim($result,',');
-        $result .= ']';
-        return $result;
+            $contents[] = $structureItem->getJSONStructure();
+        return "[" . implode(", ", $contents) . "]";
     }
 
     function getJSONContent() {
-        $result = '[';
+        $contents = array();
         foreach ($this->structure as $structureItem)
-            $result .= '"'.$structureItem->content.'",';
-        $result = rtrim($result,',');
-        $result .= ']';
-        return $result;
+            $contents[] = json_encode($structureItem->content);
+        return "[" . implode(", ", $contents) . "]";
     }
 
     function outputControls($strName, $cntName, $active = true)

@@ -1,4 +1,12 @@
 {
+	"certification.text.list.and":" e ",
+	"certification.text.list.comma":", ",
+	"certification.text.error.invalid.element":"(ERRO- Elemento inválido)",
+	"certification.text.error.invalid.list.content":"(ERRO - Parâmetro content inválido para list)",
+	"certification.text.error.invalid.parameter":"(ERROR - Parâmetro 'parameter' inválido)",
+	"certification.text.error.invalid.structure":"(ERRO - Parâmetro structure inválido)",
+	"certification.text.error.invalid.type":"(ERRO - Parâmetro type inválido)",
+	"certification.text.error.invalid.value":"(ERRO - Parâmetro value inválido)",
 	"certificationmodel.backgroundimage": "Imagem de fundo",
 	"certificationmodel.id": "Id",
 	"certificationmodel.leftmargin": "Margem esquerda (mm)",

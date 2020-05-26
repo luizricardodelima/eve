@@ -78,7 +78,7 @@ else
 	?>
 	<script>
 	function certification_help() {
-		window.alert(	'O conteúdo é codificado como um array json que recebe os seguintes objetos\n\n'+
+		window.alert(	'O conteúdo é codificado como um ARRAY JSON que recebe os seguintes objetos\n\n'+
 
 				'- text: mostra um texto fixo.\n'+
 				'Exemplo {"type": "text", "value": "TEXTO A SER INSERIDO"}\n\n'+

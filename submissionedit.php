@@ -50,7 +50,7 @@ else
 		case 'update':
 			$validation_errors = $dynamicForm->validate();
 			if(empty($validation_errors)) // validation returns no errors
-				$message = $eveSubmissionService->submission_update($_GET['id'], json_encode($content));
+				$message = $eveSubmissionService->submission_update($_GET['id'], $dynamicForm);
 			break;
 	}
 
@@ -59,7 +59,7 @@ else
 	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('submission_definitions'), "submission_definitions.php", $submissiondefinition['description'], "submissions.php?id={$submissiondefinition['id']}", "ID {$submission['id']}", null);
 
 	// Success/error messages
-	if (!is_null($message)) $eve->output_service_message($_GET['message']);
+	if (!is_null($message)) $eve->output_service_message($message);
 	// Validation error messages
 	if (!empty($validation_errors))	$eve->output_error_list_message($validation_errors);
 

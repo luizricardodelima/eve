@@ -8,15 +8,26 @@ class Eve
 	private $settings = array();
 	private $dictionary = null;
 	
+	// TODO REMOVE BASE PATH
+	// TODO Documentation of $setupmode
 	// $basepath is optional and is used if there are php codes in other folders (such as plugins), in that case $path needs to receive an argument
 	// such as "../../"
-	function __construct($basepath="")
+	function __construct($basepath="", $setupmode = false)
 	{
-		// Establishing Database connection - mysqli		
+		if ($setupmode) error_reporting(0);
+
+		// Establishing Database connection	
 		$this->mysqli = new mysqli(EveDBConfig::$server, EveDBConfig::$user, EveDBConfig::$password, EveDBConfig::$database);
-		$this->mysqli->set_charset("utf8");
-		$this->DBPref = EveDBConfig::$prefix;
-		$this->basepath = $basepath;
+		if(mysqli_connect_errno() && !$setupmode)
+		{
+			$this->output_redirect_page($this->sysurl().'/setup');
+		}
+		else
+		{
+			$this->mysqli->set_charset("utf8");
+			$this->DBPref = EveDBConfig::$prefix;
+			$this->basepath = $basepath;
+		}
 	}
 
 	// translate key - dictionary

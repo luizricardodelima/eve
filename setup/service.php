@@ -545,9 +545,10 @@ function delete_database_4($dbpassword)
 
 function check_database()
 {
+	$eve = new Eve("", true);
 	$messages = array();
 
-	// Connecting to database
+	// Connecting to database //TODO: Eve already tried to connect. use eves values.
 	$pref = EveDBConfig::$prefix;
 	$mysqli = new mysqli(EveDBConfig::$server, EveDBConfig::$user, EveDBConfig::$password, EveDBConfig::$database);
 	if ($mysqli->connect_error)
@@ -561,7 +562,6 @@ function check_database()
 	$result = $mysqli->query("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.tables WHERE TABLE_NAME LIKE '{$pref}%'");
 	if ($result->fetch_assoc()) 
 	{
-		$eve = new Eve();
 		$messages[] = "✔️ Database tables were created.";
 		$messages[] = "✔️ You can test the system at <a href=\"{$eve->sysurl()}\">{$eve->sysurl()}</a> and if everything is okay, delete the <code>/setup</code> folder.";
 	}

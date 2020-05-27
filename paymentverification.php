@@ -115,8 +115,8 @@ else
 	<label for="note">Observação</label>
 	<textarea id="note" name="note" rows="5"><?php echo is_null($data['note']) ? '' : $data['note'];?></textarea>
 
-	<button type="submit" class="submit">Salvar</button>
-	<button type="button" class="altaction" onclick="window.location.href='payments.php'">Voltar</button>
+	<button type="submit" class="submit"><?php echo $eve->_('common.action.save');?></button>
+	<button type="button" class="altaction" onclick="window.location.href='payments.php'"><?php echo $eve->_('common.action.back');?></button>
 	</div>	
 
 	</form>	

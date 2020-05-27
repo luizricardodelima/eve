@@ -126,7 +126,7 @@ else
 		$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Usuários", "users.php", "Dados do usuário", null);		
 		?>
 		<div class="section">Dados do usuário - modo administrador
-		<button type="button" onclick="document.forms['user_form'].submit()">Salvar</button>
+		<button type="button" onclick="document.forms['user_form'].submit()"><?php echo $eve->_('common.action.save');?></button>
 		<button type="button" onclick="document.getElementById('credential_form').submit()">Gerar credencial</button>
 		</div>
 		<form action="credential.php" method="post" id="credential_form">
@@ -313,9 +313,8 @@ else
 	if ($admin_mode)
 	{
 		?>
-		<span>
-		<p><strong>Campos do administrador</strong></p>
-		</span>
+		<label><!-- Empty space --></label>
+		<div class="dialog_section">Campos do administrador</div>
 
 		<label for="user_data_note"><?php echo $eve->_('user.data.note');?></label>
 		<input id="user_data_note" type="text" name="note" value="<?php echo $user['note'];?>"/>

@@ -320,6 +320,12 @@ table.data_table tr.selected
 	text-decoration: 	underline;
 }
 
+.dialog_section
+{
+	border-bottom: 1px solid black;
+	font-size: 0.9rem;
+	font-weight: 600;
+}
 .dialog_panel, .dialog_panel_thin, .dialog_panel_wide
 {
 	margin: auto;

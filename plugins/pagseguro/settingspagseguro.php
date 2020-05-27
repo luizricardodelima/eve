@@ -52,7 +52,7 @@ else if (isset($_POST['action']))switch ($_POST['action'])
 else
 {
 	$eve->output_html_header();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "../../userarea.php", "Ajustes do sistema", "../../settings.php", "Pag seguro", null);
+	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "../../userarea.php", $eve->_('userarea.option.admin.settings'), "../../settings.php", "Pag seguro", null);
 	?>
 	<div class="section">Passo 1 - Edite o arquivo <strong>/plugins/pagseguro/lib/config/PagSeguroConfig.php</strong> com as informações de sua conta PagSeguro e parâmetros de execução</div>
 	<table class="data_table">
@@ -67,7 +67,7 @@ else
 	</table>
 	
 	<div class="section">Passo 2 - Selecione o tipo de pagamento que corresponde ao pagamento com PagSeguro e clique em Salvar
-	<button type="button" onclick="document.forms['save_purchase_paymenttype_id_form'].submit();">Salvar</button>
+	<button type="button" onclick="document.forms['save_purchase_paymenttype_id_form'].submit();"><?php echo $eve->_('common.action.save');?></button>
 	</div>
 	<form method="post" id="save_purchase_paymenttype_id_form">
 	<input type="hidden" name="action" value="save_purchase_paymenttype_id"/>
@@ -190,7 +190,7 @@ else
 	
 	<div class="section">Passo 3 - Insira os itens de compra referentes às informações passadas pelo usuário. Ao finalizar, clique em salvar.
 	<button type="button" onclick="add_structure_item();">Novo item de compra</button>
-	<button type="button" onclick="document.forms['save_payment_information_form'].submit();">Salvar</button>
+	<button type="button" onclick="document.forms['save_payment_information_form'].submit();"><?php echo $eve->_('common.action.save');?></button>
 	</div>
 	<div class="section" style="display:none;" id="edit_structure_item">
 	<form style="display: grid; grid-gap: 0.5em; grid-template-columns: 2fr 3fr 2fr 3fr 2fr 3fr">

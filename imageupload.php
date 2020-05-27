@@ -87,13 +87,13 @@ else
 	{
 		case 'header':
 			$eve->output_html_header();
-			$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php",  "Ajustes do sistema", "settings.php", "Aparência", "settingsappearance.php", "Imagem de cabe&ccedil;alho", null);
+			$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php",  $eve->_('userarea.option.admin.settings'), "settings.php", "Aparência", "settingsappearance.php", "Imagem de cabe&ccedil;alho", null);
 			output_main_content($eve, $image_filetype, $image_filesize);
 			$eve->output_html_footer();
 			break;
 		case 'credential':
 			$eve->output_html_header();
-			$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php",  "Ajustes do sistema", "settings.php", "Credenciais", "settingscredential.php", "Imagem da credencial", null);
+			$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php",  $eve->_('userarea.option.admin.settings'), "settings.php", "Credenciais", "settingscredential.php", "Imagem da credencial", null);
 			output_main_content($eve, $image_filetype, $image_filesize);
 			$eve->output_html_footer();
 			break;

@@ -29,7 +29,7 @@ else if (sizeof($_POST) > 0)
 else
 {
 	$eve->output_html_header();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Ajustes do sistema", "settings.php", "Dados do usuário", null);	
+	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('userarea.option.admin.settings'), "settings.php", "Dados do usuário", null);	
 	$eve->output_wysiwig_editor_code();
 
 	if (isset($_GET['saved']))
@@ -103,7 +103,7 @@ else
 	?>
 
 	<div class="section">
-	<button type="button" onclick="document.forms['settings_form'].submit();"/>Salvar</button>
+	<button type="button" onclick="document.forms['settings_form'].submit();"/><?php echo $eve->_('common.action.save');?></button>
 	</div>
 
 	<form id="settings_form" method="post">

@@ -122,13 +122,9 @@ else
 	function toggleRow(source)
 	{
 		if (source.checked)
-		{
 			source.parentNode.parentNode.classList.add('selected');
-		}
 		else
-		{
 			source.parentNode.parentNode.classList.remove('selected');
-		}
 	}
 	function credentials() {
 		var container = document.getElementById("credentials_form");
@@ -169,18 +165,16 @@ else
 		switch (document.querySelector('input[name="view"]:checked').value)
 		{
 			case 'complete':
-				document.getElementById('complete_view_table').style.display = 'block';
+				document.getElementById('complete_view_table').style.display = 'table';
 				document.getElementById('short_view_table').style.display = 'none';
 				break;
 			case 'short':
-				document.getElementById('short_view_table').style.display = 'block';
+				document.getElementById('short_view_table').style.display = 'table';
 				document.getElementById('complete_view_table').style.display = 'none';
 				break;
 		}
 	}
-	</script>
-
-	
+	</script>	
 
 	<form id="credentials_form" method="post" action="credential.php"></form>
 	<form id="export_form" method="post" action="paymentsexport.php"></form>
@@ -195,7 +189,7 @@ else
 	<input type="radio" name="view" id="short_view_option" value="short" onchange="change_view();"><label for="short_view_option">Resumido</label>
 	</span>
 	</div>
-	<table class="data_table" id="complete_view_table" style="display:block;">
+	<table class="data_table" id="complete_view_table">
 	<tr>
 	<th style="width: 3%"><input type="checkbox" onClick="toggle(this, 'screenname[]')"/></th>
 	<th style="width: 15%"><a href="<?php echo basename(__FILE__);?>">Nome</a></th>
@@ -298,7 +292,7 @@ else
 	<td><strong><?php echo money_format('%n', $total_value_paid_sum);?></strong></td>
 	<td><strong><?php echo money_format('%n', $total_value_received_sum);?></strong></td>
 	</tr>
-	<tbody>
+	</tbody>
 	</table>
 		
 	<?php

@@ -12,12 +12,14 @@ class EveSubmissionService
 
 	const SUBMISSION_CREATE_SUCCESS = 'submission.create.success';
 	const SUBMISSION_CREATE_ERROR_SQL = 'submission.create.error.sql';
+	const SUBMISSION_DELETE_ERROR_INVALID_ID = 'submission.delete.error.invalid.id';
 	const SUBMISSION_DELETE_ERROR_SQL = 'submission.delete.error.sql';
 	const SUBMISSION_DELETE_ERROR_FORBIDDEN = 'submission.delete.error.forbidden';
-	const SUBMISSION_DELETE_ERROR_NOT_FOUND = 'submission.delete.error.not.found';	
 	const SUBMISSION_DELETE_SUCCESS = 'submission.delete.success';
-	const SUBMISSION_UPDATE_SUCCESS = 'submission.update.success';
+	const SUBMISSION_UPDATE_ERROR_INVALID_ID = 'submission.update.error.invalid.id';
+	const SUBMISSION_UPDATE_ERROR_FORBIDDEN = 'submission.update.error.forbidden';
 	const SUBMISSION_UPDATE_ERROR_SQL = 'submission.update.error.sql';
+	const SUBMISSION_UPDATE_SUCCESS = 'submission.update.success';
 
 	const SUBMISSION_SET_REVIEWER_ERROR_INVALID_IDS = 'submission.set.reviewer.error.invalid.ids';
 	const SUBMISSION_SET_REVIEWER_ERROR_INVALID_REVIEWER = 'submission.set.reviewer.error.invalid.reviewer';
@@ -171,6 +173,20 @@ class EveSubmissionService
 		else
 		{
 			$stmt->close();
+			$submission_definition = $this->submission_definition_get($submission_definition_id);
+			if ($submission_definition['send_email_on_create'])
+			{
+				$placeholders = array
+				(
+					'$user_email' => $email,
+					'$date_time' => $date_sql, //TODO g11n and $user_name
+					'$support_email_address' => $this->eve->getSetting('support_email_address'),
+					'$system_name' => $this->eve->getSetting('system_name'),
+					'$site_url' => $this->eve->url(),
+					'$submission_content' => $dynamicform_submission->getHtmlFormattedContent()
+				);
+				$this->evemail->send_mail($email, $placeholders, $this->eve->getSetting('email_sbj_submission_create'), $this->eve->getSetting('email_msg_submission_create'));
+			}
 			return self::SUBMISSION_CREATE_SUCCESS;
 		}
 	}
@@ -178,59 +194,52 @@ class EveSubmissionService
 	// User $email is passed in order to check permissions. User has to be the owner of submission or admin
 	function submission_delete($submission_id, $email)
 	{
-		$stmt = $this->eve->mysqli->prepare
-		("
-			select	`{$this->eve->DBPref}submission`.`id`, `{$this->eve->DBPref}submission`.`email` 
-			from	`{$this->eve->DBPref}submission`
-			where	`{$this->eve->DBPref}submission`.`id` = ? and
-				`{$this->eve->DBPref}submission`.`active` = 1
-		");
-		if ($stmt === false)
+		$submission = $this->submission_get($submission_id);
+		if ($submission === null)
 		{
-			return self::SUBMISSION_DELETE_ERROR_SQL;
+			// Returning error if $id is invalid
+			return self::SUBMISSION_DELETE_ERROR_INVALID_ID;
 		}
-		$stmt->bind_param('i', $submission_id);
-		$stmt->execute();
-		$submission = array();
-		// Binding result variable - Column by column to ensure compability
-		// From PHP Verions 5.3+ there is the get_result() method
-    	$stmt->bind_result
-		(
-			$submission['id'],
-			$submission['email']
-		);
-		// Fetching values
-		if ($stmt->fetch())
-		{		
-			$stmt->close();
-			if ($submission['email'] == $email || $this->eve->is_admin($email))
+		else if ($submission['email'] != $email && !$this->eve->is_admin($email))
+		{
+			// Returning error if $email does not have permission to delete
+			// (if they are not the owner and are not admin)
+			return self::SUBMISSION_DELETE_ERROR_FORBIDDEN;
+		}
+		else 
+		{	
+			// All verifications are okay. Proceeding with delete
+			$stmt1 = $this->eve->mysqli->prepare
+			("
+				update	`{$this->eve->DBPref}submission`
+				set		`{$this->eve->DBPref}submission`.`active` = 0
+				where	`{$this->eve->DBPref}submission`.`id` = ?
+			");
+			if ($stmt1 === false)
 			{
-				$stmt1 = $this->eve->mysqli->prepare
-				("
-					UPDATE	`{$this->eve->DBPref}submission`
-					SET	`{$this->eve->DBPref}submission`.`active` = 0
-					WHERE	`{$this->eve->DBPref}submission`.`id` = ?
-				");
-				if ($stmt1 === false)
-				{
-					return self::SUBMISSION_DELETE_ERROR_SQL;
-				}
-				$stmt1->bind_param('i', $submission_id);
-				$stmt1->execute();
-				$stmt1->close();
-				return self::SUBMISSION_DELETE_SUCCESS;
+				return self::SUBMISSION_DELETE_ERROR_SQL;
 			}
-			else
+			$stmt1->bind_param('i', $submission_id);
+			$stmt1->execute();
+			$stmt1->close();
+			$submission_definition = $this->submission_definition_get($submission['submission_definition_id']);
+			if ($submission_definition['send_email_on_delete'])
 			{
-				return self::SUBMISSION_DELETE_ERROR_FORBIDDEN;
-			}			
+				$dynamicform_submission = new DynamicForm($submission['structure'],json_decode($submission['content']));
+				$placeholders = array
+				(
+					'$user_email' => $email,
+					'$date_time' => date("Y-m-d H:i:s"), //TODO g11n and $user_name
+					'$support_email_address' => $this->eve->getSetting('support_email_address'),
+					'$system_name' => $this->eve->getSetting('system_name'),
+					'$site_url' => $this->eve->url(),
+					'$submission_content' => $dynamicform_submission->getHtmlFormattedContent()
+				);
+				$this->evemail->send_mail($email, $placeholders, $this->eve->getSetting('email_sbj_submission_delete'), $this->eve->getSetting('email_msg_submission_delete'));
+			}
+			return self::SUBMISSION_DELETE_SUCCESS;
 		}
-		else
-		{
-			$stmt->close();	
-			return self::SUBMISSION_DELETE_ERROR_NOT_FOUND;			
-		}	
-	}
+	}			
 
 	/* Returns null if id is invalid or nonexistent */
 	function submission_get($id) 
@@ -524,30 +533,71 @@ class EveSubmissionService
 		return self::SUBMISSION_SET_REVIEWER_SUCCESS;
 	}
 
-	function submission_update($submission_id, $dynamicform_submission)
+	/**
+	 * $author_email - who made the update
+	 */
+	function submission_update($submission_id, $dynamicform_submission, $author_email)
 	{
-		$stmt = $this->eve->mysqli->prepare
-		("
-			update `{$this->eve->DBPref}submission`
-			set	`content` = ?
-			where	`id` = ?
-		");
-		if ($stmt === false)
+		$submission = $this->submission_get($submission_id);
+		$submission_definition = $this->submission_definition_get($submission['submission_definition_id']);
+		if ($submission === null || $submission_definition === null)
 		{
-			return self::SUBMISSION_UPDATE_ERROR_SQL;
+			// Returning error if $id is invalid
+			return self::SUBMISSION_UPDATE_ERROR_INVALID_ID;
 		}
-		$new_content = $dynamicform_submission->getJSONContent();
-		$stmt->bind_param('si', $new_content, $submission_id);
-		$stmt->execute();
-		if (!empty($stmt->error))
+		else if
+		(
+			!$this->eve->is_admin($author_email) &&
+			!$this->is_final_reviewer($author_email, $submission['submission_definition_id']) &&
+			$submission['reviewer_email'] != $author_email
+		)
 		{
-			$stmt->close();
-			return self::SUBMISSION_UPDATE_ERROR_SQL;
+			// Returning error if $author_email does not have permission to update
+			// The ones who can update are system admins, final reviewers of the
+			// submission definition and the reviewer of the current submission.
+			return self::SUBMISSION_UPDATE_ERROR_FORBIDDEN;
 		}
-		else
-		{
-			$stmt->close();
-			return self::SUBMISSION_UPDATE_SUCCESS;
+		else 
+		{	
+			// All verifications are okay. Proceeding with update
+			$stmt1 = $this->eve->mysqli->prepare
+			("
+				update	`{$this->eve->DBPref}submission`
+				set		`{$this->eve->DBPref}submission`.`content` = ?
+				where	`{$this->eve->DBPref}submission`.`id` = ?
+			");
+			if ($stmt1 === false)
+			{
+				return self::SUBMISSION_UPDATE_ERROR_SQL;
+			}
+			$new_content = $dynamicform_submission->getJSONContent();
+			$stmt1->bind_param('si', $new_content, $submission_id);
+			$stmt1->execute();
+			if (!empty($stmt1->error))
+			{
+				$stmt1->close();
+				return self::SUBMISSION_UPDATE_ERROR_SQL;
+			}
+			else
+			{
+				$stmt1->close();
+				if ($submission_definition['send_email_on_update'])
+				{
+					$dynamicform_submission_old = new DynamicForm($submission['structure'],json_decode($submission['content']));
+					$placeholders = array
+					(
+						'$user_email' => $author_email,
+						'$date_time' => date("Y-m-d H:i:s"), //TODO g11n and $user_name
+						'$support_email_address' => $this->eve->getSetting('support_email_address'),
+						'$system_name' => $this->eve->getSetting('system_name'),
+						'$site_url' => $this->eve->url(),
+						'$submission_content' => $dynamicform_submission->getHtmlFormattedContent(),
+						'$submission_old_content' => $dynamicform_submission_old->getHtmlFormattedContent() //TODO display diff instead
+					);
+					$this->evemail->send_mail($submission['email'], $placeholders, $this->eve->getSetting('email_sbj_submission_update'), $this->eve->getSetting('email_msg_submission_update'));
+				}
+				return self::SUBMISSION_UPDATE_SUCCESS;
+			}
 		}
 	}
 
@@ -555,10 +605,10 @@ class EveSubmissionService
 	{
 		$stmt = $this->eve->mysqli->prepare
 		("
-			insert into
-				`{$this->eve->DBPref}submission_definition`
+			insert into `{$this->eve->DBPref}submission_definition`
 				(`description`)
-			values	(?)
+			values
+				(?)
 		");
 		if ($stmt === false)
 		{
@@ -626,6 +676,9 @@ class EveSubmissionService
 			$submission_definition['submission_structure'],
 			$submission_definition['revision_structure'],
 			$submission_definition['access_restricted'],
+			$submission_definition['send_email_on_create'],
+			$submission_definition['send_email_on_delete'],
+			$submission_definition['send_email_on_update'],
 			$submission_definition['active']
 		);
 		// Fetching values
@@ -975,19 +1028,24 @@ class EveSubmissionService
 				`deadline` = ?,
 				`submission_structure` = ?,
 				`revision_structure` = ?,
-				`access_restricted` = ?
-			where	`id` = ?
+				`access_restricted` = ?,
+				`send_email_on_create` = ?,
+				`send_email_on_delete` = ?,
+				`send_email_on_update` = ?
+			where
+				`id` = ?
 		");
 		if ($stmt1 === false)
 		{
 			return self::SUBMISSION_DEFINITION_SAVE_ERROR_SQL;
 		}
-		$stmt1->bind_param('sssisssii',
+		$stmt1->bind_param('sssisssiiiii',
 					$submission_definition['description'], $submission_definition['information'],
 					$submission_definition['requirement'], $submission_definition['allow_multiple_submissions'],
-					$submission_definition['deadline'],
-					$submission_definition['submission_structure'], $submission_definition['revision_structure'],
-					$submission_definition['access_restricted'], $submission_definition['id']);
+					$submission_definition['deadline'], $submission_definition['submission_structure'],
+					$submission_definition['revision_structure'], $submission_definition['access_restricted'],
+					$submission_definition['send_email_on_create'], $submission_definition['send_email_on_delete'],
+					$submission_definition['send_email_on_update'], $submission_definition['id']);
 		$stmt1->execute();
 		if (!empty($stmt1->error))
 		{

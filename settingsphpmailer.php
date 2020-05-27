@@ -46,7 +46,7 @@ else
 	}
 
 	$eve->output_html_header();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Ajustes do sistema", "settings.php", "Envio de e-mail", null);
+	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('userarea.option.admin.settings'), "settings.php", "Envio de e-mail", null);
 	$eve->output_wysiwig_editor_code();
 
 	// Retrieving settings from database.
@@ -60,8 +60,8 @@ else
 	
 	?>
 	<div class="section">Envio de e-mail
-	<button type="button" onclick="document.forms['settings_form'].submit()">Salvar</button>
-	<button type="button" onclick="mailtest()">Testar</button><br/>
+	<button type="button" onclick="document.forms['settings_form'].submit()"><?php echo $eve->_('common.action.save');?></button>
+	<button type="button" onclick="mailtest()"><?php echo $eve->_('common.action.test');?></button><br/>
 	</div>
 	<?php
 

@@ -64,7 +64,7 @@ else
 	<th style="width:05%"><?php echo $eve->_('submission_definition.id');?></th>
 	<th style="width:40%"><?php echo $eve->_('submission_definition.description');?></th>
 	<th style="width:25%"><?php echo $eve->_('submission_definition.deadline');?></th>
-	<th style="width:10%"><?php echo $eve->_('submission_definition.access.restricted');?></th>
+	<th style="width:10%"><?php echo $eve->_('submission_definition.access_restricted');?></th>
 	<th style="width:10%" colspan="3"><?php echo $eve->_('common.table.header.options');?></th>		
 	</tr>
 	<?php

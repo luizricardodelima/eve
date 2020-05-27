@@ -5,6 +5,8 @@ require_once 'evecertificationservice.php';
 
 $eve = new Eve();
 
+// TODO #4 2 New variables for certification model: Text alignment and text font (use FPDFs fonts)
+
 // Session verification.
 if (!isset($_SESSION['screenname']))
 {	
@@ -108,8 +110,8 @@ else
 	</script>
 
 	<div class="section">
-	<button type="button" onclick="document.forms['cdef_form'].submit();">Salvar</button>
-	<button type="button" onclick="window.location.href = 'certification.php?templateid=<?php echo $_GET['id'];?>';">Testar</button>
+	<button type="button" onclick="document.forms['cdef_form'].submit();"><?php echo $eve->_('common.action.save');?></button>
+	<button type="button" onclick="window.location.href = 'certification.php?templateid=<?php echo $_GET['id'];?>';"><?php echo $eve->_('common.action.test');?></button>
 	</div>
 
 	<form action="<?php echo basename(__FILE__)."?id={$_GET['id']}";?>" method="post" id="cdef_form">

@@ -58,7 +58,7 @@ else if (isset($_POST['action']) && isset($_POST['screenname']))
 else
 {
 	$eve->output_html_header();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Ajustes do sistema", "settings.php", "Administradores do sistema", null);
+	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('userarea.option.admin.settings'), "settings.php", "Administradores do sistema", null);
 
 	// Error messages, if any
 	if (isset($_GET['error'])) switch ($_GET['error'])

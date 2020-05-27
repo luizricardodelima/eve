@@ -30,7 +30,7 @@ else
 {
 	$eve->output_html_header();
 	$eve->output_wysiwig_editor_code();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Ajustes do sistema", "settings.php", "Inscrições", null);	
+	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('userarea.option.admin.settings'), "settings.php", "Inscrições", null);	
 
 	if (isset($_GET['saved']))
 		$eve->output_success_message("Ajustes salvos com sucesso.");
@@ -76,7 +76,7 @@ else
 	</script>
 
 	<div class="section">Inscrições 
-	<button type="button" onclick="document.forms['settings_form'].submit();"/>Salvar</button>
+	<button type="button" onclick="document.forms['settings_form'].submit();"/><?php echo $eve->_('common.action.save');?></button>
 	</div>
 
 	<form id="settings_form" method="post">

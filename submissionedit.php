@@ -50,7 +50,7 @@ else
 		case 'update':
 			$validation_errors = $dynamicForm->validate();
 			if(empty($validation_errors)) // validation returns no errors
-				$message = $eveSubmissionService->submission_update($_GET['id'], $dynamicForm);
+				$message = $eveSubmissionService->submission_update($_GET['id'], $dynamicForm, $_SESSION['screenname']);
 			break;
 	}
 
@@ -67,7 +67,7 @@ else
 	<form action="<?php echo basename(__FILE__)."?id={$_GET['id']}";?>" method="post" enctype="multipart/form-data" class="dialog_panel_wide">
 	<input type="hidden" name="action" value="update"/>
 	<?php echo $dynamicForm->outputControls('structure', 'content'); ?>
-	<button type="submit" class="submit">Salvar</button>
+	<button type="submit" class="submit"><?php echo $eve->_('common.action.save');?></button>
 	</form>
 	
 	<?php

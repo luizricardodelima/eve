@@ -40,9 +40,9 @@ else
 	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('submission_definitions'), "submission_definitions.php", $submission_definition['description'], null);
 	?>
 	<div class="section">
-	<button type="button" onclick="document.forms['submission_definition_form'].submit();">Salvar</button>
+	<button type="button" onclick="document.forms['submission_definition_form'].submit();"><?php echo $eve->_('common.action.save');?></button>
 	<button type="button" onclick="window.location.href='submission_definition_reviewers.php?id=<?php echo $_GET['id'];?>';"><?php echo $eve->_('submission_definition.button.reviewers');?></button>
-	<button type="button" onclick="window.location.href='submission_definition_access.php?id=<?php echo $_GET['id'];?>';">Gerenciar acesso restrito</button>
+	<button type="button" onclick="window.location.href='submission_definition_access.php?id=<?php echo $_GET['id'];?>';"><?php echo $eve->_('submission_definition.button.restrict_access');?></button>
 	</div>
 	<?php
 	$eve->output_wysiwig_editor_code();
@@ -66,7 +66,7 @@ else
 	<span>
 	<input type="hidden" name="access_restricted" value="0"/>
 	<input type="checkbox" id="access_restricted_cbx" name="access_restricted" value="1" <?php if ($submission_definition['access_restricted']) echo "checked=\"checked\"";?> />
-	<label for="access_restricted_cbx">Acesso restrito</label>
+	<label for="access_restricted_cbx"><?php echo $eve->_('submission_definition.access_restricted');?></label>
 	</span>
 	
 	<span>
@@ -94,17 +94,38 @@ else
 	}
 	?>
 	</select>
-	<label>Estrutura de submissão<br/><small> Marque com atributo personalizado <strong>maininfo</strong> os campos que aparecerão nas tabelas de listagem do sistema e <strong>noreview</strong> para os campos não acessíveis ao revisor.</small></label>
+
+	<span>
+	<input type="hidden" name="send_email_on_create" value="0"/>
+	<input type="checkbox" id="send_email_on_create" name="send_email_on_create" value="1" <?php if ($submission_definition['send_email_on_create']) echo "checked=\"checked\"";?> />
+	<label for="send_email_on_create"><?php echo $eve->_('submission_definition.send_email_on_create');?></label>
+	</span>
+
+	<span>
+	<input type="hidden" name="send_email_on_delete" value="0"/>
+	<input type="checkbox" id="send_email_on_delete" name="send_email_on_delete" value="1" <?php if ($submission_definition['send_email_on_delete']) echo "checked=\"checked\"";?> />
+	<label for="send_email_on_delete"><?php echo $eve->_('submission_definition.send_email_on_delete');?></label>
+	</span>
+
+	<span>
+	<input type="hidden" name="send_email_on_update" value="0"/>
+	<input type="checkbox" id="send_email_on_update" name="send_email_on_update" value="1" <?php if ($submission_definition['send_email_on_update']) echo "checked=\"checked\"";?> />
+	<label for="send_email_on_update"><?php echo $eve->_('submission_definition.send_email_on_update');?></label>
+	</span>
+
+
+	<label><?php echo $eve->_('submission_definition.submission.structure');?><br/>
+	<small><?php echo $eve->_('submission_definition.submission.structure.help');?></small></label>
 	<?php
-	// TODO: g11n text above
+	
 	DynamicFormHelper::$locale = $eve->getSetting('system_locale');
 	$submissionStructure = new DynamicForm($submission_definition['submission_structure']);
 	echo $submissionStructure->outputStructureTable('submission_structure', 'data_table');
 	
 	?>
-	<label>Estrutura de revisão:</label>
+	<label><?php echo $eve->_('submission_definition.revision.structure');?></label>
 	<?php
-	// TODO: g11n text above
+	
 	$revisionStructure = new DynamicForm($submission_definition['revision_structure']);
 	echo $revisionStructure->outputStructureTable('revision_structure', 'data_table');
 	

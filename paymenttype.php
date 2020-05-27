@@ -31,7 +31,7 @@ else
 	
 	?>
 	<div class="section">
-	<button type="button" onclick="document.forms['paymenttype_form'].submit();"/>Salvar</button>
+	<button type="button" onclick="document.forms['paymenttype_form'].submit();"/><?php echo $eve->_('common.action.save');?></button>
 	</div>
 	<?php
 

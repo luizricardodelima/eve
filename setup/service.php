@@ -51,6 +51,9 @@ function create_database_4($dbpassword, $screenname, $password)
 		  `submission_structure` text COLLATE utf8_unicode_ci,
 		  `revision_structure` text COLLATE utf8_unicode_ci,
 		  `access_restricted` tinyint(4) NOT NULL DEFAULT '0',
+		  `send_email_on_create` tinyint(4) NOT NULL DEFAULT '1',
+		  `send_email_on_delete` tinyint(4) NOT NULL DEFAULT '1',
+		  `send_email_on_update` tinyint(4) NOT NULL DEFAULT '1',
 		  `active` tinyint(4) NOT NULL DEFAULT '1'
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 	");

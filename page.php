@@ -81,7 +81,7 @@ else
 	
 	?>
 	<div class="section">
-	<button type="button" onclick="document.forms['page_form'].submit();">Salvar</button><!-- TODO g11n -->
+	<button type="button" onclick="document.forms['page_form'].submit();"><?php echo $eve->_('common.action.save');?></button>
 	</div>
 	<?php
 

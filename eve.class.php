@@ -252,12 +252,14 @@ class Eve
 		echo "</div>";
 	}
 
+	/** @deprecated */
 	function output_medium_generic_back_button()
 	{
 		$message = $this->_('common.action.back');
 		echo "<button type=\"button\" class=\"medium\" onclick=\"history.back()\">$message</a>";
 	}
 
+	/** @deprecated */
 	function output_medium_goto_button($name, $value, $location)
 	{
 		echo "<script> function go_to_$name() { window.location.href=\"$location\"; } </script>";
@@ -271,6 +273,7 @@ class Eve
 		echo "</button>";
 	}
 
+	// TODO: output a "proper" error page
 	function output_error_page($message, $show_back_button = true) 
 	{
 		$this->output_html_header();
@@ -343,32 +346,14 @@ class Eve
 	}
 
 	/**
-	 * Returns the base url of system.
+	 * Returns the base url of system. This function relies on the fact that eve.class.php is
+	 * located on the base folder of the system
 	 */
 	function sysurl()
 	{
 		$server_name = isset($_SERVER['HTTP_X_FORWARDED_SERVER']) ?  $_SERVER['HTTP_X_FORWARDED_SERVER'] : $_SERVER["SERVER_NAME"];
 		$path = substr(dirname(__FILE__), strlen($_SERVER['DOCUMENT_ROOT']));
-		return sprintf("%s://%s%s", isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ? 'https' : 'http', $server_name, $path);
-	}
-
-	// TODO #3 test sysurl() and replace all occurrences of url() for sysurl();
-	// This function returns the base url of the system. This works particularly for this system
-	// since all its php codes are located on system's base folder. It depends strongly on the php
-	// code which initially calls the function, the request URI.
-	/** @deprecated use sysurl() insted */
-	function url($without_filename = true)
-	{
-		//TODO: try to understand $SERVER variables to check if this routine works properly on different servers
-		$server_name = isset($_SERVER['HTTP_X_FORWARDED_SERVER']) ?  $_SERVER['HTTP_X_FORWARDED_SERVER'] : $_SERVER["SERVER_NAME"];
-		$result = sprintf("%s://%s%s", isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ? 'https' : 'http', $server_name, $_SERVER['REQUEST_URI']);
-		if ($without_filename) 
-		{
-			$i = strlen($result);
-			while (substr($result, $i, 1) != "/") { $i--;}
-			$result = substr( $result, 0, $i + 1);
-		}
-		return $result;
+		return sprintf("%s://%s/%s", isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ? 'https' : 'http', $server_name, $path);
 	}
 
 	// https://stackoverflow.com/questions/3512311/how-to-generate-lighter-darker-color-with-php	

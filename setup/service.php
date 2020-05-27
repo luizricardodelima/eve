@@ -3,42 +3,45 @@ require_once '../evedbconfig.php';
 require_once '../eve.class.php';
 require_once '../eveuserservice.class.php';
 
-function create_database_4($dbpassword, $screenname, $password)
+function create_database($dbpassword, $screenname, $password)
 {
-	// TODO rename errors to log
-	$errors = array();
+	$log = array();
 	
 	// Validating input
 	if ($dbpassword != EveDBConfig::$password)
 	{
-		$errors[] = "ERROR - Database provided is not the same as defined in evedbconfig.php";
+		$log[] = "ERROR - Database provided is not the same as defined in evedbconfig.php";
 	}
 	else if (!filter_var($screenname, FILTER_VALIDATE_EMAIL))
 	{
-		$errors[] = "ERROR - Superuser e-mail is invalid";
+		$log[] = "ERROR - Superuser e-mail is invalid";
 	}
 	if (trim($password) === '')
 	{
-		$errors[] = "ERROR - Superuser password cannot be blank";
+		$log[] = "ERROR - Superuser password cannot be blank";
 	}
 
 	// If $messages array is not empty at this point, it means that fundamental requirements were
 	// not met and therefore the database creation sequence cannot go on. Returning messages.
-	if (!empty($errors)) return($errors);
-	else $errors[] = "SUCCESS - Parameters are valid";
+	if (!empty($log)) return($log);
+	else $log[] = "Parameters are valid";
 
 	// Connecting to database
 	$pref = EveDBConfig::$prefix;
 	$mysqli = new mysqli(EveDBConfig::$server, EveDBConfig::$user, EveDBConfig::$password, EveDBConfig::$database);
 	if (!$mysqli)
 	{
-		$errors[] = "ERROR - Impossible to conect to database. Mysqli error: ". $mysqli->error;
-		return($errors);
+		$log[] = "ERROR - Impossible to conect to database. Mysqli error: ". $mysqli->error;
+		return($log);
 	}
-	else $errors[] = "SUCCESS - Connected to database";
+	else $log[] = "Connected to database";
 	
+	// Charset ////////////////////////////////////////////////////////////////////////////////////
 	$mysqli->set_charset("utf8");
+	if ($mysqli->error) {$log[] = "ERROR - Charset error - ".$mysqli->error; return $log;}
 
+	// Tables /////////////////////////////////////////////////////////////////////////////////////
+	// Create table submission_definition
 	$mysqli->query
 	("
 		CREATE TABLE `{$pref}submission_definition` (
@@ -57,8 +60,9 @@ function create_database_4($dbpassword, $screenname, $password)
 		  `active` tinyint(4) NOT NULL DEFAULT '1'
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 	");
-	if ($mysqli->error) $errors['submission_definition creation'] = $mysqli->error;
+	if ($mysqli->error) {$log[] = "ERROR - Create table submission_definition - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
+	// Create table submission_definition_access
 	$mysqli->query
 	("
 		CREATE TABLE `{$pref}submission_definition_access` (
@@ -68,9 +72,9 @@ function create_database_4($dbpassword, $screenname, $password)
 		  `content` varchar(255) COLLATE utf8_unicode_ci
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 	");
-	
-	if ($mysqli->error) $errors['submission_definition_access_rule creation'] = $mysqli->error;
+	if ($mysqli->error) {$log[] = "ERROR - Create table submission_definition_access - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
+	// Create table submission_definition_reviewer
 	$mysqli->query
 	("
 		CREATE TABLE `{$pref}submission_definition_reviewer` (
@@ -80,9 +84,9 @@ function create_database_4($dbpassword, $screenname, $password)
 		  `type` varchar(255) COLLATE utf8_unicode_ci
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 	");
-	
-	if ($mysqli->error) $errors['submission_definition_reviewer creation'] = $mysqli->error;
+	if ($mysqli->error) {$log[] = "ERROR - Create table submission_definition_reviewer - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
+	// Create table submission
 	$mysqli->query
 	("
 		CREATE TABLE `{$pref}submission` (
@@ -99,9 +103,9 @@ function create_database_4($dbpassword, $screenname, $password)
 		  `active` tinyint(4) NOT NULL DEFAULT '1'
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 	");
-
-	if ($mysqli->error) $errors['submission creation'] = $mysqli->error;
-
+	if ($mysqli->error) {$log[] = "ERROR - Create table submission - ".$mysqli->error; delete_database($dbpassword); return $log;}
+	
+	// Create table usercategory
 	$mysqli->query
 	("
 		CREATE TABLE `{$pref}usercategory` (
@@ -110,9 +114,9 @@ function create_database_4($dbpassword, $screenname, $password)
 		  `special` tinyint(4) NOT NULL DEFAULT '0'
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 	");
+	if ($mysqli->error) {$log[] = "ERROR - Create table usercategory - ".$mysqli->error; delete_database($dbpassword); return $log;}
 	
-	if ($mysqli->error) $errors['user_category creation'] = $mysqli->error;
-
+	// Create table certification
 	$mysqli->query
 	("
 		CREATE TABLE `{$pref}certification` (
@@ -124,9 +128,9 @@ function create_database_4($dbpassword, $screenname, $password)
 		  `views` int(11) NOT NULL DEFAULT '0'
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 	");
+	if ($mysqli->error) {$log[] = "ERROR - Create table certification - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
-	if ($mysqli->error) $errors['certification creation'] = $mysqli->error;
-
+	// Create table certificationdef
 	$mysqli->query
 	("
 		CREATE TABLE `{$pref}certificationdef` (
@@ -136,7 +140,7 @@ function create_database_4($dbpassword, $screenname, $password)
 		  `pagesize` enum('A3','A4','A5','Letter','Legal') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'A4',
 		  `pageorientation` enum('P','L') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'L',
 		  `backgroundimage` text COLLATE utf8_unicode_ci,
-		  `text` text COLLATE utf8_unicode_ci NOT NULL DEFAULT '[]',
+		  `text` text COLLATE utf8_unicode_ci,
 		  `topmargin` smallint(6) NOT NULL DEFAULT '0',
 		  `leftmargin` smallint(6) NOT NULL DEFAULT '0',
 		  `rightmargin` smallint(6) NOT NULL DEFAULT '0',
@@ -146,9 +150,9 @@ function create_database_4($dbpassword, $screenname, $password)
 		  `openermsg` text COLLATE utf8_unicode_ci
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 	");
+	if ($mysqli->error) {$log[] = "ERROR - Create table certificationdef - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
-	if ($mysqli->error) $errors['certificationdef creation'] = $mysqli->error;
-	
+	// Create table unverifieduser
 	$mysqli->query
 	("
 		CREATE TABLE `{$pref}unverifieduser` (
@@ -157,9 +161,9 @@ function create_database_4($dbpassword, $screenname, $password)
 		  `verificationcode` varchar(255) COLLATE utf8_unicode_ci NOT NULL
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 	");
+	if ($mysqli->error) {$log[] = "ERROR - Create table unverifieduser - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
-	if ($mysqli->error) $errors['unverified_user creation'] = $mysqli->error;
-
+	// Create table pages
 	$mysqli->query
 	("
 		CREATE TABLE `{$pref}pages` (
@@ -172,9 +176,9 @@ function create_database_4($dbpassword, $screenname, $password)
 		  `views` int(11) NOT NULL DEFAULT '0'
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 	");
+	if ($mysqli->error) {$log[] = "ERROR - Create table pages - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
-	if ($mysqli->error) $errors['pages creation'] = $mysqli->error;
-
+	// Create table payment
 	$mysqli->query
 	("
 		CREATE TABLE `{$pref}payment` (
@@ -188,9 +192,9 @@ function create_database_4($dbpassword, $screenname, $password)
 		  `image` text COLLATE utf8_unicode_ci
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 	");
+	if ($mysqli->error) {$log[] = "ERROR - Create table payment - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
-	if ($mysqli->error) $errors['payment creation'] = $mysqli->error;
-
+	// Create table paymenttype
 	$mysqli->query
 	("
 		CREATE TABLE `{$pref}paymenttype` (
@@ -200,9 +204,9 @@ function create_database_4($dbpassword, $screenname, $password)
 		  `active` tinyint(11) NOT NULL DEFAULT '1'
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 	");
+	if ($mysqli->error) {$log[] = "ERROR - Create table paymenttype - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
-	if ($mysqli->error) $errors['paymenttype creation'] = $mysqli->error;
-
+	// Create table settings
 	$mysqli->query
 	("
 		CREATE TABLE `{$pref}settings` (
@@ -210,9 +214,9 @@ function create_database_4($dbpassword, $screenname, $password)
 		  `value` text COLLATE utf8_unicode_ci
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 	");
+	if ($mysqli->error) {$log[] = "ERROR - Create table settings - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
-	if ($mysqli->error) $errors['settings creation'] = $mysqli->error;
-
+	// Create table user
 	$mysqli->query
 	("
 		CREATE TABLE `{$pref}user` (
@@ -220,11 +224,10 @@ function create_database_4($dbpassword, $screenname, $password)
 		  `password` varchar(255) COLLATE utf8_unicode_ci NOT NULL
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 	");
+	if ($mysqli->error) {$log[] = "ERROR - Create table user - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
-	if ($mysqli->error) $errors['user creation'] = $mysqli->error;
-
-	// TODO Move admin to user table
-	$mysqli->query
+	// Create table userdata
+	$mysqli->query // TODO: Move admin to userdata
 	("
 		CREATE TABLE `{$pref}userdata` (
 		  `email` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
@@ -255,161 +258,98 @@ function create_database_4($dbpassword, $screenname, $password)
 		  `note` text COLLATE utf8_unicode_ci
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 	");
+	if ($mysqli->error) {$log[] = "ERROR - Create table userdata - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
-	if ($mysqli->error) $errors['user_data creation'] = $mysqli->error;
-
-	$mysqli->query
-	("
-		ALTER TABLE `{$pref}submission_definition`
-		  ADD PRIMARY KEY (`id`);
-	");
-
-	if ($mysqli->error) $errors['submission pk'] = $mysqli->error;
-
-	$mysqli->query
-	("
-		ALTER TABLE `{$pref}submission_definition_access`
-		  ADD PRIMARY KEY (`id`),
-		  ADD KEY `email` (`content`),
-		  ADD KEY `submission_definition_id` (`submission_definition_id`);
-	");
-
-	if ($mysqli->error) $errors['submission_definition_access pk fk'] = $mysqli->error;
-
-	$mysqli->query
-	("
-		ALTER TABLE `{$pref}submission_definition_reviewer`
-		  ADD PRIMARY KEY (`id`),
-		  ADD KEY `submission_definition_id` (`submission_definition_id`);
-	");
-
-	if ($mysqli->error) $errors['submission_definition_reviewer pk fk'] = $mysqli->error;
-
-
-	$mysqli->query
-	("
-		ALTER TABLE `{$pref}submission`
-		  ADD PRIMARY KEY (`id`),
-		  ADD KEY `submission_definition_id` (`submission_definition_id`),
-		  ADD KEY `email` (`email`),
-		  ADD KEY `reviewer_email` (`reviewer_email`);
-	");
-
-	if ($mysqli->error) $errors['submission pk fk'] = $mysqli->error;
-
-	$mysqli->query
-	("
-		ALTER TABLE `{$pref}usercategory`
-		  ADD PRIMARY KEY (`id`);
-	");
-
-	if ($mysqli->error) $errors['user_category pk'] = $mysqli->error;
-
-	$mysqli->query
-	("
-		ALTER TABLE `{$pref}certification`
-		  ADD PRIMARY KEY (`id`),
-		  ADD KEY `certificationdef_id` (`certificationdef_id`),
-		  ADD KEY `screenname` (`screenname`),
-		  ADD KEY `submissionid` (`submissionid`);
-	");
-
-	if ($mysqli->error) $errors['certification pk fk'] = $mysqli->error;
-
-	$mysqli->query
-	("
-		ALTER TABLE `{$pref}certificationdef`
-		  ADD PRIMARY KEY (`id`);
-	");
-
-	if ($mysqli->error) $errors['certificationdef pk'] = $mysqli->error;
+	// Keys and primary keys //////////////////////////////////////////////////////////////////////
+	$mysqli->query("ALTER TABLE `{$pref}submission_definition` ADD PRIMARY KEY (`id`);");
+	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys submission_definition - ".$mysqli->error; delete_database($dbpassword); return $log;}
 	
-	$mysqli->query
-	("
-		ALTER TABLE `{$pref}unverifieduser`
-		  ADD PRIMARY KEY (`email`);
-	");
+	$mysqli->query("ALTER TABLE `{$pref}submission_definition_access` ADD PRIMARY KEY (`id`), ADD KEY `submission_definition_id` (`submission_definition_id`);");
+	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys submission_definition_access - ".$mysqli->error; delete_database($dbpassword); return $log;}
 	
-	if ($mysqli->error) $errors['unverified_user pk'] = $mysqli->error;
-
-	$mysqli->query
-	("
-		ALTER TABLE `{$pref}pages`
-		  ADD PRIMARY KEY (`id`);
-	");
+	$mysqli->query("ALTER TABLE `{$pref}submission_definition_reviewer` ADD PRIMARY KEY (`id`), ADD KEY `submission_definition_id` (`submission_definition_id`);");
+	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys submission_definition_reviewer - ".$mysqli->error; delete_database($dbpassword); return $log;}
 	
-	if ($mysqli->error) $errors['pages pk'] = $mysqli->error;
-
-	$mysqli->query
-	("
-		ALTER TABLE `{$pref}payment`
-		  ADD PRIMARY KEY (`id`),
-		  ADD KEY `paymenttype_id` (`paymenttype_id`),
-		  ADD UNIQUE KEY `email` (`email`);
-	");
-
-	if ($mysqli->error) $errors['payment pk'] = $mysqli->error;
-
-	$mysqli->query
-	("
-		ALTER TABLE `{$pref}paymenttype`
-		  ADD PRIMARY KEY (`id`);
-	");
-
-	if ($mysqli->error) $errors['paymenttype pk'] = $mysqli->error;
-
-	$mysqli->query
-	("
-		ALTER TABLE `{$pref}settings`
-		  ADD PRIMARY KEY (`key`);
-	");
-
-	if ($mysqli->error) $errors['settings pk'] = $mysqli->error;
-
-	$mysqli->query
-	("
-		ALTER TABLE `{$pref}user`
-		  ADD PRIMARY KEY (`email`);
-	");
-
-	if ($mysqli->error) $errors['user pk'] = $mysqli->error;
-
-	$mysqli->query
-	("
-		ALTER TABLE `{$pref}userdata`
-		  ADD UNIQUE KEY `email` (`email`),
-		  ADD KEY `category_id` (`category_id`);
-	");
+	$mysqli->query("ALTER TABLE `{$pref}submission` ADD PRIMARY KEY (`id`), ADD KEY `submission_definition_id` (`submission_definition_id`), ADD KEY `email` (`email`), ADD KEY `reviewer_email` (`reviewer_email`);");
+	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys submission - ".$mysqli->error; delete_database($dbpassword); return $log;}
 	
-	if ($mysqli->error) $errors['user_data pk fk'] = $mysqli->error;
+	$mysqli->query("ALTER TABLE `{$pref}usercategory` ADD PRIMARY KEY (`id`); ");
+	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys usercategory - ".$mysqli->error; delete_database($dbpassword); return $log;}
+	
+	$mysqli->query("ALTER TABLE `{$pref}certification` ADD PRIMARY KEY (`id`), ADD KEY `certificationdef_id` (`certificationdef_id`), ADD KEY `screenname` (`screenname`), ADD KEY `submissionid` (`submissionid`);");
+	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys certification - ".$mysqli->error; delete_database($dbpassword); return $log;}
+	
+	$mysqli->query("ALTER TABLE `{$pref}certificationdef` ADD PRIMARY KEY (`id`);");
+	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys certificationdef- ".$mysqli->error; delete_database($dbpassword); return $log;}
+	
+	$mysqli->query("ALTER TABLE `{$pref}unverifieduser` ADD PRIMARY KEY (`email`);");
+	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys unverifieduser - ".$mysqli->error; delete_database($dbpassword); return $log;}
+	
+	$mysqli->query("ALTER TABLE `{$pref}pages` ADD PRIMARY KEY (`id`);");
+	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys pages - ".$mysqli->error; delete_database($dbpassword); return $log;}
+	
+	$mysqli->query("ALTER TABLE `{$pref}payment` ADD PRIMARY KEY (`id`), ADD KEY `paymenttype_id` (`paymenttype_id`), ADD UNIQUE KEY `email` (`email`);");
+	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys payment - ".$mysqli->error; delete_database($dbpassword); return $log;}
+	
+	$mysqli->query("ALTER TABLE `{$pref}paymenttype` ADD PRIMARY KEY (`id`);");
+	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys paymenttype - ".$mysqli->error; delete_database($dbpassword); return $log;}
+	
+	$mysqli->query("ALTER TABLE `{$pref}settings` ADD PRIMARY KEY (`key`);");
+	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys settings - ".$mysqli->error; delete_database($dbpassword); return $log;}
+	
+	$mysqli->query("ALTER TABLE `{$pref}user` ADD PRIMARY KEY (`email`);");
+	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys user - ".$mysqli->error; delete_database($dbpassword); return $log;}
+	
+	$mysqli->query("ALTER TABLE `{$pref}userdata` ADD UNIQUE KEY `email` (`email`), ADD KEY `category_id` (`category_id`);");
+	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys userdata - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
-	// Auto increments
+	// Auto increments ////////////////////////////////////////////////////////////////////////////
+
 	$mysqli->query("ALTER TABLE `{$pref}submission_definition` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
-	$mysqli->query("ALTER TABLE `{$pref}submission_definition_access` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
-	$mysqli->query("ALTER TABLE `{$pref}submission_definition_reviewer` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
-	$mysqli->query("ALTER TABLE `{$pref}submission` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
-	$mysqli->query("ALTER TABLE `{$pref}usercategory` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
-	$mysqli->query("ALTER TABLE `{$pref}certification` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
-	$mysqli->query("ALTER TABLE `{$pref}certificationdef` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
-	$mysqli->query("ALTER TABLE `{$pref}pages` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
-	$mysqli->query("ALTER TABLE `{$pref}payment` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
-	$mysqli->query("ALTER TABLE `{$pref}paymenttype` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
-	if ($mysqli->error) $errors['autoincrements'] = $mysqli->error;
+	if ($mysqli->error) {$log[] = "ERROR - Auto increment submission_definition - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
-	// Constraints
+	$mysqli->query("ALTER TABLE `{$pref}submission_definition_access` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
+	if ($mysqli->error) {$log[] = "ERROR - Auto increment submission_definition_access - ".$mysqli->error; delete_database($dbpassword); return $log;}
+
+	$mysqli->query("ALTER TABLE `{$pref}submission_definition_reviewer` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
+	if ($mysqli->error) {$log[] = "ERROR - Auto increment submission_definition_reviewer - ".$mysqli->error; delete_database($dbpassword); return $log;}
+
+	$mysqli->query("ALTER TABLE `{$pref}submission` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
+	if ($mysqli->error) {$log[] = "ERROR - Auto increment submission - ".$mysqli->error; delete_database($dbpassword); return $log;}
+
+	$mysqli->query("ALTER TABLE `{$pref}usercategory` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
+	if ($mysqli->error) {$log[] = "ERROR - Auto increment usercategory - ".$mysqli->error; delete_database($dbpassword); return $log;}
+
+	$mysqli->query("ALTER TABLE `{$pref}certification` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
+	if ($mysqli->error) {$log[] = "ERROR - Auto increment certification - ".$mysqli->error; delete_database($dbpassword); return $log;}
+
+	$mysqli->query("ALTER TABLE `{$pref}certificationdef` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
+	if ($mysqli->error) {$log[] = "ERROR - Auto increment certificationdef - ".$mysqli->error; delete_database($dbpassword); return $log;}
+
+	$mysqli->query("ALTER TABLE `{$pref}pages` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
+	if ($mysqli->error) {$log[] = "ERROR - Auto increment pages - ".$mysqli->error; delete_database($dbpassword); return $log;}
+
+	$mysqli->query("ALTER TABLE `{$pref}payment` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
+	if ($mysqli->error) {$log[] = "ERROR - Auto increment payment - ".$mysqli->error; delete_database($dbpassword); return $log;}
+
+	$mysqli->query("ALTER TABLE `{$pref}paymenttype` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
+	if ($mysqli->error) {$log[] = "ERROR - Auto increment paymenttype - ".$mysqli->error; delete_database($dbpassword); return $log;}
+
+	// Foreign keys ///////////////////////////////////////////////////////////////////////////////
+
 	$mysqli->query
 	("
 		ALTER TABLE `{$pref}submission_definition_access`
 		  ADD CONSTRAINT `{$pref}submission_definition_access_ibfk_1` FOREIGN KEY (`submission_definition_id`) REFERENCES `{$pref}submission_definition` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 	");
-	if ($mysqli->error) $errors['submission_definition_access_rule constraints'] = $mysqli->error;
+	if ($mysqli->error) {$log[] = "ERROR - Foreign keys submission_definition_access - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
 	$mysqli->query
 	("
 		ALTER TABLE `{$pref}submission_definition_reviewer`
 		  ADD CONSTRAINT `{$pref}submission_definition_reviewer_ibfk_1` FOREIGN KEY (`submission_definition_id`) REFERENCES `{$pref}submission_definition` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 	");
-	if ($mysqli->error) $errors['submission_definition_reviewer constraints'] = $mysqli->error;
+	if ($mysqli->error) {$log[] = "ERROR - Foreign keys submission_definition_reviewer - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
 	$mysqli->query
 	("
@@ -418,7 +358,7 @@ function create_database_4($dbpassword, $screenname, $password)
 		  ADD CONSTRAINT `{$pref}submission_ibfk_2` FOREIGN KEY (`email`) REFERENCES `{$pref}user` (`email`) ON DELETE SET NULL ON UPDATE CASCADE,
 		  ADD CONSTRAINT `{$pref}submission_ibfk_3` FOREIGN KEY (`reviewer_email`) REFERENCES `{$pref}user` (`email`) ON DELETE SET NULL ON UPDATE CASCADE;
 	");
-	if ($mysqli->error) $errors['submission constraints'] = $mysqli->error;
+	if ($mysqli->error) {$log[] = "ERROR - Foreign keys submission - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
 	$mysqli->query
 	("
@@ -427,7 +367,7 @@ function create_database_4($dbpassword, $screenname, $password)
 		  ADD CONSTRAINT `{$pref}certification_ibfk_2` FOREIGN KEY (`screenname`) REFERENCES `{$pref}user` (`email`) ON DELETE CASCADE ON UPDATE CASCADE,
 		  ADD CONSTRAINT `{$pref}certification_ibfk_3` FOREIGN KEY (`submissionid`) REFERENCES `{$pref}submission`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 	");
-	if ($mysqli->error) $errors['certification constraints'] = $mysqli->error;
+	if ($mysqli->error) {$log[] = "ERROR - Foreign keys certification - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
 	$mysqli->query
 	("
@@ -435,7 +375,7 @@ function create_database_4($dbpassword, $screenname, $password)
 		  ADD CONSTRAINT `{$pref}payment_ibfk_1` FOREIGN KEY (`email`) REFERENCES `{$pref}user` (`email`) ON DELETE SET NULL ON UPDATE CASCADE,
 		  ADD CONSTRAINT `{$pref}payment_ibfk_2` FOREIGN KEY (`paymenttype_id`) REFERENCES `{$pref}paymenttype` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;"
 	);
-	if ($mysqli->error) $errors['payment constraints'] = $mysqli->error;
+	if ($mysqli->error) {$log[] = "ERROR - Foreign keys payment - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
 	$mysqli->query
 	("
@@ -443,12 +383,15 @@ function create_database_4($dbpassword, $screenname, $password)
 		  ADD CONSTRAINT `{$pref}userdata_ibfk_1` FOREIGN KEY (`email`) REFERENCES `{$pref}user` (`email`) ON DELETE CASCADE ON UPDATE CASCADE,
 		  ADD CONSTRAINT `{$pref}userdata_ibfk_2` FOREIGN KEY (`category_id`) REFERENCES `{$pref}usercategory` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 	");
-	if ($mysqli->error) $errors['user_data constraints'] = $mysqli->error;
+	if ($mysqli->error) {$log[] = "ERROR - Foreign keys userdata - ".$mysqli->error; delete_database($dbpassword); return $log;}
+
+	// Settings ///////////////////////////////////////////////////////////////////////////////////
 
 	// Loading settings
 	$base_settings = json_decode(file_get_contents('settings.json'), true);
     $user_settings = json_decode(file_get_contents('settings_user.json'), true);
-    $settings = array_merge($base_settings, $user_settings);
+	$settings = array_merge($base_settings, $user_settings);
+	// TODO Check error if settings were not loaded
 
 	// Populating settings		
 	$stmt = $mysqli->prepare("insert into `{$pref}settings` (`key`, `value`) values (?, ?)");
@@ -459,8 +402,7 @@ function create_database_4($dbpassword, $screenname, $password)
 		if (!empty($stmt->error))
 		{
 			$stmt->close();
-			$errors['settings values'] = $stmt->error;
-			// TODO TRANSACTION ROLLBACK, BETTER ERROR INFO AND QUIT
+			if ($mysqli->error) {$log[] = "ERROR - Populating settings - ".$mysqli->error; delete_database($dbpassword); return $log;}
 		}
 	}
 	$stmt->close();
@@ -470,77 +412,77 @@ function create_database_4($dbpassword, $screenname, $password)
 	$encryptedPassword = $eveUserServices->encrypt($password);
 	$eveUserServices->createUser($screenname, $encryptedPassword, false);
 	$eveUserServices->setUserAsAdmin($screenname);
+	// TODO Check error according to settings
 
-	$errors[] = "SUCCESS - Database successfully created";
-	return $errors;
+	$log[] = "SUCCESS - Database successfully created";
+	return $log;
 }
 
-function delete_database_4($dbpassword)
+function delete_database($dbpassword)
 {
-	// TODO rename errors to log
-	$errors = array();
+	$log = array();
 	
 	// Validating input
 	if ($dbpassword != EveDBConfig::$password)
 	{
-		$errors[] = "ERROR - Database provided is not the same as defined in evedbconfig.php";
+		$log[] = "ERROR - Database provided is not the same as defined in evedbconfig.php";
 	}
 	
 	// If $messages array is not empty at this point, it means that fundamental requirements were
 	// not met and therefore the database creation sequence cannot go on. Returning messages.
-	if (!empty($errors)) return($errors);
-	else $errors[] = "SUCCESS - Parameters are valid";
+	if (!empty($log)) return($log);
+	else $log[] = "Parameters are valid";
 	
 	// Connecting to database
 	$pref = EveDBConfig::$prefix;
 	$mysqli = new mysqli(EveDBConfig::$server, EveDBConfig::$user, EveDBConfig::$password, EveDBConfig::$database);
 	if (!$mysqli)
 	{
-		$errors[] = "ERROR - Impossible to conect to database. Mysqli error: ". $mysqli->error;
-		return($errors);
+		$log[] = "ERROR - Impossible to conect to database. Mysqli error: ". $mysqli->error;
+		return($log);
 	}
-	else $errors[] = "SUCCESS - Connected to database";
+	else $log[] = "Connected to database";
 
 	// Deleting free tables
 	$mysqli->query("DROP TABLE if exists `{$pref}settings`;");
-	if ($mysqli->error) $errors['settings delete error'] = $mysqli->error;
+	if ($mysqli->error) $log[] = $mysqli->error;
 	$mysqli->query("DROP TABLE if exists `{$pref}pages`;");
-	if ($mysqli->error) $errors['pages delete error'] = $mysqli->error;
+	if ($mysqli->error) $log[] = $mysqli->error;
 	$mysqli->query("DROP TABLE if exists `{$pref}unverifieduser`;");
-	if ($mysqli->error) $errors['unverified_user delete error'] = $mysqli->error;
+	if ($mysqli->error) $log[] = $mysqli->error;
 
 	// Deleting payment tables
 	$mysqli->query("DROP TABLE if exists `{$pref}payment`;");
-	if ($mysqli->error) $errors['payment delete error'] = $mysqli->error;
+	if ($mysqli->error) $log[] = $mysqli->error;
 	$mysqli->query("DROP TABLE if exists `{$pref}paymenttype`;");
-	if ($mysqli->error) $errors['paymenttype delete error'] = $mysqli->error;
+	if ($mysqli->error) $log[] = $mysqli->error;
 
 	// Deleting certification tables
 	$mysqli->query("DROP TABLE if exists `{$pref}certification`;");
-	if ($mysqli->error) $errors['certification delete error'] = $mysqli->error;	
+	if ($mysqli->error) $log[] = $mysqli->error;
 	$mysqli->query("DROP TABLE if exists `{$pref}certificationdef`;");
-	if ($mysqli->error) $errors['certificationdef delete error'] = $mysqli->error;
+	if ($mysqli->error) $log[] = $mysqli->error;
 
 	// Deleting submission tables
 	$mysqli->query("DROP TABLE if exists `{$pref}submission_definition_access`;");
-	if ($mysqli->error) $errors['submission_definition_access_rule delete error'] = $mysqli->error;
+	if ($mysqli->error) $log[] = $mysqli->error;
 	$mysqli->query("DROP TABLE if exists `{$pref}submission_definition_reviewer`;");
-	if ($mysqli->error) $errors['submission_definition_reviewer delete error'] = $mysqli->error;
+	if ($mysqli->error) $log[] = $mysqli->error;
 	$mysqli->query("DROP TABLE if exists `{$pref}submission`;");
-	if ($mysqli->error) $errors['submission delete error'] = $mysqli->error;
+	if ($mysqli->error) $log[] = $mysqli->error;
 	$mysqli->query("DROP TABLE if exists `{$pref}submission_definition`;");
-	if ($mysqli->error) $errors['submission_definitions delete error'] = $mysqli->error;
+	if ($mysqli->error) $log[] = $mysqli->error;
 
 	// Deleting user tables
 	$mysqli->query("DROP TABLE if exists `{$pref}userdata`;");
-	if ($mysqli->error) $errors['user_data delete error'] = $mysqli->error;
+	if ($mysqli->error) $log[] = $mysqli->error;
 	$mysqli->query("DROP TABLE if exists `{$pref}usercategory`;");
-	if ($mysqli->error) $errors['user_category delete error'] = $mysqli->error;
+	if ($mysqli->error) $log[] = $mysqli->error;
 	$mysqli->query("DROP TABLE if exists `{$pref}user`;");
-	if ($mysqli->error) $errors['user delete error'] = $mysqli->error;
+	if ($mysqli->error) $log[] = $mysqli->error;
 
-	$errors[] = "SUCCESS - Database successfully deleted";
-	return $errors;
+	$log[] = "SUCCESS - Database successfully deleted";
+	return $log;
 }
 
 function check_database()
@@ -577,11 +519,11 @@ header("Content-Type: text/plain");
 if (isset($_POST['action'])) switch ($_POST['action'])
 {
 	case 'create':
-		$messages = create_database_4($_POST['db_password'],$_POST['su_email'],$_POST['su_password']);
+		$messages = create_database($_POST['db_password'],$_POST['su_email'],$_POST['su_password']);
 		echo "<ul>"; foreach ($messages as $message) echo"<li>$message</li>"; echo "</ul>";
 	break;
 	case 'delete':
-		$messages = delete_database_4($_POST['db_password']);
+		$messages = delete_database($_POST['db_password']);
 		echo "<ul>"; foreach ($messages as $message) echo"<li>$message</li>"; echo "</ul>";
 	break;
 	case 'check':

@@ -424,7 +424,7 @@ class EveCertificationService
 			'$certification_name' => $certification['name'],
 			'$support_email_address' => $this->eve->getSetting('support_email_address'),
 			'$system_name' => $this->eve->getSetting('system_name'),
-			'$site_url' => $this->eve->url()
+			'$site_url' => $this->eve->sysurl()
 		);
 		$this->evemail->send_mail($certification['owner'], $placeholders, $this->eve->getSetting('email_sbj_certification'), $this->eve->getSetting('email_msg_certification'));
 	}

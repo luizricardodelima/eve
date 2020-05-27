@@ -267,13 +267,13 @@ class EveUserServices
 		$unverifieduser = $unverifieduser_res->fetch_assoc();
 		$verification_code = $unverifieduser['verificationcode'];
 
-		$verification_url = $this->eve->url().'verificationcode.php?screenname='.$email.'&verificationcode='.$verification_code;
+		$verification_url = $this->eve->sysurl().'/verificationcode.php?screenname='.$email.'&verificationcode='.$verification_code;
 		$placeholders = array
 		(
 			'$email' => $email,
 			'$support_email_address' => $this->eve->getSetting('support_email_address'),
 			'$system_name' => $this->eve->getSetting('system_name'),
-			'$site_url' => $this->eve->url(),
+			'$site_url' => $this->eve->sysurl(),
 			'$verification_code' => $verification_code,
 			'$verification_url' => $verification_url
 		);
@@ -452,7 +452,7 @@ class EveUserServices
 				'$email' => $email,
 				'$support_email_address' => $this->eve->getSetting('support_email_address'),
 				'$system_name' => $this->eve->getSetting('system_name'),
-				'$site_url' => $this->eve->url()
+				'$site_url' => $this->eve->sysurl()
 			);
 			$this->evemail->send_mail($email, $placeholders, $this->eve->getSetting('email_sbj_welcome'), $this->eve->getSetting('email_msg_welcome'));
 		}
@@ -509,7 +509,7 @@ class EveUserServices
 				'$password' => $password,
 				'$support_email_address' => $this->eve->getSetting('support_email_address'),
 				'$system_name' => $this->eve->getSetting('system_name'),
-				'$site_url' => $this->eve->url()
+				'$site_url' => $this->eve->sysurl()
 			);
 			$this->evemail->send_mail($email, $placeholders, $this->eve->getSetting('email_sbj_password_retrieval'), $this->eve->getSetting('email_msg_password_retrieval'));
 		}

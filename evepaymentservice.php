@@ -88,7 +88,7 @@ class EvePaymentService
 				'$paymenttype_description' => $paymenttype['description'],
 				'$support_email_address' => $this->eve->getSetting('support_email_address'),
 				'$system_name' => $this->eve->getSetting('system_name'),
-				'$site_url' => $this->eve->url()
+				'$site_url' => $this->eve->sysurl()
 			);
 			$send_successful = $this->evemail->send_mail($screenname, $placeholders, $this->eve->getSetting('email_sbj_payment'), $this->eve->getSetting('email_msg_payment'));
 			if ($send_successful) $result = self::PAYMENT_SUCCESSFUL_WITH_EMAIL_ALERT;
@@ -132,7 +132,7 @@ class EvePaymentService
 				'$paymenttype_description' => $this->eve->_('paymenttype.description.null'),
 				'$support_email_address' => $this->eve->getSetting('support_email_address'),
 				'$system_name' => $this->eve->getSetting('system_name'),
-				'$site_url' => $this->eve->url()
+				'$site_url' => $this->eve->sysurl()
 			);
 			$this->evemail->send_mail($payment['email'], $placeholders, $this->eve->getSetting('email_sbj_payment'), $this->eve->getSetting('email_msg_payment'));
 		}

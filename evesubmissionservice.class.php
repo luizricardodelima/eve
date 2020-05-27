@@ -182,7 +182,7 @@ class EveSubmissionService
 					'$date_time' => $date_sql, //TODO g11n and $user_name
 					'$support_email_address' => $this->eve->getSetting('support_email_address'),
 					'$system_name' => $this->eve->getSetting('system_name'),
-					'$site_url' => $this->eve->url(),
+					'$site_url' => $this->eve->sysurl(),
 					'$submission_content' => $dynamicform_submission->getHtmlFormattedContent()
 				);
 				$this->evemail->send_mail($email, $placeholders, $this->eve->getSetting('email_sbj_submission_create'), $this->eve->getSetting('email_msg_submission_create'));
@@ -232,7 +232,7 @@ class EveSubmissionService
 					'$date_time' => date("Y-m-d H:i:s"), //TODO g11n and $user_name
 					'$support_email_address' => $this->eve->getSetting('support_email_address'),
 					'$system_name' => $this->eve->getSetting('system_name'),
-					'$site_url' => $this->eve->url(),
+					'$site_url' => $this->eve->sysurl(),
 					'$submission_content' => $dynamicform_submission->getHtmlFormattedContent()
 				);
 				$this->evemail->send_mail($email, $placeholders, $this->eve->getSetting('email_sbj_submission_delete'), $this->eve->getSetting('email_msg_submission_delete'));
@@ -424,7 +424,7 @@ class EveSubmissionService
 						'$email' => $submission['email'],
 						'$support_email_address' => $this->eve->getSetting('support_email_address'),
 						'$system_name' => $this->eve->getSetting('system_name'),
-						'$site_url' => $this->eve->url(),
+						'$site_url' => $this->eve->sysurl(),
 						'$submission_content' => $submission_formatted_content,
 						'$revision_content' => $revision_formatted_content,
 					);
@@ -524,7 +524,7 @@ class EveSubmissionService
 					'$email' => $reviewer_screenname,
 					'$support_email_address' => $this->eve->getSetting('support_email_address'),
 					'$system_name' => $this->eve->getSetting('system_name'),
-					'$site_url' => $this->eve->url(),
+					'$site_url' => $this->eve->sysurl(),
 					'$submission_content' => $submission_formatted_content
 				);
 				$this->evemail->send_mail($reviewer_screenname, $placeholders, $this->eve->getSetting('email_sbj_reviewer'), $this->eve->getSetting('email_msg_reviewer'));
@@ -590,7 +590,7 @@ class EveSubmissionService
 						'$date_time' => date("Y-m-d H:i:s"), //TODO g11n and $user_name
 						'$support_email_address' => $this->eve->getSetting('support_email_address'),
 						'$system_name' => $this->eve->getSetting('system_name'),
-						'$site_url' => $this->eve->url(),
+						'$site_url' => $this->eve->sysurl(),
 						'$submission_content' => $dynamicform_submission->getHtmlFormattedContent(),
 						'$submission_old_content' => $dynamicform_submission_old->getHtmlFormattedContent() //TODO display diff instead
 					);

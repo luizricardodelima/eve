@@ -1,8 +1,10 @@
 <?php
 session_start();
 require_once 'eve.class.php';
+require_once 'evesettingsservice.class.php';
 
 $eve = new Eve();
+$eveSettingsService = new EveSettingsService($eve);
 
 // Session verification.
 if (!isset($_SESSION['screenname']))
@@ -14,16 +16,10 @@ else if (!$eve->is_admin($_SESSION['screenname']))
 {
 	$eve->output_error_page('common.message.no.permission');
 }
-else if (sizeof($_POST) > 0)
+else if (!empty($_POST))
 {
-	// There are POST variables.  Saving settings to database.
-	foreach ($_POST as $key => $value)
-	{
-		$value = $eve->mysqli->real_escape_string($value);
-		$eve->mysqli->query("UPDATE `{$eve->DBPref}settings` SET `value` = '$value' WHERE `key` = '$key';");
-	}
-			
-	// Reloading this page with the new settngs. Success informations is passed through a simple get parameter
+	// There are settings as POST variables to be saved.
+	$eveSettingsService->settings_update($_POST);
 	$eve->output_redirect_page(basename(__FILE__)."?saved=1");
 }
 else
@@ -35,82 +31,45 @@ else
 	if (isset($_GET['saved']))
 		$eve->output_success_message("Ajustes salvos com sucesso.");
 
+	$settings = $eveSettingsService->settings_get
+	(
+		'paymentlisting_screen_visible_name', 'paymentlisting_export_visible_name', 
+		'paymentlisting_screen_visible_email', 'paymentlisting_export_visible_email', 
+		'paymentlisting_screen_visible_address', 'paymentlisting_export_visible_address', 
+		'paymentlisting_screen_visible_city', 'paymentlisting_export_visible_city', 
+		'paymentlisting_screen_visible_state', 'paymentlisting_export_visible_state', 
+		'paymentlisting_screen_visible_country', 'paymentlisting_export_visible_country', 
+		'paymentlisting_screen_visible_postalcode', 'paymentlisting_export_visible_postalcode', 
+		'paymentlisting_screen_visible_birthday', 'paymentlisting_export_visible_birthday', 
+		'paymentlisting_screen_visible_gender', 'paymentlisting_export_visible_gender', 
+		'paymentlisting_screen_visible_phone1', 'paymentlisting_export_visible_phone1', 
+		'paymentlisting_screen_visible_phone2', 'paymentlisting_export_visible_phone2', 
+		'paymentlisting_screen_visible_institution', 'paymentlisting_export_visible_institution', 
+		'paymentlisting_screen_visible_customtext1', 'paymentlisting_export_visible_customtext1', 
+		'paymentlisting_screen_visible_customtext2', 'paymentlisting_export_visible_customtext2', 
+		'paymentlisting_screen_visible_customtext3', 'paymentlisting_export_visible_customtext3', 
+		'paymentlisting_screen_visible_customtext4', 'paymentlisting_export_visible_customtext4', 
+		'paymentlisting_screen_visible_customtext5', 'paymentlisting_export_visible_customtext5', 
+		'paymentlisting_screen_visible_customflag1', 'paymentlisting_export_visible_customflag1', 
+		'paymentlisting_screen_visible_customflag2', 'paymentlisting_export_visible_customflag2', 
+		'paymentlisting_screen_visible_customflag3', 'paymentlisting_export_visible_customflag3', 
+		'paymentlisting_screen_visible_customflag4', 'paymentlisting_export_visible_customflag4', 
+		'paymentlisting_screen_visible_customflag5', 'paymentlisting_export_visible_customflag5', 
+		'paymentlisting_screen_visible_categorydescription', 'paymentlisting_export_visible_categorydescription', 
+		'paymentlisting_screen_visible_pmtid', 'paymentlisting_export_visible_pmtid', 
+		'paymentlisting_screen_visible_pmttype', 'paymentlisting_export_visible_pmttype', 
+		'paymentlisting_screen_visible_pmtvaluepaid', 'paymentlisting_export_visible_pmtvaluepaid', 
+		'paymentlisting_screen_visible_pmtvaluereceived', 'paymentlisting_export_visible_pmtvaluereceived', 
+		'paymentlisting_screen_visible_pmtdate', 'paymentlisting_export_visible_pmtdate', 
+		'paymentlisting_screen_visible_pmtnote', 'paymentlisting_export_visible_pmtnote'
+	);
 
-
-	// Retrieving settings from database.
-	$settings = array();
-	$result = $eve->mysqli->query
-	("
-		SELECT * FROM `{$eve->DBPref}settings` WHERE
-		`key` = 'paymentlisting_screen_visible_name' OR
-		`key` = 'paymentlisting_export_visible_name' OR
-		`key` = 'paymentlisting_screen_visible_email' OR
-		`key` = 'paymentlisting_export_visible_email' OR
-		`key` = 'paymentlisting_screen_visible_address' OR
-		`key` = 'paymentlisting_export_visible_address' OR
-		`key` = 'paymentlisting_screen_visible_city' OR
-		`key` = 'paymentlisting_export_visible_city' OR
-		`key` = 'paymentlisting_screen_visible_state' OR
-		`key` = 'paymentlisting_export_visible_state' OR
-		`key` = 'paymentlisting_screen_visible_country' OR
-		`key` = 'paymentlisting_export_visible_country' OR
-		`key` = 'paymentlisting_screen_visible_postalcode' OR
-		`key` = 'paymentlisting_export_visible_postalcode' OR
-		`key` = 'paymentlisting_screen_visible_birthday' OR
-		`key` = 'paymentlisting_export_visible_birthday' OR
-		`key` = 'paymentlisting_screen_visible_gender' OR
-		`key` = 'paymentlisting_export_visible_gender' OR
-		`key` = 'paymentlisting_screen_visible_phone1' OR
-		`key` = 'paymentlisting_export_visible_phone1' OR
-		`key` = 'paymentlisting_screen_visible_phone2' OR
-		`key` = 'paymentlisting_export_visible_phone2' OR
-		`key` = 'paymentlisting_screen_visible_institution' OR
-		`key` = 'paymentlisting_export_visible_institution' OR
-		`key` = 'paymentlisting_screen_visible_customtext1' OR
-		`key` = 'paymentlisting_export_visible_customtext1' OR
-		`key` = 'paymentlisting_screen_visible_customtext2' OR
-		`key` = 'paymentlisting_export_visible_customtext2' OR
-		`key` = 'paymentlisting_screen_visible_customtext3' OR
-		`key` = 'paymentlisting_export_visible_customtext3' OR
-		`key` = 'paymentlisting_screen_visible_customtext4' OR
-		`key` = 'paymentlisting_export_visible_customtext4' OR
-		`key` = 'paymentlisting_screen_visible_customtext5' OR
-		`key` = 'paymentlisting_export_visible_customtext5' OR
-		`key` = 'paymentlisting_screen_visible_customflag1' OR
-		`key` = 'paymentlisting_export_visible_customflag1' OR
-		`key` = 'paymentlisting_screen_visible_customflag2' OR
-		`key` = 'paymentlisting_export_visible_customflag2' OR
-		`key` = 'paymentlisting_screen_visible_customflag3' OR
-		`key` = 'paymentlisting_export_visible_customflag3' OR
-		`key` = 'paymentlisting_screen_visible_customflag4' OR
-		`key` = 'paymentlisting_export_visible_customflag4' OR
-		`key` = 'paymentlisting_screen_visible_customflag5' OR
-		`key` = 'paymentlisting_export_visible_customflag5' OR
-		`key` = 'paymentlisting_screen_visible_categorydescription' OR
-		`key` = 'paymentlisting_export_visible_categorydescription' OR
-		`key` = 'paymentlisting_screen_visible_pmtid' OR
-		`key` = 'paymentlisting_export_visible_pmtid' OR
-		`key` = 'paymentlisting_screen_visible_pmttype' OR
-		`key` = 'paymentlisting_export_visible_pmttype' OR
-		`key` = 'paymentlisting_screen_visible_pmtvaluepaid' OR
-		`key` = 'paymentlisting_export_visible_pmtvaluepaid' OR
-		`key` = 'paymentlisting_screen_visible_pmtvaluereceived' OR
-		`key` = 'paymentlisting_export_visible_pmtvaluereceived' OR
-		`key` = 'paymentlisting_screen_visible_pmtdate' OR
-		`key` = 'paymentlisting_export_visible_pmtdate' OR
-		`key` = 'paymentlisting_screen_visible_pmtnote' OR
-		`key` = 'paymentlisting_export_visible_pmtnote'
-		;
-	");
-	while ($row = $result->fetch_assoc()) $settings[$row['key']] = $row['value'];
 	?>
-
-	<div class="section">
-	<button type="button" onclick="document.forms['settings_form'].submit();"/><?php echo $eve->_('common.action.save');?></button>
+	<div class="section">Listagem dos Pagamentos
+	<button type="button" onclick="document.forms['settings_form'].submit();"><?php echo $eve->_('common.action.save');?></button>
 	</div>
 
 	<form id="settings_form" method="post">
-	<div class="section">Campos visíveis na Listagem dos Pagamentos</div>
 	<table class="data_table">
 	<thead>
 	<!--<th style="width: 5%">Tela</th>-->

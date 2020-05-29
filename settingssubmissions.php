@@ -1,8 +1,10 @@
 <?php
 session_start();
 require_once 'eve.class.php';
+require_once 'evesettingsservice.class.php';
 
 $eve = new Eve();
+$eveSettingsService = new EveSettingsService($eve);
 
 // Session verification.
 if (!isset($_SESSION['screenname']))
@@ -14,16 +16,10 @@ else if (!$eve->is_admin($_SESSION['screenname']))
 {
 	$eve->output_error_page('common.message.no.permission');
 }
-else if (sizeof($_POST) > 0)
+else if (!empty($_POST))
 {
-	// There are POST variables.  Saving settings to database.
-	foreach ($_POST as $key => $value)
-	{
-		$value = $eve->mysqli->real_escape_string($value);
-		$eve->mysqli->query("UPDATE `{$eve->DBPref}settings` SET `value` = '$value' WHERE `key` = '$key';");
-	}
-			
-	// Reloading this page with the new settngs. Success informations is passed through a simple get parameter
+	// There are settings as POST variables to be saved.
+	$eveSettingsService->settings_update($_POST);
 	$eve->output_redirect_page(basename(__FILE__)."?saved=1");
 }
 else
@@ -35,18 +31,13 @@ else
 	if (isset($_GET['saved']))
 		$eve->output_success_message("Ajustes salvos com sucesso.");
 
-	// Retrieving settings from database.
-	$settings = array();
-	$result = $eve->mysqli->query
-	("
-		select * from `{$eve->DBPref}settings` where `key` in 
-		(
-			'email_sbj_submission_create', 'email_msg_submission_create',
-			'email_sbj_submission_delete', 'email_msg_submission_delete',
-			'email_sbj_submission_update', 'email_msg_submission_update'
-		);
-	");
-	while ($row = $result->fetch_assoc()) $settings[$row['key']] = $row['value'];
+	$settings = $eveSettingsService->settings_get
+	(
+		'email_sbj_submission_create', 'email_msg_submission_create',
+		'email_sbj_submission_delete', 'email_msg_submission_delete',
+		'email_sbj_submission_update', 'email_msg_submission_update'
+	);
+	
 	?>
 	<script>
 	function submission_email_help() {
@@ -63,7 +54,7 @@ else
 	</script>
 
 	<div class="section">
-	<button type="button" onclick="document.forms['settings_form'].submit();"/><?php echo $eve->_('common.action.save');?></button>
+	<button type="button" onclick="document.forms['settings_form'].submit();"><?php echo $eve->_('common.action.save');?></button>
 	<button type="button" onclick="submission_email_help()">Ajuda</button>
 	</div>
 

@@ -1,8 +1,10 @@
 <?php
 session_start();
 require_once 'eve.class.php';
+require_once 'evesettingsservice.class.php';
 
 $eve = new Eve();
+$eveSettingsService = new EveSettingsService($eve);
 
 // Session verification.
 if (!isset($_SESSION['screenname']))
@@ -14,16 +16,10 @@ else if (!$eve->is_admin($_SESSION['screenname']))
 {
 	$eve->output_error_page('common.message.no.permission');
 }
-else if (sizeof($_POST) > 0)
+else if (!empty($_POST))
 {
-	// There are POST variables.  Saving settings to database.
-	foreach ($_POST as $key => $value)
-	{
-		$value = $eve->mysqli->real_escape_string($value);
-		$eve->mysqli->query("UPDATE `{$eve->DBPref}settings` SET `value` = '$value' WHERE `key` = '$key';");
-	}
-			
-	// Reloading this page with the new settngs. Success informations is passed through a simple get parameter
+	// There are settings as POST variables to be saved.
+	$eveSettingsService->settings_update($_POST);
 	$eve->output_redirect_page(basename(__FILE__)."?saved=1");
 }
 else
@@ -36,20 +32,11 @@ else
 	if (isset($_GET['saved']))
 		$eve->output_success_message("Ajustes salvos com sucesso.");
 
-	// Retrieving settings from database.
-	$settings = array();
-	$result = $eve->mysqli->query
-	("
-		SELECT * FROM `{$eve->DBPref}settings` WHERE
-		`key` = 'payment_closed' OR
-		`key` = 'payment_information_unverified' OR
-		`key` = 'payment_information_verified' OR
-		`key` = 'email_snd_payment' OR
-		`key` = 'email_sbj_payment' OR
-		`key` = 'email_msg_payment'
-		;
-	");
-	while ($row = $result->fetch_assoc()) $settings[$row['key']] = $row['value'];
+	$settings = $eveSettingsService->settings_get
+	(
+		'payment_closed', 'payment_information_unverified', 'payment_information_verified', 
+		'email_snd_payment', 'email_sbj_payment', 'email_msg_payment'
+	);
 
 	?>
 	<script>
@@ -65,7 +52,7 @@ else
 	</script>
 
 	<div class="section">
-	<button type="button" onclick="document.forms['settings_form'].submit();"/><?php echo $eve->_('common.action.save');?></button>
+	<button type="button" onclick="document.forms['settings_form'].submit();"><?php echo $eve->_('common.action.save');?></button>
 	</div>
 
 	<form id="settings_form" method="post">

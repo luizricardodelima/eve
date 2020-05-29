@@ -27,22 +27,25 @@ else
 		<button type="button" class="submit" onclick="window.location.href='settingsgeneralinfo.php'">Informações gerais</button>
 		<button type="button" class="submit" onclick="window.location.href='settingsadmins.php'">Administradores do sistema</button>
 		<button type="button" class="submit" onclick="window.location.href='settingsphpmailer.php'">Envio de e-mail</button>
+		<button type="button" class="submit" onclick="window.location.href='settingsappearance.php'">Aparência</button>
 	</div>
-	<?php $eve->output_medium_goto_button("appearance", "Aparência", "settingsappearance.php");?>
-	<div class="section">Inscrições, usuários e pagamentos</div>
-	<?php $eve->output_medium_goto_button("usersignup", "Inscrições", "settingsusersignup.php");?>	
-	<?php $eve->output_medium_goto_button("userdata", "Dados do usuário", "settingsuserdata.php");?>
-	<?php $eve->output_medium_goto_button("credential", "Credenciais", "settingscredential.php");?>
+
+	<div class="dialog_panel_thin">
+	<div class="dialog_section">Inscrições, usuários e pagamentos</div>
+	<button type="button" class="submit" onclick="window.location.href='settingsusersignup.php'">Inscrições</button>
+	<button type="button" class="submit" onclick="window.location.href='settingsuserdata.php'">Dados do usuário</button>
+	<button type="button" class="submit" onclick="window.location.href='settingscredential.php'">Credenciais</button>
+	</div>
+
 	<?php $eve->output_medium_goto_button("payments", "Pagamentos", "settingspayments.php");?>
 	<?php $eve->output_medium_goto_button("paymentslisting", "Listagem dos Pagamentos", "settingspaymentslisting.php");?>
 	
 	<div class="dialog_panel_thin">
 	<div class="dialog_section">Submissões e certificados</div>
 	<button type="button" class="submit" onclick="window.location.href='settingssubmissions.php'">Submissões</button>
+	<button type="button" class="submit" onclick="window.location.href='settingsreviewers.php'">Revisores e revisões</button>
+	<button type="button" class="submit" onclick="window.location.href='settingscertification.php'">Certificados</button>
 	</div>
-	
-	<?php $eve->output_medium_goto_button("reviewers", "Revisores e revisões", "settingsreviewers.php");?>
-	<?php $eve->output_medium_goto_button("certification", "Certificados", "settingscertification.php");?>
 
 	<div class="dialog_panel_thin">
 	<div class="dialog_section"><?php echo $eve->_('userarea.option.admin.settings.plugins');?></div>

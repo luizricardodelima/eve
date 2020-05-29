@@ -61,7 +61,7 @@ else
 	}
 	?>
 	<div class="section">
-	<button type="button" onclick="document.forms['category_form'].submit();"/><?php echo $eve->_('common.action.save');?></button>
+	<button type="button" onclick="document.forms['category_form'].submit();"><?php echo $eve->_('common.action.save');?></button>
 	</div>
 	<form action="<?php echo basename(__FILE__)."?id=".$_GET['id'];?>" method="post" id="category_form">
 	<div class="dialog_panel">

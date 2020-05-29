@@ -2,8 +2,10 @@
 session_start();
 require_once 'eve.class.php';
 require_once 'evemail.php';
+require_once 'evesettingsservice.class.php';
 
 $eve = new Eve();
+$eveSettingsService = new EveSettingsService($eve);
 
 if (!isset($_SESSION['screenname']))
 {
@@ -24,13 +26,7 @@ else
 	{
 		case 'save':
 			unset($_POST['action']);
-			// Saving settings to database.
-			foreach ($_POST as $key => $value)
-			{
-				$value = $eve->mysqli->real_escape_string($value);
-				$eve->mysqli->query("UPDATE `{$eve->DBPref}settings` SET `value` = '$value' WHERE `key` = '$key';");
-			}
-					
+			$eveSettingsService->settings_update($_POST);
 			$saved = 1;
 			break;
 		case 'mailtest':
@@ -39,7 +35,7 @@ else
 			$evemail = new EveMail($eve);
 			$output .= "\nEnviando e-mail para {$_POST['emailaddress']}\n";
 			$evemail->send_mail($_POST['emailaddress'], null, "EVE TEST - SUBJECT", "EVE TEST - HTML BODY", "EVE TEST - PLAIN TEXT BODY");
-			$output .= "\nError / Logs: \n";
+			$output .= "\nLog: \n";
 			$output .= $evemail->phpmailer_error_info;
 			$output .= $evemail->log;
 			break;
@@ -49,14 +45,11 @@ else
 	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('userarea.option.admin.settings'), "settings.php", "Envio de e-mail", null);
 	$eve->output_wysiwig_editor_code();
 
-	// Retrieving settings from database.
-	$settings = array();
-	$result = $eve->mysqli->query
-	("
-		select * from `{$eve->DBPref}settings` where `key` in
-		('phpmailer_host', 'phpmailer_username', 'phpmailer_password', 'phpmailer_fromname', 'phpmailer_smtpauth', 'phpmailer_smtpsecure', 'phpmailer_port', 'phpmailer_smtpdebug');
-	");
-	while ($row = $result->fetch_assoc()) $settings[$row['key']] = $row['value'];
+	$settings = $eveSettingsService->settings_get
+	(
+		'phpmailer_host', 'phpmailer_username', 'phpmailer_password', 'phpmailer_fromname',
+		'phpmailer_smtpauth', 'phpmailer_smtpsecure', 'phpmailer_port', 'phpmailer_smtpdebug'
+	);
 	
 	?>
 	<div class="section">Envio de e-mail

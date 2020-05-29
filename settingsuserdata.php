@@ -1,8 +1,10 @@
 <?php
 session_start();
 require_once 'eve.class.php';
+require_once 'evesettingsservice.class.php';
 
 $eve = new Eve();
+$eveSettingsService = new EveSettingsService($eve);
 
 // Session verification.
 if (!isset($_SESSION['screenname']))
@@ -14,16 +16,10 @@ else if (!$eve->is_admin($_SESSION['screenname']))
 {
 	$eve->output_error_page('common.message.no.permission');
 }
-else if (sizeof($_POST) > 0)
+else if (!empty($_POST))
 {
-	// There are POST variables.  Saving settings to database.
-	foreach ($_POST as $key => $value)
-	{
-		$value = $eve->mysqli->real_escape_string($value);
-		$eve->mysqli->query("UPDATE `{$eve->DBPref}settings` SET `value` = '$value' WHERE `key` = '$key';");
-	}
-			
-	// Reloading this page with the new settngs. Success informations is passed through a simple get parameter
+	// There are settings as POST variables to be saved.
+	$eveSettingsService->settings_update($_POST);
 	$eve->output_redirect_page(basename(__FILE__)."?saved=1");
 }
 else
@@ -35,93 +31,50 @@ else
 	if (isset($_GET['saved']))
 		$eve->output_success_message("Ajustes salvos com sucesso.");
 
-	// Retrieving settings from database.
-	$settings = array();
-	$result = $eve->mysqli->query
-	("
-		SELECT * FROM `{$eve->DBPref}settings` WHERE
-		`key` = 'block_user_form' OR
-		`key` = 'user_display_custom_message_on_unlocked_form' OR
-		`key` = 'user_custom_message_on_unlocked_form' OR
-		`key` = 'user_name_visible' OR
-		`key` = 'user_name_mandatory' OR
-		`key` = 'user_address_visible' OR
-		`key` = 'user_address_mandatory' OR
-		`key` = 'user_city_visible' OR
-		`key` = 'user_city_mandatory' OR
-		`key` = 'user_state_visible' OR
-		`key` = 'user_state_mandatory' OR
-		`key` = 'user_country_visible' OR
-		`key` = 'user_country_mandatory' OR
-		`key` = 'user_postalcode_visible' OR
-		`key` = 'user_postalcode_mandatory' OR
-		`key` = 'user_birthday_visible' OR
-		`key` = 'user_birthday_mandatory' OR
-		`key` = 'user_gender_visible' OR
-		`key` = 'user_gender_mandatory' OR
-		`key` = 'user_phone1_visible' OR
-		`key` = 'user_phone1_mandatory' OR
-		`key` = 'user_phone2_visible' OR
-		`key` = 'user_phone2_mandatory' OR
-		`key` = 'user_institution_visible' OR
-		`key` = 'user_institution_mandatory' OR
-		`key` = 'user_category_visible' OR
-		`key` = 'user_category_mandatory' OR
-		`key` = 'user_customtext1_visible' OR
-		`key` = 'user_customtext1_mandatory' OR
-		`key` = 'user_customtext1_label' OR
-		`key` = 'user_customtext1_mask' OR
-		`key` = 'user_customtext2_visible' OR
-		`key` = 'user_customtext2_mandatory' OR
-		`key` = 'user_customtext2_label' OR
-		`key` = 'user_customtext2_mask' OR
-		`key` = 'user_customtext3_visible' OR
-		`key` = 'user_customtext3_mandatory' OR
-		`key` = 'user_customtext3_label' OR
-		`key` = 'user_customtext3_mask' OR
-		`key` = 'user_customtext4_visible' OR
-		`key` = 'user_customtext4_mandatory' OR
-		`key` = 'user_customtext4_label' OR
-		`key` = 'user_customtext4_mask' OR
-		`key` = 'user_customtext5_visible' OR
-		`key` = 'user_customtext5_mandatory' OR
-		`key` = 'user_customtext5_label' OR
-		`key` = 'user_customtext5_mask' OR
-		`key` = 'user_customflag1_visible' OR
-		`key` = 'user_customflag1_label' OR
-		`key` = 'user_customflag2_visible' OR
-		`key` = 'user_customflag2_label' OR
-		`key` = 'user_customflag3_visible' OR
-		`key` = 'user_customflag3_label' OR
-		`key` = 'user_customflag4_visible' OR
-		`key` = 'user_customflag4_label' OR
-		`key` = 'user_customflag5_visible' OR
-		`key` = 'user_customflag5_label'
-		;
-	");
-	while ($row = $result->fetch_assoc()) $settings[$row['key']] = $row['value'];
-	?>
+	$settings = $eveSettingsService->settings_get
+	(
+		'block_user_form',  'user_display_custom_message_on_unlocked_form',
+		'user_custom_message_on_unlocked_form', 
+		'user_name_visible', 'user_name_mandatory', 'user_address_visible', 'user_address_mandatory', 
+		'user_city_visible', 'user_city_mandatory', 'user_state_visible', 'user_state_mandatory', 
+		'user_country_visible', 'user_country_mandatory', 'user_postalcode_visible', 'user_postalcode_mandatory', 
+		'user_birthday_visible', 'user_birthday_mandatory', 'user_gender_visible', 'user_gender_mandatory', 
+		'user_phone1_visible', 'user_phone1_mandatory', 'user_phone2_visible', 'user_phone2_mandatory', 
+		'user_institution_visible', 'user_institution_mandatory', 'user_category_visible', 'user_category_mandatory', 
+		'user_customtext1_visible', 'user_customtext1_mandatory', 'user_customtext1_label', 'user_customtext1_mask', 
+		'user_customtext2_visible', 'user_customtext2_mandatory', 'user_customtext2_label', 'user_customtext2_mask', 
+		'user_customtext3_visible', 'user_customtext3_mandatory', 'user_customtext3_label', 'user_customtext3_mask', 
+		'user_customtext4_visible', 'user_customtext4_mandatory', 'user_customtext4_label', 'user_customtext4_mask', 
+		'user_customtext5_visible', 'user_customtext5_mandatory', 'user_customtext5_label',	'user_customtext5_mask', 
+		'user_customflag1_visible', 'user_customflag1_label', 
+		'user_customflag2_visible', 'user_customflag2_label', 
+		'user_customflag3_visible', 'user_customflag3_label', 
+		'user_customflag4_visible', 'user_customflag4_label', 
+		'user_customflag5_visible', 'user_customflag5_label'
+	);
 
-	<div class="section">
-	<button type="button" onclick="document.forms['settings_form'].submit();"/><?php echo $eve->_('common.action.save');?></button>
+	?>
+	<div class="section">Dados do usuário
+	<button type="button" onclick="document.forms['settings_form'].submit();"><?php echo $eve->_('common.action.save');?></button>
 	</div>
 
-	<form id="settings_form" method="post">
-	<div class="section">Bloqueio da ficha de inscrição</div>	
-	<table style="width: 100%">
-	<tr><td>Bloquear edição da ficha de inscrição</td></tr>
-	<tr><td>
-		<select name="block_user_form">
-			<option value="never" <?php if ($settings['block_user_form'] == 'never') echo "selected=\"selected\"";?>>Nunca</option>
-			<option value="after_sending" <?php if ($settings['block_user_form'] == 'after_sending') echo "selected=\"selected\"";?>>Depois do envio</option>
-			<option value="after_payment" <?php if ($settings['block_user_form'] == 'after_payment') echo "selected=\"selected\"";?>>Depois do pagamento</option>
-		</select>
-	</td></tr>
-	<tr><td><input type="hidden" name="user_display_custom_message_on_unlocked_form" id="user_display_custom_message_on_unlocked_form" value="0"/> <input type="checkbox" name="user_display_custom_message_on_unlocked_form" value="1" <?php if ($settings['user_display_custom_message_on_unlocked_form']) echo "checked=\"checked\"";?> /><label for="user_display_custom_message_on_unlocked_form">Mensagem personalizada em fichas bloqueadas</label></td></tr>
-	<tr><td><textarea class="htmleditor" rows="6" cols="50" name="user_custom_message_on_unlocked_form"><?php echo $settings['user_custom_message_on_unlocked_form'];?></textarea></td></tr>
-	</table>
+	<form id="settings_form" method="post" class="dialog_panel_wide">
+	<div class="dialog_section">Bloqueio da ficha de inscrição</div>	
 
-	<div class="section">Campos de usuário</div>
+	<label for="block_user_form">Bloquear edição da ficha de inscrição</label>
+	<select id="block_user_form" name="block_user_form">
+		<option value="never" <?php if ($settings['block_user_form'] == 'never') echo "selected=\"selected\"";?>>Nunca</option>
+		<option value="after_sending" <?php if ($settings['block_user_form'] == 'after_sending') echo "selected=\"selected\"";?>>Depois do envio</option>
+		<option value="after_payment" <?php if ($settings['block_user_form'] == 'after_payment') echo "selected=\"selected\"";?>>Depois do pagamento</option>
+	</select>
+	
+	<label for="user_display_custom_message_on_unlocked_form"><input type="hidden" name="user_display_custom_message_on_unlocked_form" value="0"/>
+	<input id="user_display_custom_message_on_unlocked_form" type="checkbox" name="user_display_custom_message_on_unlocked_form" value="1" <?php if ($settings['user_display_custom_message_on_unlocked_form']) echo "checked=\"checked\"";?> />Mensagem personalizada em fichas bloqueadas</label>
+	<textarea class="htmleditor" rows="6" cols="50" name="user_custom_message_on_unlocked_form">
+	<?php echo $settings['user_custom_message_on_unlocked_form'];?>
+	</textarea>
+	
+	<div class="dialog_section">Campos de usuário</div>
 	<table class="data_table">
 	<thead>
 	<th style="width: 5%">Visível</th>		
@@ -180,31 +133,31 @@ else
 	<td><input type="hidden" name="user_customtext1_visible" value="0"/><input type="checkbox" name="user_customtext1_visible" value="1" <?php if ($settings['user_customtext1_visible']) echo "checked=\"checked\"";?> /></td>
 	<td><input type="hidden" name="user_customtext1_mandatory" value="0"/><input type="checkbox" name="user_customtext1_mandatory" value="1" <?php if ($settings['user_customtext1_mandatory']) echo "checked=\"checked\"";?> /></td>
 	<td><?php echo $eve->_('user.data.customtext1');?><input type="text" name="user_customtext1_label" value="<?php echo $settings['user_customtext1_label'];?>"/>
-	&nbsp; Máscara:<input type="text" name="user_customtext1_mask" value="<?php echo $settings['user_customtext1_mask'];?>"/>
+	&nbsp; Máscara<input type="text" name="user_customtext1_mask" value="<?php echo $settings['user_customtext1_mask'];?>"/>
 	</td></tr>
 	<tr>
 	<td><input type="hidden" name="user_customtext2_visible" value="0"/><input type="checkbox" name="user_customtext2_visible" value="1" <?php if ($settings['user_customtext2_visible']) echo "checked=\"checked\"";?> /></td>
 	<td><input type="hidden" name="user_customtext2_mandatory" value="0"/><input type="checkbox" name="user_customtext2_mandatory" value="1" <?php if ($settings['user_customtext2_mandatory']) echo "checked=\"checked\"";?> /></td>
 	<td><?php echo $eve->_('user.data.customtext2');?><input type="text" name="user_customtext2_label" value="<?php echo $settings['user_customtext2_label'];?>"/>
-	&nbsp; Máscara:<input type="text" name="user_customtext2_mask" value="<?php echo $settings['user_customtext2_mask'];?>"/>
+	&nbsp; Máscara<input type="text" name="user_customtext2_mask" value="<?php echo $settings['user_customtext2_mask'];?>"/>
 	</td></tr>
 	<tr>
 	<td><input type="hidden" name="user_customtext3_visible" value="0"/><input type="checkbox" name="user_customtext3_visible" value="1" <?php if ($settings['user_customtext3_visible']) echo "checked=\"checked\"";?> /></td>
 	<td><input type="hidden" name="user_customtext3_mandatory" value="0"/><input type="checkbox" name="user_customtext3_mandatory" value="1" <?php if ($settings['user_customtext3_mandatory']) echo "checked=\"checked\"";?> /></td>
 	<td><?php echo $eve->_('user.data.customtext3');?><input type="text" name="user_customtext3_label" value="<?php echo $settings['user_customtext3_label'];?>"/>
-	&nbsp; Máscara:<input type="text" name="user_customtext3_mask" value="<?php echo $settings['user_customtext3_mask'];?>"/>
+	&nbsp; Máscara<input type="text" name="user_customtext3_mask" value="<?php echo $settings['user_customtext3_mask'];?>"/>
 	</td></tr>
 	<tr>
 	<td><input type="hidden" name="user_customtext4_visible" value="0"/><input type="checkbox" name="user_customtext4_visible" value="1" <?php if ($settings['user_customtext4_visible']) echo "checked=\"checked\"";?> /></td>
 	<td><input type="hidden" name="user_customtext4_mandatory" value="0"/><input type="checkbox" name="user_customtext4_mandatory" value="1" <?php if ($settings['user_customtext4_mandatory']) echo "checked=\"checked\"";?> /></td>
 	<td><?php echo $eve->_('user.data.customtext4');?><input type="text" name="user_customtext4_label" value="<?php echo $settings['user_customtext4_label'];?>"/>
-	&nbsp; Máscara:<input type="text" name="user_customtext4_mask" value="<?php echo $settings['user_customtext4_mask'];?>"/>
+	&nbsp; Máscara<input type="text" name="user_customtext4_mask" value="<?php echo $settings['user_customtext4_mask'];?>"/>
 	</td></tr>
 	<tr>
 	<td><input type="hidden" name="user_customtext5_visible" value="0"/><input type="checkbox" name="user_customtext5_visible" value="1" <?php if ($settings['user_customtext5_visible']) echo "checked=\"checked\"";?> /></td>
 	<td><input type="hidden" name="user_customtext5_mandatory" value="0"/><input type="checkbox" name="user_customtext5_mandatory" value="1" <?php if ($settings['user_customtext5_mandatory']) echo "checked=\"checked\"";?> /></td>
 	<td><?php echo $eve->_('user.data.customtext5');?><input type="text" name="user_customtext5_label" value="<?php echo $settings['user_customtext5_label'];?>"/>
-	&nbsp; Máscara:<input type="text" name="user_customtext5_mask" value="<?php echo $settings['user_customtext5_mask'];?>"/>
+	&nbsp; Máscara<input type="text" name="user_customtext5_mask" value="<?php echo $settings['user_customtext5_mask'];?>"/>
 	</td></tr>
 	<tr>
 	<td><input type="hidden" name="user_customflag1_visible" value="0"/><input type="checkbox" name="user_customflag1_visible" value="1" <?php if ($settings['user_customflag1_visible']) echo "checked=\"checked\"";?> /></td>

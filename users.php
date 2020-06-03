@@ -22,23 +22,23 @@ else if (isset($_POST['action']))
 	{
 		case 'change_email':
 			// Validation
-			$eveUserServices = new EveUserServices($eve);
+			$EveUserService = new EveUserService($eve);
 			
 			if (!filter_var($_POST['newemail'], FILTER_VALIDATE_EMAIL))
 				$eve->output_redirect_page(basename(__FILE__)."?error=1");
-			else if ($eveUserServices->userExists($_POST['newemail']))
+			else if ($EveUserService->userExists($_POST['newemail']))
 				$eve->output_redirect_page(basename(__FILE__)."?error=2");
 			else
 			{
-				$eveUserServices->changeEmail($_POST['oldemail'], $_POST['newemail']);
+				$EveUserService->changeEmail($_POST['oldemail'], $_POST['newemail']);
 				$eve->output_redirect_page(basename(__FILE__)."?success=1");
 				
 			}
 		break;
 		
 		case 'delete_user':
-			$eveUserServices = new EveUserServices($eve);
-			$eveUserServices->deleteUser($_POST['screenname']);
+			$EveUserService = new EveUserService($eve);
+			$EveUserService->deleteUser($_POST['screenname']);
 			$eve->output_redirect_page(basename(__FILE__)."?success=2");
 		break;
 		
@@ -47,7 +47,7 @@ else if (isset($_POST['action']))
 // Regular view
 else
 {
-	$eveUserServices = new EveUserServices($eve);
+	$EveUserService = new EveUserService($eve);
 	$eve->output_html_header();
 	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Usuários", null);	
 
@@ -123,7 +123,7 @@ else
 	</tr>
 	<?php
 	$order_criteria = isset($_GET["order-by"]) ? $_GET["order-by"] : "";
-	$users = $eveUserServices->user_general_list($order_criteria);
+	$users = $EveUserService->user_general_list($order_criteria);
 	while ($user = $users->fetch_assoc())
 	{	
 		$locked_form = ($user['locked_form']) ? "&#8226;" : "";

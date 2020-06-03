@@ -8,7 +8,7 @@ $eve = new Eve();
 // If screenname and verificationcode attributes are passed, perform the verification
 if (isset($_GET['screenname']) && isset($_GET['verificationcode']))
 {
-	$eveUserServices = new EveUserServices($eve);
+	$EveUserService = new EveUserService($eve);
 	$eve->output_html_header();
 	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Código de verificação", null);
 
@@ -21,10 +21,10 @@ if (isset($_GET['screenname']) && isset($_GET['verificationcode']))
 		</div>
 		<?php
 	}
-	else if ($eveUserServices->unverified_user_check_code($_GET['screenname'], $_GET['verificationcode']))
+	else if ($EveUserService->unverified_user_check_code($_GET['screenname'], $_GET['verificationcode']))
 	{
     	// Username with verification code has been found
-		$eveUserServices->user_verify_and_create($_GET['screenname']);
+		$EveUserService->user_verify_and_create($_GET['screenname']);
 		
 		// The new user will be authenticated automatically this time
 		$_SESSION['screenname'] = $_GET['screenname'];

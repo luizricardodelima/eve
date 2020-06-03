@@ -154,7 +154,7 @@ class Eve
 		if ($this->getSetting('show_header_text'))
 			echo "<span class=\"header_text\">{$this->getSetting('system_name')}</span>";
 		if ($this->getSetting('show_header_image'))
-			echo '<img src="upload/header/header.png"/>';
+			echo '<img src="upload/style/header.png"/>';
 		echo "</div>";
 		
 		if ($this->getSetting('show_content_menu_and_pages'))
@@ -234,6 +234,8 @@ class Eve
 	 * This function outputs the navigation bar of the user area. It receives pairs of arguments,
 	 * a label and its corresponding link. If the label does not have a link, this link should be
 	 * a null argument. This throws an error if an odd number of arguments is passed.
+	 * 
+	 * @deprecated use output_navigation instead, because it receives an array and can be better modelled
 	 */
 	function output_navigation_bar()
 	{
@@ -246,10 +248,20 @@ class Eve
 			else
 				$array[$n] = "<a href=\"".func_get_arg($i+1)."\">".func_get_arg($i)."</a>";
 		} 
+		echo '<div id="navigation_bar">'.implode(' &rarr; ', $array).'</div>';
+	}
 
-		echo "<div id=\"navigation_bar\">";
-		echo implode(' &rarr; ', $array);
-		echo "</div>";
+	function output_navigation($navigation_array)
+	{
+		$items = array();		
+		if (is_array($navigation_array)) foreach($navigation_array as $description => $link)
+		{
+			if ($link === null)
+				$items[] = $description;
+			else
+				$items[] = "<a href=\"$link\">$description</a>";
+		}
+		echo '<div id="navigation_bar">'.implode(' &rarr; ', $items).'</div>';
 	}
 
 	/** @deprecated */

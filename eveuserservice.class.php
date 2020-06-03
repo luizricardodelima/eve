@@ -3,10 +3,16 @@
 require_once 'eve.class.php';
 require_once 'evemail.php';
 
-class EveUserServices
+class EveUserService
 {
 	private $eve;
 	private $evemail;
+
+	const ADMIN_ADD_ERROR_USER_DOES_NOT_EXIST = 'admin.add.error.user.does.not.exist';
+	const ADMIN_ADD_SUCCESS = 'admin.add.success';
+	const ADMIN_REMOVE_ERROR_USER_DOES_NOT_EXIST = 'admin.remove.error.user.does.not.exist';
+	const ADMIN_REMOVE_ERROR_CANNOT_REMOVE_ITSELF = 'admin.remove.error.cannot.remove.itself';
+	const ADMIN_REMOVE_SUCCESS = 'admin.remove.success';
 
 	const LOGIN_ERROR = 0;	
 	const LOGIN_SUCCESSFUL = 1;
@@ -33,6 +39,70 @@ class EveUserServices
 	const USER_CHANGE_PASSWORD_ERROR_INCORRECT_PASSWORD = 17;
 	const USER_CHANGE_PASSWORD_SUCCESS = 18;
 
+	function admin_add($screenname)
+	{
+		if (!$this->userExists($screenname))
+			return self::ADMIN_ADD_ERROR_USER_DOES_NOT_EXIST;
+		$stmt = $this->eve->mysqli->prepare
+		("
+			update	`{$this->eve->DBPref}userdata`
+			set 	`{$this->eve->DBPref}userdata`.`admin` = 1
+			where 	`{$this->eve->DBPref}userdata`.`email` = ?
+		");
+		$stmt->bind_param('s', $screenname);
+		$stmt->execute();
+		$stmt->close();
+		return self::ADMIN_ADD_SUCCESS;
+	}
+
+	function admin_list()
+	{
+		$list = array();
+		$stmt = $this->eve->mysqli->prepare
+		("
+			select		`{$this->eve->DBPref}userdata`.`email`,
+						`{$this->eve->DBPref}userdata`.`name`		
+			from		`{$this->eve->DBPref}userdata`
+			where		`{$this->eve->DBPref}userdata`.`admin` = 1
+			order by 	`{$this->eve->DBPref}userdata`.`name`
+		");
+		if ($stmt === false)
+		{
+			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
+			return null;
+		}
+		$stmt->execute();
+		$user = array();
+		$stmt->bind_result
+		(
+			$email,
+			$name
+		);
+		while ($stmt->fetch())
+        {
+            $list[] = array('email' => $email, 'name' => $name);
+		}
+        $stmt->close();
+		return $list;
+	}
+	
+	function admin_remove($screenname, $agent)
+	{
+		if (!$this->userExists($screenname))
+			return self::ADMIN_REMOVE_ERROR_USER_DOES_NOT_EXIST;
+		if (strcasecmp($screenname, $agent) == 0)
+			return self::ADMIN_REMOVE_ERROR_CANNOT_REMOVE_ITSELF;
+		$stmt = $this->eve->mysqli->prepare
+		("
+			update	`{$this->eve->DBPref}userdata`
+			set 	`{$this->eve->DBPref}userdata`.`admin` = 0
+			where 	`{$this->eve->DBPref}userdata`.`email` = ?
+		");
+		$stmt->bind_param('s', $screenname);
+		$stmt->execute();
+		$stmt->close();
+		return self::ADMIN_REMOVE_SUCCESS;
+	}
 
 	// Encapsulates the encryption method used in the system
 	function encrypt($password)
@@ -40,7 +110,7 @@ class EveUserServices
 		return md5($password);
 	}
 
-	function get_user($email)
+	function user_get($email)
 	{	
 		$user = null;
 		$stmt1 = $this->eve->mysqli->prepare
@@ -58,7 +128,7 @@ class EveUserServices
 		$stmt1->execute();
 		// Binding result variable - Column by column to ensure compability
 		// From PHP Verions 5.3+ there is the get_result() method
-    		$stmt1->bind_result
+    	$stmt1->bind_result
 		(
 			$user['email'],
 			$user['admin'],
@@ -366,6 +436,7 @@ class EveUserServices
 				$orderby = "email";
 				break;
 		}
+		// TODO Prepared statement and return array
 		return $this->eve->mysqli->query
 		("
 			select 
@@ -513,15 +584,6 @@ class EveUserServices
 			);
 			$this->evemail->send_mail($email, $placeholders, $this->eve->getSetting('email_sbj_password_retrieval'), $this->eve->getSetting('email_msg_password_retrieval'));
 		}
-	}
-
-	// TODO rename: user_set_as_admin
-	function setUserAsAdmin($screenname)
-	{
-		$stmt1 = $this->eve->mysqli->prepare("update `{$this->eve->DBPref}userdata` set `admin` = 1 where `email`=?;");
-		$stmt1->bind_param('s', $screenname);
-		$stmt1->execute();
-		$stmt1->close();
 	}
 
 	function __construct(Eve $eve)

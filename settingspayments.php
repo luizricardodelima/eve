@@ -51,23 +51,33 @@ else
 	}
 	</script>
 
-	<div class="section">
+	<div class="section">Pagamentos
 	<button type="button" onclick="document.forms['settings_form'].submit();"><?php echo $eve->_('common.action.save');?></button>
 	</div>
 
 	<form id="settings_form" method="post">
-	
-	<div class="section">Informações para o usuário</div>
-	<table style="width: 100%">
-	<tr><td><input type="hidden" name="payment_closed" value="0"/> <input type="checkbox" name="payment_closed" value="1" <?php if ($settings['payment_closed']) echo "checked=\"checked\"";?> /> Pagamento desabilitado</td></tr>
-	<tr><td>Informa&ccedil;&otilde;es para pagamento não verificado</td></tr>
-	<tr><td><textarea class="htmleditor" rows="6" cols="50" name="payment_information_unverified"><?php echo $settings['payment_information_unverified'];?></textarea></td></tr>
-	<tr><td>Informa&ccedil;&otilde;es para pagamento verificado</td></tr>
-	<tr><td><textarea class="htmleditor" rows="6" cols="50" name="payment_information_verified"><?php echo $settings['payment_information_verified'];?></textarea></td></tr>
-	</table>
 
-	<div class="section">Email de aviso <button type="button" onclick="payment_email_help()">?</button></div>
 	<div class="dialog_panel">
+	<div class="dialog_section">Geral</div>
+	<label for="payment_closed"><input type="hidden" name="payment_closed" value="0"/>
+	<input  id="payment_closed" type="checkbox" name="payment_closed" value="1" <?php if ($settings['payment_closed']) echo "checked=\"checked\"";?> />
+	Pagamento desabilitado</label>
+	</div>	
+
+	<div class="dialog_panel">
+	<div class="dialog_section">Informações para o usuário</div>
+	<label for="payment_information_unverified">Informa&ccedil;&otilde;es para pagamento não verificado</label>
+	<textarea id="payment_information_unverified" class="htmleditor" rows="6" cols="50" name="payment_information_unverified">
+	<?php echo $settings['payment_information_unverified'];?>
+	</textarea>
+	<label for="payment_information_verified">Informa&ccedil;&otilde;es para pagamento verificado</label>
+	<textarea id="payment_information_verified" class="htmleditor" rows="6" cols="50" name="payment_information_verified">
+	<?php echo $settings['payment_information_verified'];?>
+	</textarea>
+	</div>
+
+	<div class="dialog_panel">
+	<div class="dialog_section">Email de aviso <button type="button" onclick="payment_email_help()">?</button></div>
 	<label for="email_snd_payment">
 	<input  id="email_snd_payment" type="checkbox" name="email_snd_payment" value="1" <?php if ($settings['email_snd_payment']) echo "checked=\"checked\"";?> /><input type="hidden" name="email_snd_payment" value="0"/>Enviar e-mail ao atualizar pagamento do usuário</label>
 	<label for="email_sbj_payment">Assunto</label>

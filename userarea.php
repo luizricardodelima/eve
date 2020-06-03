@@ -16,6 +16,8 @@ if (!isset($_SESSION['screenname']) && empty($_POST))
 
 	if (isset($_GET['loginerror'])) $eve->output_error_message('login.error');
 	if (isset($_GET['sessionexpired'])) $eve->output_error_message('login.sessionexpired');
+	if ($eve->getSetting('show_login_image'))
+		echo "<div id=\"login_image\"><img src=\"upload/style/login.png\"/></div>";
 	?>
 	
 	<form method="post" class="dialog_panel_thin">
@@ -23,7 +25,7 @@ if (!isset($_SESSION['screenname']) && empty($_POST))
 	if($eve->getSetting('system_custom_login_message'))
 		echo $eve->getSetting('system_custom_login_message_text');
 	else
-		echo "<p>{$eve->_('login.intro')}</p>";
+		echo "<label>{$eve->_('login.intro')}</label>";
 	?>
 	<label for="login_email_ipt"><?php echo $eve->_('login.email');?></label>
 	<input id="login_email_ipt" type="text" name="screenname"/>
@@ -63,17 +65,17 @@ else if (!isset($_SESSION['screenname']) && !empty($_POST))
 	}
 	else
 	{	// No session with POST data: In this case, we assume that user is trying to login.
-		$eveUserServices = new EveUserServices($eve);
-		switch ($eveUserServices->user_login($screenname, $password))
+		$EveUserService = new EveUserService($eve);
+		switch ($EveUserService->user_login($screenname, $password))
 		{
-			case EveUserServices::LOGIN_ERROR:
+			case EveUserService::LOGIN_ERROR:
 				$eve->output_redirect_page(basename(__FILE__)."?loginerror=1");
 				break;
-			case EveUserServices::LOGIN_SUCCESSFUL:
+			case EveUserService::LOGIN_SUCCESSFUL:
 				$_SESSION['screenname'] = $screenname;
 				$eve->output_redirect_page(basename(__FILE__));				
 				break;
-			case EveUserServices::LOGIN_NEW_USER:
+			case EveUserService::LOGIN_NEW_USER:
 				$eve->output_redirect_page("verificationcode.php?screenname=$screenname");
 				break;
 		}		

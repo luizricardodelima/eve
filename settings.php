@@ -18,7 +18,10 @@ else if (!$eve->is_admin($_SESSION['screenname']))
 else
 {
 	$eve->output_html_header();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('userarea.option.admin.settings'), null);
+	$eve->output_navigation([
+		$eve->getSetting('userarea_label') => "userarea.php",
+		$eve->_('userarea.option.admin.settings') => null
+	]);
 
 	?>
 	<div class="section"><?php echo $eve->_('userarea.option.admin.settings');?></div>
@@ -35,11 +38,10 @@ else
 	<button type="button" class="submit" onclick="window.location.href='settingsusersignup.php'">Inscrições</button>
 	<button type="button" class="submit" onclick="window.location.href='settingsuserdata.php'">Dados do usuário</button>
 	<button type="button" class="submit" onclick="window.location.href='settingscredential.php'">Credenciais</button>
+	<button type="button" class="submit" onclick="window.location.href='settingspayments.php'">Pagamentos</button>
+	<button type="button" class="submit" onclick="window.location.href='settingspayments.php'">Listagem dos Pagamentos</button>
 	</div>
 
-	<?php $eve->output_medium_goto_button("payments", "Pagamentos", "settingspayments.php");?>
-	<?php $eve->output_medium_goto_button("paymentslisting", "Listagem dos Pagamentos", "settingspaymentslisting.php");?>
-	
 	<div class="dialog_panel_thin">
 	<div class="dialog_section">Submissões e certificados</div>
 	<button type="button" class="submit" onclick="window.location.href='settingssubmissions.php'">Submissões</button>

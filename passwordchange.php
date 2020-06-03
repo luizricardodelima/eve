@@ -4,7 +4,7 @@ require_once 'eve.class.php';
 require_once 'eveuserservice.class.php';
 
 $eve = new Eve();
-$eveUserServices = new EveUserServices($eve);
+$EveUserService = new EveUserService($eve);
 
 // Session verification.
 if (!isset($_SESSION['screenname']))
@@ -16,7 +16,7 @@ else
 	$message = null;
 	if (!empty($_POST)) 
 	{
-		$message = $eveUserServices->user_change_password($_SESSION['screenname'], $_POST['oldpassword'], $_POST['newpassword'], $_POST['newpasswordrepeat']);
+		$message = $EveUserService->user_change_password($_SESSION['screenname'], $_POST['oldpassword'], $_POST['newpassword'], $_POST['newpasswordrepeat']);
 	}
 	$eve->output_html_header();
 	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Alterar senha", null);
@@ -27,21 +27,21 @@ else
 
 	if ($message !== null) switch ($message)
 	{
-		case EveUserServices::USER_CHANGE_PASSWORD_ERROR:
+		case EveUserService::USER_CHANGE_PASSWORD_ERROR:
 			$eve->output_error_message("Erro inesperado.");
 			break;
-		case EveUserServices::USER_CHANGE_PASSWORD_ERROR_INCORRECT_PASSWORD:
+		case EveUserService::USER_CHANGE_PASSWORD_ERROR_INCORRECT_PASSWORD:
 			$eve->output_error_message("Senha atual incorreta.");
 			break;
-		case EveUserServices::USER_CHANGE_PASSWORD_ERROR_PASSWORDS_DO_NOT_MATCH:
+		case EveUserService::USER_CHANGE_PASSWORD_ERROR_PASSWORDS_DO_NOT_MATCH:
 			$eve->output_error_message("As senhas novas não conferem.");
 			break;
-		case EveUserServices::USER_CHANGE_PASSWORD_ERROR_PASSWORD_TOO_SMALL:
+		case EveUserService::USER_CHANGE_PASSWORD_ERROR_PASSWORD_TOO_SMALL:
 			$eve->output_error_message("A nova senha é muito pequena.");
 			break;	
 	}
 	
-	if ($message !== EveUserServices::USER_CHANGE_PASSWORD_SUCCESS)
+	if ($message !== EveUserService::USER_CHANGE_PASSWORD_SUCCESS)
 	{
 		// It shows when password is not changed due to some error or it's a newly loaded page (with no postdata)
 		?>
@@ -58,7 +58,7 @@ else
 		
 		<?php
 	}
-	else // ($message == EveUserServices::USER_CHANGE_PASSWORD_SUCCESS)
+	else // ($message == EveUserService::USER_CHANGE_PASSWORD_SUCCESS)
 	{
 		// It shows when password is not changed due to some error or it's a newly loaded page (with no postdata)
 		?>

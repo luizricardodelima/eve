@@ -65,11 +65,11 @@ else
 		}
 
 		// Drawing background image (checking if background image file exists, first)
-		if ($bgimage && fopen("upload/credential/credential.png", "r"))
+		if ($bgimage && fopen("upload/style/credential.png", "r"))
 		{
 			$pdf->Image
 			(
-				"upload/credential/credential.png",
+				"upload/style/credential.png",
 				($page_left_margin + ($col * $cell_width)),
 				($page_top_margin + ($row * $cell_height)),
 				$cell_width,

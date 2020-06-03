@@ -33,7 +33,8 @@ else
 
 	$settings = $eveSettingsService->settings_get
 	(
-		'show_header_image', 'show_header_text', 'show_content_menu_and_pages', 'show_footer', 
+		'show_login_image','show_header_image', 'show_header_text', 'show_content_menu_and_pages',
+		'show_footer', 
 		'custom_border_bg', 'color_border_bg', 'custom_content_bg', 'color_content_bg', 
 		'custom_content_fg', 'color_content_fg', 'custom_breadcrumbs_bg', 'color_breadcrumbs_bg', 
 		'custom_breadcrumbs_fg', 'color_breadcrumbs_fg', 'custom_section_bg', 'color_section_bg', 
@@ -49,6 +50,8 @@ else
 	<form id="settings_form" method="post">
 	<div class="dialog_panel">
 	<div class="dialog_section">Lay-out</div>
+	<label for="show_login_image"><input type="hidden" name="show_login_image" value="0"/>
+	<input  id="show_login_image" type="checkbox" name="show_login_image" value="1" <?php if ($settings['show_login_image']) echo "checked=\"checked\"";?> /> Mostrar imagem de login <button type="button" onclick="window.location.href='imageupload.php?type=login';">Alterar</button></label>
 	<label for="show_header_image"><input type="hidden" name="show_header_image" value="0"/>
 	<input  id="show_header_image" type="checkbox" name="show_header_image" value="1" <?php if ($settings['show_header_image']) echo "checked=\"checked\"";?> /> Mostrar imagem de cabeçalho <button type="button" onclick="window.location.href='imageupload.php?type=header';">Alterar</button></label>
 	<label for="show_header_text"><input type="hidden" name="show_header_text" value="0"/>

@@ -20,17 +20,17 @@ else if (!$eve->is_admin($_SESSION['screenname']))
 // when page is reloaded.
 else if (isset($_POST['action']))
 {
-	$eveUserServices = new EveUserServices($eve);
+	$EveUserService = new EveUserService($eve);
 	switch ($_POST['action'])
 	{
 		case 'change_email':
-			$msg = $eveUserServices->unverified_user_change_email($_POST['oldemail'], $_POST['newemail']);
+			$msg = $EveUserService->unverified_user_change_email($_POST['oldemail'], $_POST['newemail']);
 			break;
 		case "delete":
-			$msg = $eveUserServices->unverified_user_delete($_POST['email']);
+			$msg = $EveUserService->unverified_user_delete($_POST['email']);
 			break;
 		case "send_verification_email":
-			$msg = $eveUserServices->unverified_user_send_verification_email($_POST['email']);
+			$msg = $EveUserService->unverified_user_send_verification_email($_POST['email']);
 			break;
 	}
 	$eve->output_redirect_page(basename(__FILE__)."?message=$msg");
@@ -45,22 +45,22 @@ else
 	// Success/Error messages
 	if (isset($_GET['message'])) switch ($_GET['message'])
 	{
-		case EveUserServices::UNVERIFIED_USER_CHANGE_EMAIL_ERROR_INVALID_EMAIL:
+		case EveUserService::UNVERIFIED_USER_CHANGE_EMAIL_ERROR_INVALID_EMAIL:
 			$eve->output_error_message("O e-mail informado é inválido."); //TODO g11n
 			break;
-		case EveUserServices::UNVERIFIED_USER_CHANGE_EMAIL_ERROR_UNVERIFIED_USER_EXISTS:
+		case EveUserService::UNVERIFIED_USER_CHANGE_EMAIL_ERROR_UNVERIFIED_USER_EXISTS:
 			$eve->output_error_message("O e-mail informado já é usado por outro usuário não verificado."); //TODO g11n
 			break;	
-		case EveUserServices::UNVERIFIED_USER_CHANGE_EMAIL_ERROR_USER_EXISTS:
+		case EveUserService::UNVERIFIED_USER_CHANGE_EMAIL_ERROR_USER_EXISTS:
 			$eve->output_error_message("O e-mail informado já é usado por outro usuário."); //TODO g11n
 			break;		
-		case EveUserServices::UNVERIFIED_USER_CHANGE_EMAIL_SUCCESS:
+		case EveUserService::UNVERIFIED_USER_CHANGE_EMAIL_SUCCESS:
 			$eve->output_success_message("E-mail alterado com sucesso."); //TODO g11n
 			break;
-		case EveUserServices::UNVERIFIED_USER_DELETE_SUCCESS:
+		case EveUserService::UNVERIFIED_USER_DELETE_SUCCESS:
 			$eve->output_success_message("Usuário sem verificação removido com sucesso."); //TODO g11n
 			break;
-		case EveUserServices::UNVERIFIED_USER_SEND_VERIFICATION_EMAIL_SUCCESS:
+		case EveUserService::UNVERIFIED_USER_SEND_VERIFICATION_EMAIL_SUCCESS:
 			$eve->output_success_message("E-mail de verificação reenviado."); //TODO g11n
 			break;
 	}	

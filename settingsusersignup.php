@@ -76,8 +76,8 @@ else
 	
 	<div class="dialog_panel">
 	<div class="dialog_section">Novas inscri&ccedil;&otilde;es</div>
-	<label for="user_signup_closed">
-	<input  id="user_signup_closed" type="checkbox" name="user_signup_closed" value="1" <?php if ($settings['user_signup_closed']) echo "checked=\"checked\"";?> /><input type="hidden" name="user_signup_closed" value="0"/> Sistema fechado para novas inscri&ccedil;&otilde;es</label>
+	<label for="user_signup_closed"><input type="hidden" name="user_signup_closed" value="0"/> 
+	<input  id="user_signup_closed" type="checkbox" name="user_signup_closed" value="1" <?php if ($settings['user_signup_closed']) echo "checked=\"checked\"";?> />Sistema fechado para novas inscri&ccedil;&otilde;es</label>
 	<label for="user_signup_closed_message"></label>Mensagem para sistema fechado para novas inscri&ccedil;&otilde;es</label>
 	<textarea id="user_signup_closed_message" class="htmleditor" rows="6" name="user_signup_closed_message"><?php echo $settings['user_signup_closed_message'];?></textarea>
 	</div>

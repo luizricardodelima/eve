@@ -5,7 +5,7 @@ require_once 'eve.class.php';
 require_once 'eveuserservice.class.php';
 
 $eve = new Eve();
-$eveUserServices = new EveUserServices($eve);
+$EveUserService = new EveUserService($eve);
 
 if (!isset($_SESSION['screenname']))
 {
@@ -23,7 +23,7 @@ else
 	// own data, ignoring 'screenname' passed as a GET parameter.
 	$admin_mode = (isset($_GET['user']) && $eve->is_admin($_SESSION['screenname'])) ? 1 : 0;			
 	$email = ($admin_mode == 1) ? $_GET['user'] : $_SESSION['screenname'];
-	$user = $eveUserServices->get_user($email); // User data
+	$user = $EveUserService->user_get($email); // User data
 	$validation_errors = array();
 
 	if (!empty($_POST))
@@ -108,7 +108,7 @@ else
 		if (empty($validation_errors))
 		{
 			// Updating user data, if there are no validating errors
-			$eveUserServices->user_save($user);
+			$EveUserService->user_save($user);
 			if (($eve->getSetting('block_user_form') == 'after_sending') && $lock_request_from_user)
 			{
 				// TODO these things should be inserted in a service.
@@ -206,7 +206,7 @@ else
 	<select id="user_data_gender" name="gender"/>
 	<option value=""><?php echo $eve->_('common.select.null');?></option>
 	<?php
-	foreach ($eveUserServices->user_genders() as $gender)
+	foreach ($EveUserService->user_genders() as $gender)
 	{
 		echo "<option value=\"$gender\"";
 		if ($user['gender'] == $gender) echo " selected=\"selected\"";

@@ -28,13 +28,13 @@ else
 	if (!empty($_POST))
 	{	
 		// There is postdata.
-		$eveUserServices = new EveUserServices($eve);
-		$msg = $eveUserServices->unverified_user_create($_POST['screenname'], $_POST['password'], $_POST['password'], false);
+		$EveUserService = new EveUserService($eve);
+		$msg = $EveUserService->unverified_user_create($_POST['screenname'], $_POST['password'], $_POST['password'], false);
 
-		if ($msg == EveUserServices::UNVERIFIED_USER_CREATE_SUCCESS)
+		if ($msg == EveUserService::UNVERIFIED_USER_CREATE_SUCCESS)
 		{
 			// Creating user
-		 	if ($eveUserServices->user_verify_and_create($_POST['screenname'], $_POST['sendwelcomeemail']))
+		 	if ($EveUserService->user_verify_and_create($_POST['screenname'], $_POST['sendwelcomeemail']))
 			{
 				if ($_POST['sendwelcomeemail'])
 					$eve->output_success_message("Usuário <a href=\"user.php?user={$_POST['screenname']}\">{$_POST['screenname']}</a> criado com sucesso. E-mail enviado.");
@@ -52,13 +52,13 @@ else
 		{
 			switch ($msg)
 			{
-				case EveUserServices::UNVERIFIED_USER_CREATE_ERROR_PASSWORD_TOO_SMALL:
+				case EveUserService::UNVERIFIED_USER_CREATE_ERROR_PASSWORD_TOO_SMALL:
 					$eve->output_error_message("signup.error.password.too.small");
 					break;
-				case EveUserServices::UNVERIFIED_USER_CREATE_ERROR_INVALID_EMAIL:
+				case EveUserService::UNVERIFIED_USER_CREATE_ERROR_INVALID_EMAIL:
 					$eve->output_error_message("signup.error.invalid.email");
 					break;
-				case EveUserServices::UNVERIFIED_USER_CREATE_ERROR_USER_EXISTS:
+				case EveUserService::UNVERIFIED_USER_CREATE_ERROR_USER_EXISTS:
 					$eve->output_error_message("signup.error.user.exists");
 					break;
 			}

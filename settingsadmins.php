@@ -1,8 +1,10 @@
 <?php
 session_start();
 require_once 'eve.class.php';
+require_once 'eveuserservice.class.php';
 
 $eve = new Eve();
+$eveUserService = new EveUserService($eve);
 
 // Session verification.
 if (!isset($_SESSION['screenname']))
@@ -19,37 +21,16 @@ else if (!$eve->is_admin($_SESSION['screenname']))
 // when page is reloaded.
 else if (isset($_POST['action']) && isset($_POST['screenname']))
 {
-	if (!$eve->user_exists($_POST['screenname'])) $eve->output_redirect_page(basename(__FILE__)."?error=2");
-	else switch ($_POST['action'])
+	//if (!$eve->user_exists($_POST['screenname'])) $eve->output_redirect_page(basename(__FILE__)."?error=2");
+	switch ($_POST['action'])
 	{
 		case "add_admin":
-			// Adding given screenname as administrator
-			$eve->mysqli->query
-			("
-				update `{$eve->DBPref}userdata`
-				set `{$eve->DBPref}userdata`.`admin` = 1
-				where `{$eve->DBPref}userdata`.`email` = '{$_POST['screenname']}';
-			");
-			$eve->output_redirect_page(basename(__FILE__)."?addsuccessful={$_POST['screenname']}");
+			$message = $eveUserService->admin_add($_POST['screenname']);
+			$eve->output_redirect_page(basename(__FILE__)."?message=$message");
 		break;
 		case "remove_admin":
-			// Case insensitive comparison
-			if (strcasecmp($_POST['screenname'], $_SESSION['screenname']) == 0)
-			{
-				// The current user cannot unset himself as an administrator. He must ask another admin to do so.
-				$eve->output_redirect_page(basename(__FILE__)."?error=1");
-			}
-			else
-			{
-				// Removing given screenname as administrator
-				$eve->mysqli->query
-				("
-					update `{$eve->DBPref}userdata`
-					set `{$eve->DBPref}userdata`.`admin` = 0
-					where `{$eve->DBPref}userdata`.`email` = '{$_POST['screenname']}';
-				");
-				$eve->output_redirect_page(basename(__FILE__)."?removesuccessful={$_POST['screenname']}");
-			}
+			$message = $eveUserService->admin_remove($_POST['screenname'], $_SESSION['screenname']);
+			$eve->output_redirect_page(basename(__FILE__)."?message=$message");
 		break;
 	}
 }
@@ -60,26 +41,11 @@ else
 	$eve->output_html_header();
 	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('userarea.option.admin.settings'), "settings.php", "Administradores do sistema", null);
 
-	// Error messages, if any
-	if (isset($_GET['error'])) switch ($_GET['error'])
-	{
-		case 1:
-			$eve->output_error_message("O usuário atual não pode retirar seu privilégio de administrador. Outo usuário administrador deve fazer esta operação.");
-			break;
-		case 2:
-			$eve->output_error_message("Usuário inválido.");
-			break;
-	}
-	// Success messages, if any
-	if (isset($_GET['addsuccessful']))
-		$eve->output_success_message("Usuário {$_GET['addsuccessful']} adicionado como administrador.");
-	if (isset($_GET['removesuccessful']))
-		$eve->output_success_message("Usuário {$_GET['removesuccessful']} removido como administrador.");
 	?>
 	<div class="section">Administradores do sistema 
 	<button type="button" onclick="add_admin();">Adicionar</button>	
 	</div>
-
+	<?php if (isset($_GET['message'])) $eve->output_service_message($_GET['message']);?>
 	<table class="data_table">
 	<tr>
 	<th style="width:45%">Email</th>
@@ -88,21 +54,12 @@ else
 	</tr>
 	<?php
 
-	// TODO: Move to a service
-	$userdata_res = $eve->mysqli->query
-	("
-		SELECT *		
-		FROM `{$eve->DBPref}userdata`
-		WHERE `{$eve->DBPref}userdata`.`admin` = 1
-		ORDER BY `{$eve->DBPref}userdata`.`email`;
-	");
-
-	while ($userdata_row = $userdata_res->fetch_assoc())
+	foreach($eveUserService->admin_list() as $admin)
 	{	
 		echo "<tr>";
-		echo "<td style=\"text-align:left\">{$userdata_row['email']}</td>";
-		echo "<td style=\"text-align:left\">{$userdata_row['name']}</td>";
-		echo "<td><button type=\"button\" onclick=\"remove_admin('{$userdata_row['email']}')\"><img src=\"style/icons/delete.png\"></button></td>";
+		echo "<td style=\"text-align:left\">{$admin['email']}</td>";
+		echo "<td style=\"text-align:left\">{$admin['name']}</td>";
+		echo "<td><button type=\"button\" onclick=\"remove_admin('{$admin['email']}')\"><img src=\"style/icons/delete.png\"></button></td>";
 		echo "</tr>";
 	}
 	?>

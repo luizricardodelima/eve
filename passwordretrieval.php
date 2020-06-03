@@ -31,8 +31,8 @@ if (!isset($_POST['screenname']))
 }
 else
 {
-	$eveUserServices = new EveUserServices($eve);
-	$eveUserServices->retrievePassword($_POST['screenname']);
+	$EveUserService = new EveUserService($eve);
+	$EveUserService->retrievePassword($_POST['screenname']);
 	?>
 	<div class="dialog_panel">
 	<p>A senha foi enviada para o e-mail informado, caso esteja cadastrado. Se você estiver com dificuldade em recuperar sua senha, entre em contato com o suporte.</p>

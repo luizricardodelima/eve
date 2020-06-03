@@ -9,7 +9,6 @@ class EveSettingsService
     function settings_get()
 	{	
         $list = array();
-
 		$stmt = $this->eve->mysqli->prepare
 		("
             select 	`{$this->eve->DBPref}settings`.`key`,

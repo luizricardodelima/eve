@@ -408,10 +408,10 @@ function create_database($dbpassword, $screenname, $password)
 	$stmt->close();
 	
 	$eve = new Eve();
-	$eveUserServices = new EveUserServices($eve);
-	$encryptedPassword = $eveUserServices->encrypt($password);
-	$eveUserServices->createUser($screenname, $encryptedPassword, false);
-	$eveUserServices->setUserAsAdmin($screenname);
+	$EveUserService = new EveUserService($eve);
+	$encryptedPassword = $EveUserService->encrypt($password);
+	$EveUserService->createUser($screenname, $encryptedPassword, false);
+	$EveUserService->admin_add($screenname);
 	// TODO Check error according to settings
 
 	$log[] = "SUCCESS - Database successfully created";

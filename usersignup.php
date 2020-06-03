@@ -21,10 +21,10 @@ else
 	$msg = false;
 	if (!empty($_POST))
 	{
-		$eveUserServices = new EveUserServices($eve);
-		$msg = $eveUserServices->unverified_user_create($_POST['screenname'], $_POST['password'], $_POST['passwordrepeat']);
+		$EveUserService = new EveUserService($eve);
+		$msg = $EveUserService->unverified_user_create($_POST['screenname'], $_POST['password'], $_POST['passwordrepeat']);
 	}
-	if ($msg == EveUserServices::UNVERIFIED_USER_CREATE_SUCCESS)
+	if ($msg == EveUserService::UNVERIFIED_USER_CREATE_SUCCESS)
 	{
 		?>
 		<div class="dialog_panel">
@@ -41,16 +41,16 @@ else
 	{
 		switch ($msg)
 		{
-			case EveUserServices::UNVERIFIED_USER_CREATE_ERROR_PASSWORD_TOO_SMALL:
+			case EveUserService::UNVERIFIED_USER_CREATE_ERROR_PASSWORD_TOO_SMALL:
 				$eve->output_error_message("signup.error.password.too.small");
 				break;
-			case EveUserServices::UNVERIFIED_USER_CREATE_ERROR_INVALID_EMAIL:
+			case EveUserService::UNVERIFIED_USER_CREATE_ERROR_INVALID_EMAIL:
 				$eve->output_error_message("signup.error.invalid.email");
 				break;
-			case EveUserServices::UNVERIFIED_USER_CREATE_ERROR_USER_EXISTS:
+			case EveUserService::UNVERIFIED_USER_CREATE_ERROR_USER_EXISTS:
 				$eve->output_error_message("signup.error.user.exists");
 				break;
-			case EveUserServices::UNVERIFIED_USER_CREATE_ERROR_PASSWORDS_DO_NOT_MATCH:
+			case EveUserService::UNVERIFIED_USER_CREATE_ERROR_PASSWORDS_DO_NOT_MATCH:
 				$eve->output_error_message("signup.error.passwords.do.not.match");
 				break;
 		}

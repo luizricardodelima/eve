@@ -269,6 +269,14 @@ table.data_table tr.selected
 	color:				gray;
 }
 
+#login_image
+{
+	padding: 1.5rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
 #menu
 {
 	background-color:	lightgray;

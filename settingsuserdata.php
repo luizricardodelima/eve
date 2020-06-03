@@ -69,7 +69,7 @@ else
 	</select>
 	
 	<label for="user_display_custom_message_on_unlocked_form"><input type="hidden" name="user_display_custom_message_on_unlocked_form" value="0"/>
-	<input id="user_display_custom_message_on_unlocked_form" type="checkbox" name="user_display_custom_message_on_unlocked_form" value="1" <?php if ($settings['user_display_custom_message_on_unlocked_form']) echo "checked=\"checked\"";?> />Mensagem personalizada em fichas bloqueadas</label>
+	<input id="user_display_custom_message_on_unlocked_form" type="checkbox" name="user_display_custom_message_on_unlocked_form" value="1" <?php if ($settings['user_display_custom_message_on_unlocked_form']) echo "checked=\"checked\"";?> />Mensagem personalizada em fichas não-bloqueadas</label>
 	<textarea class="htmleditor" rows="6" cols="50" name="user_custom_message_on_unlocked_form">
 	<?php echo $settings['user_custom_message_on_unlocked_form'];?>
 	</textarea>

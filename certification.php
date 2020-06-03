@@ -9,7 +9,7 @@ require_once 'lib/fpdf/fpdf.php';
 $eve = new Eve();
 $eveCertificationService = new EveCertificationService($eve);
 $eveSubmissionService = new EveSubmissionService($eve);
-$eveUserService = new EveUserServices($eve);
+$eveUserService = new EveUserService($eve);
 
 // Session verification.
 if (!isset($_SESSION['screenname']))
@@ -69,7 +69,7 @@ else
 			// TODO use method from service
 			$certification = $eve->mysqli->query("SELECT * FROM `{$eve->DBPref}certification` WHERE `id`={$_GET['id']};")->fetch_assoc();
 			$certificationdef = $eveCertificationService->certificationmodel_get($certification['certificationdef_id']);			
-			$user = $eveUserService->get_user($certification['screenname']);			
+			$user = $eveUserService->user_get($certification['screenname']);			
 			$submission = $eveSubmissionService->submission_get($certification['submissionid']);
 		}
 		else if (isset($_GET['templateid']))

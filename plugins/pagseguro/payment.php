@@ -6,7 +6,7 @@ require_once '../../eveuserservice.class.php';
 require_once 'lib/PagSeguroLibrary.php';
 
 $eve = new Eve("../../");
-$eveUserServices = new EveUserServices($eve);
+$EveUserService = new EveUserService($eve);
 
 // Session verification.
 if (!isset($_SESSION['screenname']))
@@ -26,7 +26,7 @@ else
 	<?php
 	$paymentRequest = new PagSeguroPaymentRequest();	
 
-	$user = $eveUserServices->get_user($_SESSION['screenname']);
+	$user = $EveUserService->user_get($_SESSION['screenname']);
 	$paymentInformation = json_decode($eve->getSetting('plugin_pagseguro_paymentinformation'));
 	foreach ($paymentInformation as $paymentInformationItem) 
 	{

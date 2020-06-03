@@ -1,4 +1,9 @@
 {
+	"admin.add.error.user.does.not.exist":"Erro ao adicionar administrador. Usuário não existe.",
+	"admin.add.success":"Administrador adicionado com sucesso.",
+	"admin.remove.error.user.does.not.exist":"Erro ao remover administrador. Usuário não existe.",
+	"admin.remove.error.cannot.remove.itself":"Erro ao remover administrador. Administrador atual não pode remover seus privilégios. Outro administrador pode fazê-lo.",
+	"admin.remove.success":"Administrador removido com sucesso",
 	"certification.text.list.and":" e ",
 	"certification.text.list.comma":", ",
 	"certification.text.error.invalid.element":"(ERRO- Elemento inválido)",

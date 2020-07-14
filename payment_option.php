@@ -70,8 +70,6 @@ else
 	<input 	id="name" type="text" name="name" value="<?php echo $payment_option['name'];?>"/>
 	<label for="description"><?php echo $eve->_('payment.option.description');?></label>
 	<input 	id="description" type="text" name="description" value="<?php echo $payment_option['description'];?>"/>
-	<label for="reference_code"><?php echo $eve->_('payment.option.reference.code');?></label>
-	<input 	id="reference_code" type="text" name="reference_code" value="<?php echo $payment_option['reference_code'];?>"/>
 	<label for="value"><?php echo $eve->_('payment.option.value');?></label>
 	<input 	id="value" type="number" name="value" value="<?php echo $payment_option['value'];?>" min="0.0" step="0.01"/>
 	<label for="available_from"><?php echo $eve->_('payment.option.available.from');?></label>

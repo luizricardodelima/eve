@@ -167,7 +167,7 @@ class EvePaymentService
 		$stmt1->execute();
 		// Binding result variable - Column by column to ensure compability
 		// From PHP Verions 5.3+ there is the get_result() method
-    		$stmt1->bind_result
+    	$stmt1->bind_result
 		(
 			$id,
 			$email_,
@@ -390,7 +390,7 @@ class EvePaymentService
 		// From PHP Verions 5.3+ there is the get_result() method
     	$stmt1->bind_result
 		(
-			$id, $type, $name, $description, $reference_code, $value, $available_from,
+			$id, $type, $name, $description, $value, $available_from,
 			$available_to, $admin_only, $active
 		);
 
@@ -400,8 +400,7 @@ class EvePaymentService
 			$stmt1->close();
 			return array(
 				'id' => $id, 'type' =>$type, 'name' => $name, 'description' => $description,
-				'reference_code' => $reference_code, 'value' => $value,
-				'available_from' => $available_from, 'available_to' => $available_to,
+				'value' => $value, 'available_from' => $available_from, 'available_to' => $available_to,
 				'admin_only' => $admin_only, 'active' => $active
 			);
 		}
@@ -435,7 +434,7 @@ class EvePaymentService
 		// From PHP Verions 5.3+ there is the get_result() method
     	$stmt1->bind_result
 		(
-			$id, $type, $name, $description, $reference_code, $value, $available_from,
+			$id, $type, $name, $description, $value, $available_from,
 			$available_to, $admin_only, $active
 		);
 		// Fetching values
@@ -443,8 +442,7 @@ class EvePaymentService
 		{
 			$payment_option = array(
 				'id' => $id, 'type' =>$type, 'name' => $name, 'description' => $description,
-				'reference_code' => $reference_code, 'value' => $value,
-				'available_from' => $available_from, 'available_to' => $available_to,
+				'value' => $value, 'available_from' => $available_from, 'available_to' => $available_to,
 				'admin_only' => $admin_only, 'active' => $active
 			);
 			if ($id_as_array_key)
@@ -484,7 +482,6 @@ class EvePaymentService
 			set		`{$this->eve->DBPref}payment_option`.`type` = ?,
 					`{$this->eve->DBPref}payment_option`.`name` = ?,
 					`{$this->eve->DBPref}payment_option`.`description` = ?,
-					`{$this->eve->DBPref}payment_option`.`reference_code` = ?,
 					`{$this->eve->DBPref}payment_option`.`value` = ?,
 					`{$this->eve->DBPref}payment_option`.`available_from` = ?,
 					`{$this->eve->DBPref}payment_option`.`available_to` = ?,
@@ -495,7 +492,7 @@ class EvePaymentService
 		{
 			return self::PAYMENT_OPTION_UPDATE_ERROR_SQL;
 		}
-		$stmt->bind_param('ssssdssii', $payment_option['type'], $payment_option['name'], $payment_option['description'], $payment_option['reference_code'], $payment_option['value'], $payment_option['available_from'], $payment_option['available_to'], $payment_option['admin_only'], $payment_option['id']);
+		$stmt->bind_param('sssdssii', $payment_option['type'], $payment_option['name'], $payment_option['description'], $payment_option['value'], $payment_option['available_from'], $payment_option['available_to'], $payment_option['admin_only'], $payment_option['id']);
 		$stmt->execute();
 		if (!empty($stmt->error))
 		{

@@ -80,7 +80,6 @@
 	"payment.option.type.accessory": "Acessória",
 	"payment.option.name": "Nome",
 	"payment.option.description": "Descrição",
-	"payment.option.reference.code": "Cód. referência",
 	"payment.option.value": "Valor",
 	"payment.option.available.from": "Disponível desde",
 	"payment.option.available.to": "Disponível até",

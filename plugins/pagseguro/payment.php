@@ -3,10 +3,10 @@ session_start();
 
 require_once '../../eve.class.php';
 require_once '../../eveuserservice.class.php';
+require_once '../../evepaymentservice.php';
 require_once 'lib/PagSeguroLibrary.php';
 
 $eve = new Eve("../../");
-$EveUserService = new EveUserService($eve);
 
 // Session verification.
 if (!isset($_SESSION['screenname']))
@@ -20,67 +20,51 @@ else
 	?>
 	<div class="section">Pagamento via PagSeguro</div>
 	<div class="dialog_panel">
-	<p id="p_message_content"><br/><br/><br/>Aguarde as instruções do PagSeguro...</p>
+	<p id="p_message_content">Aguarde as instruções do PagSeguro...</p>
 	<button id="btn_back" style="display:none;" class="submit" type="button" onclick="document.location.href='../../userarea.php'">Voltar</button>
 	</div>	
 	<?php
+
+	$eveUserService = new EveUserService($eve);
+	$evePaymentService = new EvePaymentService($eve);
 	$paymentRequest = new PagSeguroPaymentRequest();	
+	$user = $eveUserService->user_get($_SESSION['screenname']);
+	$paymentOptions = $evePaymentService->payment_option_list(true);
 
-	$user = $EveUserService->user_get($_SESSION['screenname']);
-	$paymentInformation = json_decode($eve->getSetting('plugin_pagseguro_paymentinformation'));
-	foreach ($paymentInformation as $paymentInformationItem) 
+	// Adding main option
+	if (isset($_POST['payment_main']))
 	{
-		if (strtotime($paymentInformationItem->start_date) < time() && time() <= strtotime($paymentInformationItem->end_date))
+		$mainOption = $paymentOptions[$_POST['payment_main']];
+		$paymentRequest->addItem($mainOption['id'], $mainOption['name'], 1, number_format($mainOption['value'], 2));
+	}
+
+	// Adding accessory options
+	if (isset($_POST['payment_accessory']) && !empty($_POST['payment_accessory']))
+	{
+		foreach ($_POST['payment_accessory'] as $accessory_option_id)
 		{
-			// Analyzing payment item definition only if it meets date constraints
-			switch ($paymentInformationItem->type)
-			{
-				case 'user_custom_flag':
-					$field = "customflag{$paymentInformationItem->specification}";
-					if ($user[$field] == true)
-						$paymentRequest->addItem($paymentInformationItem->code, $paymentInformationItem->description, 1, number_format($paymentInformationItem->price, 2));
-					break;
-				case 'user_category':
-					if ($paymentInformationItem->specification == $user['category_id'])
-						$paymentRequest->addItem($paymentInformationItem->code, $paymentInformationItem->description, 1, number_format($paymentInformationItem->price, 2));
-					break;
-			}
+			$accessoryOption = $paymentOptions[$accessory_option_id];
+			$paymentRequest->addItem($accessoryOption['id'], $accessoryOption['name'], 1, number_format($accessoryOption['value'], 2));
 		}
 	}
-	$items = $paymentRequest->getItems();
-	if (empty($items))
-	{
-		// There are no purchase items for this user. Nothing to do but showing an error message.	
-		?>
-		<script>document.getElementById('p_message_content').innerHTML = "Não há itens selecionados ou disponíveis para este usuário. Retorne à tela de dados do usuário e verifique os dados selecionadas.";</script>
-		<?php
-	}
-	else
-	{	
-		// There are purchase items for this user, they were added to a PaymentRequest. Proceeding the payment.
-		$environment = PagSeguroLibrary::$config->getEnvironment();
-		$email = $user['email'];
-		if ($environment == "sandbox") {
-			$email = str_replace("@","_A_",$user['email']).'@sandbox.pagseguro.com.br';
-		}
-				
-		$shippingType = PagSeguroShippingType::getCodeByType('NOT_SPECIFIED');  
-		$paymentRequest->setShippingType($shippingType); 
-		$paymentRequest->setSender($user['name'], $email);//, '', '', 'CPF', ''); 
-		$paymentRequest->setCurrency("BRL");  
-		$paymentRequest->setReference($user['email']);
-		$paymentRequest->setRedirectUrl($eve->sysurl().'/userarea.php');
-		$paymentRequest->addParameter('notificationURL', $eve->sysurl().'/plugins/pagseguro/notification.php'); 
-		try
-		{  
-			$credentials = PagSeguroConfig::getAccountCredentials();
-			$checkoutCode = $paymentRequest->register($credentials, true);  // true makes method return only code
-		} catch (PagSeguroServiceException $e)
-		{  
-			die($e->getMessage());  
-		}  
 
-		// Choosing correct script (sandbox / production)
+	// PagSeguro methods
+	$environment = PagSeguroLibrary::$config->getEnvironment();
+	$email = $user['email'];
+	if ($environment == "sandbox") $email = str_replace("@","_A_",$user['email']).'@sandbox.pagseguro.com.br';
+			
+	$shippingType = PagSeguroShippingType::getCodeByType('NOT_SPECIFIED');  
+	$paymentRequest->setShippingType($shippingType); 
+	$paymentRequest->setSender($user['name'], $email);
+	$paymentRequest->setCurrency('BRL');  
+	$paymentRequest->setReference($user['email']);
+	$paymentRequest->setRedirectUrl($eve->sysurl().'/userarea.php');
+	$paymentRequest->addParameter('notificationURL', $eve->sysurl().'/plugins/pagseguro/notification.php'); 
+	try
+	{  
+		$credentials = PagSeguroConfig::getAccountCredentials();
+		$checkoutCode = $paymentRequest->register($credentials, true);  // true makes method return only code
+		// Loading chosen script (sandbox / production)
 		if ($environment == "sandbox")
 			echo '<script type="text/javascript" src="https://stc.sandbox.pagseguro.uol.com.br/pagseguro/api/v2/checkout/pagseguro.lightbox.js"></script>';
 		else
@@ -88,7 +72,7 @@ else
 		?>	
 		<script> 
 		var isOpenLightbox = PagSeguroLightbox({
-			code: <?php echo "'$checkoutCode'";?>
+			code: '<?php echo $checkoutCode;?>'
 			}, {
 			success : function(transactionCode) {
 				document.getElementById('p_message_content').innerHTML = "Transação realizada com sucesso. Aguarde o processamento do pagamento.<br/><br/>Código da transação do PagSeguro: " + transactionCode;
@@ -101,6 +85,16 @@ else
 		});
 		</script>
 		<?php
+	} 
+	catch (Exception $e)
+	{  
+		?>
+		<script>
+		document.getElementById('p_message_content').innerHTML = "Ocorreu um erro. Procure o administrador do sistema caso ele persista: <?php echo $e->getMessage();?><br/><br/>Para tentar novamente, clique em voltar e selecione Pagamento.";
+		document.getElementById('btn_back').style.display = 'block';
+		</script>
+		<?php
 	}
 	$eve->output_html_footer();
-}?>
+}
+?>

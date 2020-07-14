@@ -53,9 +53,8 @@ else
 	<table class="data_table">
 	<tr>
 	<th style="width:05%"><?php echo $eve->_('payment.option.id'); ?></th>
-	<th style="width:20%"><?php echo $eve->_('payment.option.reference.code'); ?></th>
-	<th style="width:20%"><?php echo $eve->_('payment.option.name'); ?></th>
-	<th style="width:20%"><?php echo $eve->_('payment.option.type'); ?></th>
+	<th style="width:30%"><?php echo $eve->_('payment.option.name'); ?></th>
+	<th style="width:30%"><?php echo $eve->_('payment.option.type'); ?></th>
 	<th style="width:20%"><?php echo $eve->_('payment.option.value'); ?></th>
 	<th style="width:15%" colspan="2"><?php echo $eve->_('common.table.header.options');?></th>		
 	</tr>
@@ -65,7 +64,6 @@ else
 		?>
 		<tr>
 		<td style="text-align:center"><?php echo $payment_option['id'];?></td>
-		<td style="text-align:left"><?php echo $payment_option['reference_code'];?></td>
 		<td style="text-align:left"><?php echo $payment_option['name'];?></td>
 		<td style="text-align:left"><?php echo $eve->_('payment.option.type.'.$payment_option['type']);?></td>
 		<td style="text-align:right"><?php echo $payment_option['value'];?></td>		

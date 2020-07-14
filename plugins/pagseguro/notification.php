@@ -27,6 +27,7 @@ try
 		$transaction_value = 0;
 		$value_received = $response->getNetAmount();
 		foreach($response->getItems() as $item) $transaction_value += ($item->getQuantity() * $item->getAmount());
+		
 		$evePaymentService = new EvePaymentService($eve);
 		$pmt = $evePaymentService->perform_payment($response->getReference(), $eve->getSetting('plugin_pagseguro_paymenttypeid'), date("Y_m_d"), $response->getCode(), $transaction_value, $value_received);
 

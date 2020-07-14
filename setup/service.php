@@ -202,7 +202,6 @@ function create_database($dbpassword, $screenname, $password)
 		  `type` enum('main','accessory') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'main',
 		  `name` text COLLATE utf8_unicode_ci,
 		  `description` text COLLATE utf8_unicode_ci,
-		  `reference_code` text COLLATE utf8_unicode_ci,
 		  `value` double NOT NULL DEFAULT '0',
 		  `available_from` date,
 		  `available_to` date,

@@ -12,7 +12,8 @@ _Event management system_
 - **(under development usability)** Change the flags for the flags from the project RegionFlags (https://github.com/google/region-flags)
 - **(under development usability)** Changed the deprecated phpExcel library to PHP_XLSXWriter (https://github.com/mk-j/PHP_XLSXWriter). Although PHPExcel (Now PHPSpreadsheet) is good, this application perform basic exports and a simpler library will consume less resources and new deploys will be faster (PHPExcel has too many files).
 - **(under development feature)** New Password Retrieval dynamics - An expirable acess is sent to users e-mail. After access this code, user is prompted to change his password.
-- **(under development feature)** Bug fixes for increased compatibility with SQL Strict mode - text fields on database are null by default
+- 2019-06-03 **(feature)** Masks can be applied to user custom text fields now 
+- 2019-05-28 **(bug fix)** Bug fixes for increased compatibility with SQL Strict mode - text fields on database are null by default
 - 2020-05-28 **(security)** All database operations on settings screens now use prepared statements
 - 2020-05-28 **(usability)** Better look and feel on settings screens
 - 2019-05-27 **(feature)** Send e-mails on submission create, delete and update operations

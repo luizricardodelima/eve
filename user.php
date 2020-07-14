@@ -69,7 +69,7 @@ else
 			if ($eve->getSetting('user_state_visible') && $eve->getSetting('user_state_mandatory') && $user['state'] == '')
 				$validation_errors[] = $validation_missing_field_start.$eve->_('user.data.state').$validation_missing_field_end;
 			// Validating country, if visible and mandatory
-			if ($eve->getSetting('user_country_visible') && $eve->getSetting('user_country_mandatory') && $user['country'] == 'null')
+			if ($eve->getSetting('user_country_visible') && $eve->getSetting('user_country_mandatory') && $user['country'] == '')
 				$validation_errors[] = $validation_missing_field_start.$eve->_('user.data.country').$validation_missing_field_end;
 			// Validating postalcode, if visible and mandatory
 			if ($eve->getSetting('user_postalcode_visible') && $eve->getSetting('user_postalcode_mandatory') && $user['postalcode'] == '')
@@ -281,6 +281,22 @@ else
 	</span>
 	<?php } ?>
 
+	<script src="lib/jquery/jquery.mask.min.js"></script>
+	<script>
+	<?php 
+		if (!empty($eve->getSetting('user_customtext1_mask')))
+			echo '$(document).ready(function(){$(\'#user_data_customtext1\').mask(\''.$eve->getSetting('user_customtext1_mask').'\');});';
+		if (!empty($eve->getSetting('user_customtext2_mask')))
+			echo '$(document).ready(function(){$(\'#user_data_customtext2\').mask(\''.$eve->getSetting('user_customtext2_mask').'\');});';
+		if (!empty($eve->getSetting('user_customtext3_mask')))
+			echo '$(document).ready(function(){$(\'#user_data_customtext3\').mask(\''.$eve->getSetting('user_customtext3_mask').'\');});';
+		if (!empty($eve->getSetting('user_customtext4_mask')))
+			echo '$(document).ready(function(){$(\'#user_data_customtext4\').mask(\''.$eve->getSetting('user_customtext4_mask').'\');});';
+		if (!empty($eve->getSetting('user_customtext5_mask')))
+			echo '$(document).ready(function(){$(\'#user_data_customtext5\').mask(\''.$eve->getSetting('user_customtext5_mask').'\');});';
+	?> 
+	</script>
+	
 	<?php if ($eve->getSetting('user_customflag2_visible')) { ?>
 	<span>
 	<input type="hidden" name="customflag2" value="0"/> <input type="checkbox" id="customflag2_cbx" name="customflag2" value="1" <?php if ($user['customflag2']) echo "checked=\"checked\"";?>/>

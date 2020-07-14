@@ -11,7 +11,12 @@ class EvePaymentService
 
 	const PAYMENT_ERROR = 0;	
 	const PAYMENT_SUCCESSFUL = 1;
-	const PAYMENT_SUCCESSFUL_WITH_EMAIL_ALERT = 2;	
+	const PAYMENT_SUCCESSFUL_WITH_EMAIL_ALERT = 2;
+
+	const PAYMENT_OPTION_CREATE_ERROR_SQL = 'payment.option.create.error.sql';
+	const PAYMENT_OPTION_CREATE_SUCCESS = 'payment.option.create.success';
+	const PAYMENT_OPTION_DELETE_ERROR_SQL = 'payment.option.delete.error.sql';
+	const PAYMENT_OPTION_DELETE_SUCCESS = 'payment.option.delete.success';
 	
 	function perform_payment($screenname, $paymenttype_id, $date, $note, $value_paid, $value_received)
 	{
@@ -313,6 +318,195 @@ class EvePaymentService
 		$stmt->bind_param('ssii', $paymenttype['name'], $paymenttype['description'], $paymenttype['active'], $paymenttype['id']);
 		$stmt->execute();
 		$stmt->close();
+	}
+
+	function payment_option_create($name = "")
+	{   
+		$stmt = $this->eve->mysqli->prepare
+		("
+			insert into `{$this->eve->DBPref}payment_option` (`name`) values (?)
+		");
+		if ($stmt === false)
+		{
+			return self::PAYMENT_OPTION_CREATE_ERROR_SQL;
+		}
+		$stmt->bind_param('s', $name);
+		$stmt->execute();
+		if (!empty($stmt->error))
+		{
+			$stmt->close();
+			return self::PAYMENT_OPTION_CREATE_ERROR_SQL;
+		}
+		else
+		{
+			$stmt->close();
+			return self::PAYMENT_OPTION_CREATE_SUCCESS;
+		}
+	}
+
+	function payment_option_delete($id)
+	{	
+		$stmt = $this->eve->mysqli->prepare
+		("
+			update	`{$this->eve->DBPref}payment_option`
+			set		`{$this->eve->DBPref}payment_option`.`active` = 0
+			where	`{$this->eve->DBPref}payment_option`.`id` = ?
+		");
+		if ($stmt === false)
+		{
+			return self::PAYMENT_OPTION_DELETE_ERROR_SQL;
+		}
+		$stmt->bind_param('i', $id);
+		$stmt->execute();
+		if (!empty($stmt->error))
+		{
+			$stmt->close();
+			return self::PAYMENT_OPTION_DELETE_ERROR_SQL;
+		}
+		else
+		{
+			$stmt->close();
+			return self::PAYMENT_OPTION_DELETE_SUCCESS;
+		}
+	}
+
+	function payment_option_get($id)
+	{	// TODO ERROR MESSAGES
+		$stmt1 = $this->eve->mysqli->prepare
+		("
+			select 	*
+			from	`{$this->eve->DBPref}payment_option`
+			where	`{$this->eve->DBPref}payment_option`.`id` = ?
+		");
+		if ($stmt1 === false)
+		{
+			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
+			return null;
+		}
+		$stmt1->bind_param('i', $id);		
+		$stmt1->execute();
+
+		// Binding result variable - Column by column to ensure compability
+		// From PHP Verions 5.3+ there is the get_result() method
+    	$stmt1->bind_result
+		(
+			$id, $type, $name, $description, $reference_code, $value, $available_from,
+			$available_to, $admin_only, $active
+		);
+
+		// Fetching values
+		if ($stmt1->fetch())
+		{	
+			$stmt1->close();
+			return array(
+				'id' => $id, 'type' =>$type, 'name' => $name, 'description' => $description,
+				'reference_code' => $reference_code, 'value' => $value,
+				'available_from' => $available_from, 'available_to' => $available_to,
+				'admin_only' => $admin_only, 'active' => $active
+			);
+		}
+		else
+		{
+			$stmt1->close();
+			return null;
+		}
+	}
+
+
+	function payment_option_list($id_as_array_key = false)
+	{	// TODO ERROR MESSAGES
+		$result = array();
+		$stmt1 = $this->eve->mysqli->prepare
+		("
+			select *
+			from		`{$this->eve->DBPref}payment_option`
+			where		`{$this->eve->DBPref}payment_option`.`active` = 1
+			order by	`{$this->eve->DBPref}payment_option`.`name`;
+		");
+		if ($stmt1 === false)
+		{
+			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
+			return null;
+		}		
+		$stmt1->execute();
+
+		
+		// Binding result variable - Column by column to ensure compability
+		// From PHP Verions 5.3+ there is the get_result() method
+    	$stmt1->bind_result
+		(
+			$id, $type, $name, $description, $reference_code, $value, $available_from,
+			$available_to, $admin_only, $active
+		);
+		// Fetching values
+		while ($stmt1->fetch())
+		{
+			$payment_option = array(
+				'id' => $id, 'type' =>$type, 'name' => $name, 'description' => $description,
+				'reference_code' => $reference_code, 'value' => $value,
+				'available_from' => $available_from, 'available_to' => $available_to,
+				'admin_only' => $admin_only, 'active' => $active
+			);
+			if ($id_as_array_key)
+				$result[$id] = $payment_option;
+			else
+				$result[] = $payment_option;
+		}
+		$stmt1->close();
+		return $result;
+	}
+
+	function payment_option_types()
+	{
+		$query = "SHOW COLUMNS FROM `{$this->eve->DBPref}payment_option` WHERE Field = 'type'";
+		$result = $this->eve->mysqli->query($query);
+		$row = $result->fetch_assoc();
+		preg_match('#^enum\((.*?)\)$#ism', $row['Type'], $matches);
+		$enum = str_getcsv($matches[1], ",", "'");
+		return $enum;
+	}
+
+	const PAYMENT_OPTION_UPDATE_SUCCESS = 'payment.option.update.success';
+	const PAYMENT_OPTION_UPDATE_ERROR_SQL = 'payment.option.update.error.sql';
+
+	function payment_option_update($payment_option)
+	{	
+		// Verifying the consistency of $payment_option['value'], 
+		// $payment_option['available_from'] and $payment_option['available_to'] since
+		// they arepassed as text. Any incorrect value may break the SQL query execution.
+		$payment_option['value'] = floatval($payment_option['value']);
+		$payment_option['available_from'] = DateTime::createFromFormat('Y-m-d', $payment_option['available_from']) ? $payment_option['available_from'] : null;
+		$payment_option['available_to'] = DateTime::createFromFormat('Y-m-d', $payment_option['available_to']) ? $payment_option['available_to'] : null;
+		
+		$stmt = $this->eve->mysqli->prepare
+		("
+			update	`{$this->eve->DBPref}payment_option`
+			set		`{$this->eve->DBPref}payment_option`.`type` = ?,
+					`{$this->eve->DBPref}payment_option`.`name` = ?,
+					`{$this->eve->DBPref}payment_option`.`description` = ?,
+					`{$this->eve->DBPref}payment_option`.`reference_code` = ?,
+					`{$this->eve->DBPref}payment_option`.`value` = ?,
+					`{$this->eve->DBPref}payment_option`.`available_from` = ?,
+					`{$this->eve->DBPref}payment_option`.`available_to` = ?,
+					`{$this->eve->DBPref}payment_option`.`admin_only` = ?
+			where	`{$this->eve->DBPref}payment_option`.`id` = ?
+		");
+		if ($stmt === false)
+		{
+			return self::PAYMENT_OPTION_UPDATE_ERROR_SQL;
+		}
+		$stmt->bind_param('ssssdssii', $payment_option['type'], $payment_option['name'], $payment_option['description'], $payment_option['reference_code'], $payment_option['value'], $payment_option['available_from'], $payment_option['available_to'], $payment_option['admin_only'], $payment_option['id']);
+		$stmt->execute();
+		if (!empty($stmt->error))
+		{
+			$stmt->close();
+			return self::PAYMENT_OPTION_UPDATE_ERROR_SQL;
+		}
+		else
+		{
+			$stmt->close();
+			return self::PAYMENT_OPTION_UPDATE_SUCCESS;
+		}
 	}
 
 	function __construct(Eve $eve)

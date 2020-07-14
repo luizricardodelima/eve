@@ -34,30 +34,20 @@ else if (isset($_POST['action'])) switch ($_POST['action'])
 else
 {
 	$eve->output_html_header();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('submission_definitions'), null);
+	$eve->output_navigation([
+		$eve->getSetting('userarea_label') => "userarea.php",
+		$eve->_('submission_definitions') => null
+	]);
 
 	?>
-	<div class="section">		
+	<div class="section"><?php echo $eve->_('submission_definitions'); ?>
 	<button type="button" onclick="create_submission_definition()"><?php echo $eve->_('submission_definitions.button.create'); ?></button>
 	</div>
 	<?php
 	
-	if (isset($_GET['message'])) switch($_GET['message'])
-	{
-		case EveSubmissionService::SUBMISSION_DEFINITION_CREATE_ERROR_SQL:
-			$eve->output_error_message('submission_definitions.message.create.error.sql');
-			break;
-		case EveSubmissionService::SUBMISSION_DEFINITION_CREATE_SUCCESS:
-			$eve->output_success_message('submission_definitions.message.create.success');
-			break;
-		case EveSubmissionService::SUBMISSION_DEFINITION_DELETE_ERROR_SQL:
-			$eve->output_error_message('submission_definitions.message.delete.error.sql');
-			break;
-		case EveSubmissionService::SUBMISSION_DEFINITION_DELETE_SUCCESS:
-			$eve->output_success_message('submission_definitions.message.delete.success');
-			break;
-	}
-	
+	if (isset($_GET['message'])) 
+		$eve->output_service_message($_GET['message']);
+
 	?>
 	<table class="data_table">
 	<tr>

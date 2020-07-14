@@ -29,10 +29,10 @@ class EveSubmissionService
 	const SUBMISSION_REVIEW_ERROR_SQL = 'submission.review.error.sql';
 	const SUBMISSION_REVIEW_SUCCESS = 'submission.review.success';
 
-	const SUBMISSION_DEFINITION_CREATE_ERROR_SQL = 9;
-	const SUBMISSION_DEFINITION_CREATE_SUCCESS = 10;
-	const SUBMISSION_DEFINITION_DELETE_ERROR_SQL  = 11;
-	const SUBMISSION_DEFINITION_DELETE_SUCCESS = 12;
+	const SUBMISSION_DEFINITION_CREATE_ERROR_SQL = 'submission.definition.create.error.sql';
+	const SUBMISSION_DEFINITION_CREATE_SUCCESS = 'submission.definition.create.success';
+	const SUBMISSION_DEFINITION_DELETE_ERROR_SQL  = 'submission.definition.delete.error.sql';
+	const SUBMISSION_DEFINITION_DELETE_SUCCESS = 'submission.definition.delete.success';
 
 	const SUBMISSION_DEFINITION_ACCESS_CREATE_ERROR_INVALID_EMAIL = 13;
 	const SUBMISSION_DEFINITION_ACCESS_CREATE_ERROR_USER_DOES_NOT_EXIST = 14;
@@ -605,10 +605,8 @@ class EveSubmissionService
 	{
 		$stmt = $this->eve->mysqli->prepare
 		("
-			insert into `{$this->eve->DBPref}submission_definition`
-				(`description`)
-			values
-				(?)
+			insert into `{$this->eve->DBPref}submission_definition` (`description`)
+			values (?)
 		");
 		if ($stmt === false)
 		{
@@ -642,8 +640,16 @@ class EveSubmissionService
 		}
 		$stmt->bind_param('i', $id);
 		$stmt->execute();
-		$stmt->close();
-		return self::SUBMISSION_DEFINITION_DELETE_SUCCESS;
+		if (!empty($stmt->error))
+		{
+			$stmt->close();
+			return self::SUBMISSION_DEFINITION_DELETE_ERROR_SQL;
+		}
+		else
+		{
+			$stmt->close();
+			return self::SUBMISSION_DEFINITION_DELETE_SUCCESS;
+		}
 	}
 
 	/* Returns null if id is invalid or nonexistent */
@@ -1016,6 +1022,7 @@ class EveSubmissionService
 	{	
 		// Verifying the consistency of $submission_definition['deadline'] since it is
 		// passed as text. Any incorrect value may break the SQL query execution.
+		// TODO Use DateTime::createFromFormat
 		$submission_definition['deadline'] = (strtotime($submission_definition['deadline'])) ? $submission_definition['deadline'] : null;
 
 		$stmt1 = $this->eve->mysqli->prepare

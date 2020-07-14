@@ -70,7 +70,7 @@ else
 		$paymentRequest->setCurrency("BRL");  
 		$paymentRequest->setReference($user['email']);
 		$paymentRequest->setRedirectUrl($eve->sysurl().'/userarea.php');
-		$paymentRequest->addParameter('notificationURL', $eve->sysurl().'/notification.php'); 
+		$paymentRequest->addParameter('notificationURL', $eve->sysurl().'/plugins/pagseguro/notification.php'); 
 		try
 		{  
 			$credentials = PagSeguroConfig::getAccountCredentials();

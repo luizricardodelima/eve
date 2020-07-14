@@ -133,31 +133,31 @@ else
 	<td><input type="hidden" name="user_customtext1_visible" value="0"/><input type="checkbox" name="user_customtext1_visible" value="1" <?php if ($settings['user_customtext1_visible']) echo "checked=\"checked\"";?> /></td>
 	<td><input type="hidden" name="user_customtext1_mandatory" value="0"/><input type="checkbox" name="user_customtext1_mandatory" value="1" <?php if ($settings['user_customtext1_mandatory']) echo "checked=\"checked\"";?> /></td>
 	<td><?php echo $eve->_('user.data.customtext1');?><input type="text" name="user_customtext1_label" value="<?php echo $settings['user_customtext1_label'];?>"/>
-	&nbsp; Máscara<input type="text" name="user_customtext1_mask" value="<?php echo $settings['user_customtext1_mask'];?>"/>
+	&nbsp;<?php echo $eve->_('user.data.customtext.mask');?><input type="text" name="user_customtext1_mask" value="<?php echo $settings['user_customtext1_mask'];?>"/>
 	</td></tr>
 	<tr>
 	<td><input type="hidden" name="user_customtext2_visible" value="0"/><input type="checkbox" name="user_customtext2_visible" value="1" <?php if ($settings['user_customtext2_visible']) echo "checked=\"checked\"";?> /></td>
 	<td><input type="hidden" name="user_customtext2_mandatory" value="0"/><input type="checkbox" name="user_customtext2_mandatory" value="1" <?php if ($settings['user_customtext2_mandatory']) echo "checked=\"checked\"";?> /></td>
 	<td><?php echo $eve->_('user.data.customtext2');?><input type="text" name="user_customtext2_label" value="<?php echo $settings['user_customtext2_label'];?>"/>
-	&nbsp; Máscara<input type="text" name="user_customtext2_mask" value="<?php echo $settings['user_customtext2_mask'];?>"/>
+	&nbsp;<?php echo $eve->_('user.data.customtext.mask');?><input type="text" name="user_customtext2_mask" value="<?php echo $settings['user_customtext2_mask'];?>"/>
 	</td></tr>
 	<tr>
 	<td><input type="hidden" name="user_customtext3_visible" value="0"/><input type="checkbox" name="user_customtext3_visible" value="1" <?php if ($settings['user_customtext3_visible']) echo "checked=\"checked\"";?> /></td>
 	<td><input type="hidden" name="user_customtext3_mandatory" value="0"/><input type="checkbox" name="user_customtext3_mandatory" value="1" <?php if ($settings['user_customtext3_mandatory']) echo "checked=\"checked\"";?> /></td>
 	<td><?php echo $eve->_('user.data.customtext3');?><input type="text" name="user_customtext3_label" value="<?php echo $settings['user_customtext3_label'];?>"/>
-	&nbsp; Máscara<input type="text" name="user_customtext3_mask" value="<?php echo $settings['user_customtext3_mask'];?>"/>
+	&nbsp;<?php echo $eve->_('user.data.customtext.mask');?><input type="text" name="user_customtext3_mask" value="<?php echo $settings['user_customtext3_mask'];?>"/>
 	</td></tr>
 	<tr>
 	<td><input type="hidden" name="user_customtext4_visible" value="0"/><input type="checkbox" name="user_customtext4_visible" value="1" <?php if ($settings['user_customtext4_visible']) echo "checked=\"checked\"";?> /></td>
 	<td><input type="hidden" name="user_customtext4_mandatory" value="0"/><input type="checkbox" name="user_customtext4_mandatory" value="1" <?php if ($settings['user_customtext4_mandatory']) echo "checked=\"checked\"";?> /></td>
 	<td><?php echo $eve->_('user.data.customtext4');?><input type="text" name="user_customtext4_label" value="<?php echo $settings['user_customtext4_label'];?>"/>
-	&nbsp; Máscara<input type="text" name="user_customtext4_mask" value="<?php echo $settings['user_customtext4_mask'];?>"/>
+	&nbsp;<?php echo $eve->_('user.data.customtext.mask');?><input type="text" name="user_customtext4_mask" value="<?php echo $settings['user_customtext4_mask'];?>"/>
 	</td></tr>
 	<tr>
 	<td><input type="hidden" name="user_customtext5_visible" value="0"/><input type="checkbox" name="user_customtext5_visible" value="1" <?php if ($settings['user_customtext5_visible']) echo "checked=\"checked\"";?> /></td>
 	<td><input type="hidden" name="user_customtext5_mandatory" value="0"/><input type="checkbox" name="user_customtext5_mandatory" value="1" <?php if ($settings['user_customtext5_mandatory']) echo "checked=\"checked\"";?> /></td>
 	<td><?php echo $eve->_('user.data.customtext5');?><input type="text" name="user_customtext5_label" value="<?php echo $settings['user_customtext5_label'];?>"/>
-	&nbsp; Máscara<input type="text" name="user_customtext5_mask" value="<?php echo $settings['user_customtext5_mask'];?>"/>
+	&nbsp;<?php echo $eve->_('user.data.customtext.mask');?><input type="text" name="user_customtext5_mask" value="<?php echo $settings['user_customtext5_mask'];?>"/>
 	</td></tr>
 	<tr>
 	<td><input type="hidden" name="user_customflag1_visible" value="0"/><input type="checkbox" name="user_customflag1_visible" value="1" <?php if ($settings['user_customflag1_visible']) echo "checked=\"checked\"";?> /></td>

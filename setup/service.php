@@ -194,6 +194,24 @@ function create_database($dbpassword, $screenname, $password)
 	");
 	if ($mysqli->error) {$log[] = "ERROR - Create table payment - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
+	// Create table payment_option
+	$mysqli->query
+	("
+		CREATE TABLE `{$pref}payment_option` (
+		  `id` int(11) NOT NULL,
+		  `type` enum('main','accessory') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'main',
+		  `name` text COLLATE utf8_unicode_ci,
+		  `description` text COLLATE utf8_unicode_ci,
+		  `reference_code` text COLLATE utf8_unicode_ci,
+		  `value` double NOT NULL DEFAULT '0',
+		  `available_from` date,
+		  `available_to` date,
+		  `admin_only` tinyint(11) NOT NULL DEFAULT '0',
+		  `active` tinyint(11) NOT NULL DEFAULT '1'
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+	");
+	if ($mysqli->error) {$log[] = "ERROR - Create table payment_option - ".$mysqli->error; delete_database($dbpassword); return $log;}
+
 	// Create table paymenttype
 	$mysqli->query
 	("
@@ -291,6 +309,9 @@ function create_database($dbpassword, $screenname, $password)
 	$mysqli->query("ALTER TABLE `{$pref}payment` ADD PRIMARY KEY (`id`), ADD KEY `paymenttype_id` (`paymenttype_id`), ADD UNIQUE KEY `email` (`email`);");
 	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys payment - ".$mysqli->error; delete_database($dbpassword); return $log;}
 	
+	$mysqli->query("ALTER TABLE `{$pref}payment_option` ADD PRIMARY KEY (`id`);");
+	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys payment_option - ".$mysqli->error; delete_database($dbpassword); return $log;}
+
 	$mysqli->query("ALTER TABLE `{$pref}paymenttype` ADD PRIMARY KEY (`id`);");
 	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys paymenttype - ".$mysqli->error; delete_database($dbpassword); return $log;}
 	
@@ -331,6 +352,9 @@ function create_database($dbpassword, $screenname, $password)
 
 	$mysqli->query("ALTER TABLE `{$pref}payment` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
 	if ($mysqli->error) {$log[] = "ERROR - Auto increment payment - ".$mysqli->error; delete_database($dbpassword); return $log;}
+
+	$mysqli->query("ALTER TABLE `{$pref}payment_option` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
+	if ($mysqli->error) {$log[] = "ERROR - Auto increment payment_option - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
 	$mysqli->query("ALTER TABLE `{$pref}paymenttype` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
 	if ($mysqli->error) {$log[] = "ERROR - Auto increment paymenttype - ".$mysqli->error; delete_database($dbpassword); return $log;}
@@ -455,6 +479,8 @@ function delete_database($dbpassword)
 	$mysqli->query("DROP TABLE if exists `{$pref}payment`;");
 	if ($mysqli->error) $log[] = $mysqli->error;
 	$mysqli->query("DROP TABLE if exists `{$pref}paymenttype`;");
+	if ($mysqli->error) $log[] = $mysqli->error;
+	$mysqli->query("DROP TABLE if exists `{$pref}payment_option`;");
 	if ($mysqli->error) $log[] = $mysqli->error;
 
 	// Deleting certification tables

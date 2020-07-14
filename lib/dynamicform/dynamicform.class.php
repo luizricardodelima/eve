@@ -74,7 +74,8 @@ class DynamicForm
 
     function outputStructureTable($strName, $tableClass = null, $toolbarClass = null)
     {
-        $result  = "
+        $path = DynamicFormHelper::find_relative_path(dirname($_SERVER['SCRIPT_FILENAME']),dirname(__FILE__));
+        $result = "
         <!-- Begin of DynamicForm's automatically generated code-->
         <script>
         var str_{$strName} = {$this->getJSONStructure()};
@@ -123,17 +124,17 @@ class DynamicForm
                 tr.insertCell(-1).innerHTML = str_{$strName}[j].description;
                 tr.insertCell(-1).innerHTML = str_{$strName}[j].customattribute;
 				tr.insertCell(-1).innerHTML = (str_{$strName}[j].mandatory) ? '&#8226;' : '';
-				tr.insertCell(-1).innerHTML = '<button type=\"button\" onclick=\"move_item_{$strName}('+j+', -1)\"><img src=\"".substr(dirname(__FILE__), strlen($_SERVER['DOCUMENT_ROOT']))."/icons/up.png\"/></button></td>';
-				tr.insertCell(-1).innerHTML = '<button type=\"button\" onclick=\"move_item_{$strName}('+j+', +1)\"><img src=\"".substr(dirname(__FILE__), strlen($_SERVER['DOCUMENT_ROOT']))."/icons/down.png\"/></button>';
+				tr.insertCell(-1).innerHTML = '<button type=\"button\" onclick=\"move_item_{$strName}('+j+', -1)\"><img src=\"$path/icons/up.png\"/></button></td>';
+				tr.insertCell(-1).innerHTML = '<button type=\"button\" onclick=\"move_item_{$strName}('+j+', +1)\"><img src=\"$path/icons/down.png\"/></button>';
         ";
 
         // DynamicInputItems edit functions
         foreach ($this->dynamicFormItemClasses as $dynamicFormItemClass)
             $result .= "
-                if (str_{$strName}[j].type == '{$dynamicFormItemClass::getType()}') tr.insertCell(-1).innerHTML = '<button type=\"button\" onclick=\"{$dynamicFormItemClass::javascriptEditMethod()}_{$strName}('+j+')\"><img src=\"".substr(dirname(__FILE__), strlen($_SERVER['DOCUMENT_ROOT']))."/icons/edit.png\"/></button>';";
+                if (str_{$strName}[j].type == '{$dynamicFormItemClass::getType()}') tr.insertCell(-1).innerHTML = '<button type=\"button\" onclick=\"{$dynamicFormItemClass::javascriptEditMethod()}_{$strName}('+j+')\"><img src=\"$path/icons/edit.png\"/></button>';";
         
         $result .= "
-                tr.insertCell(-1).innerHTML = '<button type=\"button\" onclick=\"delete_item_{$strName}('+j+')\"><img src=\"".substr(dirname(__FILE__), strlen($_SERVER['DOCUMENT_ROOT']))."/icons/delete.png\"/></button>';
+                tr.insertCell(-1).innerHTML = '<button type=\"button\" onclick=\"delete_item_{$strName}('+j+')\"><img src=\"$path/icons/delete.png\"/></button>';
 				tr.childNodes[3].style.textAlign = 'center';
 				tr.childNodes[4].style.textAlign = 'center';
 			}

@@ -277,6 +277,11 @@ table.data_table tr.selected
 	justify-content: center;
 }
 
+#login_image img
+{
+	max-width: 100%;
+}
+
 #menu
 {
 	background-color:	lightgray;

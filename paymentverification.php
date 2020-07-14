@@ -93,18 +93,8 @@ else
 	<label for="iptdate">Data</label>
 	<input id="iptdate" type="date" name="date" value="<?php echo $data['date'];?>"/>
 
-	<label for="selpaymenttype">Tipo de pagamento</label>
-	<select id="selpaymenttype" class="user_form" name="paymenttype_id">
-	<option value="null"><?php echo $eve->_('common.select.null');?></option>
-	<?php
-	foreach ($evePaymentService->paymenttype_list() as $paymenttype)
-	{	
-		echo "<option value=\"{$paymenttype['id']}\"";
-		if ($data['paymenttype_id'] === $paymenttype['id']) echo " selected=\"selected\"";
-		echo ">{$paymenttype['name']} </option>";
-	}
-	?>
-	</select>
+	<label for="payment_method">Método de pagamento</label>
+	<input 	id="payment_method" type="text" name="payment_method" value="<?php echo $data['payment_method'];?>"/>
 
 	<label for="value_paid">Valor pago</label>
 	<input 	id="value_paid" name="value_paid" type="number" min="0" step="0.01" onkeyup="mirror_values()" onchange="mirror_values()" value="<?php echo $data['value_paid'];?>"/>

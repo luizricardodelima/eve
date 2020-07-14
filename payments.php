@@ -36,6 +36,7 @@ else
 	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('userarea.option.admin.payments'), null);
 	setlocale(LC_MONETARY, $eve->getSetting('system_locale'));
 
+	// TODO NOW IT'S GOING TO BE PAYMENT_METHODS. SELECT DISTINCT PAYMENT METHODS
 	// Loading payment types information
 	$paymenttypes = array();
 	$paymenttypes_res = $eve->mysqli->query("SELECT * FROM `{$eve->DBPref}paymenttype` where `active` = 1;");

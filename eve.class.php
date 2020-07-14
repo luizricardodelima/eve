@@ -264,20 +264,6 @@ class Eve
 		echo '<div id="navigation_bar">'.implode(' &rarr; ', $items).'</div>';
 	}
 
-	/** @deprecated */
-	function output_medium_generic_back_button()
-	{
-		$message = $this->_('common.action.back');
-		echo "<button type=\"button\" class=\"medium\" onclick=\"history.back()\">$message</a>";
-	}
-
-	/** @deprecated */
-	function output_medium_goto_button($name, $value, $location)
-	{
-		echo "<script> function go_to_$name() { window.location.href=\"$location\"; } </script>";
-		echo "<button class=\"medium\" type=\"button\" onclick=\"go_to_$name()\">$value</button>";
-	}
-
 	function output_big_goto_button($label, $icon_code, $location)
 	{
 		echo "<button class=\"big\" type=\"button\" onclick=\"window.location.href='$location';\">";
@@ -290,7 +276,11 @@ class Eve
 	{
 		$this->output_html_header();
 		$this->output_error_message($message);		
-		if ($show_back_button) $this->output_medium_generic_back_button();
+		if ($show_back_button) 
+		{
+			$message = $this->_('common.action.back');
+			echo "<button type=\"button\" onclick=\"history.back()\">$message</a>";
+		}
 		$this->output_html_footer();
 	}
 

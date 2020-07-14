@@ -18,7 +18,7 @@ class EvePaymentService
 	const PAYMENT_OPTION_DELETE_ERROR_SQL = 'payment.option.delete.error.sql';
 	const PAYMENT_OPTION_DELETE_SUCCESS = 'payment.option.delete.success';
 	
-	function perform_payment($screenname, $paymenttype_id, $date, $note, $value_paid, $value_received)
+	function perform_payment($screenname, $payment_method, $date, $note, $value_paid, $value_received, $items = null)
 	{
 		// Default case, to be changed if a successful payment occurs
 		$result = self::PAYMENT_ERROR;
@@ -51,7 +51,7 @@ class EvePaymentService
 		$stmt2 = $this->eve->mysqli->prepare
 		("
 			UPDATE `{$this->eve->DBPref}payment`
-			SET `paymenttype_id` = ?, `value_paid` = ?, `value_received` = ?, `date` = ?, `note` = ?
+			SET `payment_method` = ?, `value_paid` = ?, `value_received` = ?, `date` = ?, `note` = ?
 			WHERE `email` = ?;
 		");
 		if ($stmt2 === false)
@@ -59,7 +59,7 @@ class EvePaymentService
 			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
 			return self::PAYMENT_ERROR;
 		}
-		$stmt2->bind_param('iddsss', $paymenttype_id, $value_paid, $value_received, $date, $note, $screenname);
+		$stmt2->bind_param('sddsss', $payment_method, $value_paid, $value_received, $date, $note, $screenname);
 		if ($stmt2->execute())
 			$result = self::PAYMENT_SUCCESSFUL;
 		else
@@ -194,130 +194,6 @@ class EvePaymentService
 		}
 		$stmt1->close();
 		return $payment;
-	}
-
-	function paymenttype_create($name = "")
-	{
-		$stmt = $this->eve->mysqli->prepare
-		("
-			insert into `{$this->eve->DBPref}paymenttype` (`name`) values (?)
-		");
-		$stmt->bind_param('s', $name);
-		$stmt->execute();
-		$stmt->close();
-	}
-
-	function paymenttype_delete($id)
-	{
-		$stmt = $this->eve->mysqli->prepare
-		("
-			update	`{$this->eve->DBPref}paymenttype`
-			set	`{$this->eve->DBPref}paymenttype`.`active` = 0
-			where	`{$this->eve->DBPref}paymenttype`.`id` = ?
-		");
-		$stmt->bind_param('i', $id);
-		$stmt->execute();
-		$stmt->close();
-	}
-
-	function paymenttype_get($id)
-	{
-		$stmt1 = $this->eve->mysqli->prepare
-		("
-			select 	*
-			from	`{$this->eve->DBPref}paymenttype`
-			where	`{$this->eve->DBPref}paymenttype`.`id` = ?
-		");
-		if ($stmt1 === false)
-		{
-			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
-			return null;
-		}
-		$stmt1->bind_param('i', $id);		
-		$stmt1->execute();
-
-		// Binding result variable - Column by column to ensure compability
-		// From PHP Verions 5.3+ there is the get_result() method
-    		$stmt1->bind_result
-		(
-			$id,
-			$name,
-			$description,
-			$active
-		);
-
-		// Fetching values
-		if ($stmt1->fetch())
-		{	
-			$stmt1->close();
-			return array('id' => $id, 'name' => $name, 'description' => $description, 'active' => $active);
-		}
-		else
-		{
-			$stmt1->close();
-			return null;
-		}
-	}
-
-
-	function paymenttype_list($id_as_array_key = false)
-	{
-		$result = array();
-		$stmt1 = $this->eve->mysqli->prepare
-		("
-			select *
-			from		`{$this->eve->DBPref}paymenttype`
-			where		`{$this->eve->DBPref}paymenttype`.`active` = 1
-			order by	`{$this->eve->DBPref}paymenttype`.`name`;
-		");
-		if ($stmt1 === false)
-		{
-			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
-			return null;
-		}		
-		$stmt1->execute();
-
-		
-		// Binding result variable - Column by column to ensure compability
-		// From PHP Verions 5.3+ there is the get_result() method
-    		$stmt1->bind_result
-		(
-			$id,
-			$name,
-			$description,
-			$active
-		);
-		// Fetching values
-		while ($stmt1->fetch())
-		{
-			$paymenttype = array('id' => $id, 'name' => $name, 'description' => $description, 'active' => $active);
-			if ($id_as_array_key)
-				$result[$id] = $paymenttype;
-			else
-				$result[] = $paymenttype;
-		}
-		$stmt1->close();
-		return $result;
-	}
-
-	function paymenttype_update($paymenttype)
-	{
-		$stmt = $this->eve->mysqli->prepare
-		("
-			update	`{$this->eve->DBPref}paymenttype`
-			set	`{$this->eve->DBPref}paymenttype`.`name` = ?,
-				`{$this->eve->DBPref}paymenttype`.`description` = ?,
-				`{$this->eve->DBPref}paymenttype`.`active` = ?
-			where	`{$this->eve->DBPref}paymenttype`.`id` = ?
-		");
-		if ($stmt === false)
-		{
-			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
-			return null;
-		}
-		$stmt->bind_param('ssii', $paymenttype['name'], $paymenttype['description'], $paymenttype['active'], $paymenttype['id']);
-		$stmt->execute();
-		$stmt->close();
 	}
 
 	function payment_option_create($name = "")

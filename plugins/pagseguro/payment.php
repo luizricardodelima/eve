@@ -35,6 +35,7 @@ else
 	if (isset($_POST['payment_main']))
 	{
 		$mainOption = $paymentOptions[$_POST['payment_main']];
+		// TODO #5 Create an option for configuring a prefix code for items on PagSeguro plugin
 		$paymentRequest->addItem($mainOption['id'], $mainOption['name'], 1, number_format($mainOption['value'], 2));
 	}
 
@@ -44,6 +45,7 @@ else
 		foreach ($_POST['payment_accessory'] as $accessory_option_id)
 		{
 			$accessoryOption = $paymentOptions[$accessory_option_id];
+			// TODO #5 Create an option for configuring a prefix code for items on PagSeguro plugin
 			$paymentRequest->addItem($accessoryOption['id'], $accessoryOption['name'], 1, number_format($accessoryOption['value'], 2));
 		}
 	}

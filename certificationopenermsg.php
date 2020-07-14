@@ -36,7 +36,6 @@ else
 	// The user who is acessing this certification
 	$current_user = $eve->mysqli->query("SELECT * FROM `{$eve->DBPref}userdata` WHERE `email`='{$_SESSION['screenname']}'")->fetch_assoc();
 	
-
 	// If current user is not the admin nor the owner...
 	if (!$current_user['admin'] && ($certification['screenname'] != $current_user['email'])) 
 		$eve->output_error_page("Você não pode acessar este certificado.");
@@ -48,8 +47,16 @@ else
 		// Displaying opener message for certification
 		$eve->output_html_header();
 		$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php",  $certificationdef['name'], null);
-		echo $certificationdef['openermsg'];
-		$eve->output_medium_goto_button("certification", "Acessar certificado", "certification.php?id={$_GET['id']}");
+		
+		?>
+		<div class="dialog_panel">
+		<?php echo $certificationdef['openermsg']; ?>
+		<button type="button" class="submit" onclick="window.location.href='certification.php?id=<?php echo $_GET['id'];?>'">
+		Acessar certificado<!-- TODO G11N -->
+		</button>
+		</div>
+		<?php
+
 		$eve->output_html_footer();	
 	}
 }

@@ -181,7 +181,6 @@ else
 		$eve->output_big_goto_button('submission_definitions', "&#67;", "submission_definitions.php");
 		$eve->output_big_goto_button("userarea.option.admin.payments", "&#91;", "payments.php");
 		$eve->output_big_goto_button("payment_options", "&#91;", "payment_options.php");
-		$eve->output_big_goto_button("userarea.option.admin.paymenttypes", "&#91;", "paymenttypes.php");
 		$eve->output_big_goto_button("userarea.option.admin.certifications", "&#34;", "certifications.php");
 		$eve->output_big_goto_button("userarea.option.admin.certificationtemplates", "&#34;", "certificationdefs.php");
 		$eve->output_big_goto_button("userarea.option.admin.pages", "&#108;", "pages.php");

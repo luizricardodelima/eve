@@ -185,14 +185,25 @@ function create_database($dbpassword, $screenname, $password)
 		  `id` int(11) NOT NULL,
 		  `email` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
 		  `date` date,
-		  `paymenttype_id` int(11) DEFAULT NULL,
+		  `payment_method` text COLLATE utf8_unicode_ci,
 		  `value_paid` double NOT NULL DEFAULT '0',
 		  `value_received` double NOT NULL DEFAULT '0',
 		  `note` text COLLATE utf8_unicode_ci,
-		  `image` text COLLATE utf8_unicode_ci
+		  `file` text COLLATE utf8_unicode_ci
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 	");
 	if ($mysqli->error) {$log[] = "ERROR - Create table payment - ".$mysqli->error; delete_database($dbpassword); return $log;}
+
+	// Create table payment_item
+	$mysqli->query
+	("
+		CREATE TABLE `{$pref}payment_item` (
+		  `id` int(11) NOT NULL,
+		  `payment_id` int(11) NOT NULL,
+		  `payment_option_id` int(11) NOT NULL
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+	");
+	if ($mysqli->error) {$log[] = "ERROR - Create table payment_item - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
 	// Create table payment_option
 	$mysqli->query
@@ -210,18 +221,6 @@ function create_database($dbpassword, $screenname, $password)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 	");
 	if ($mysqli->error) {$log[] = "ERROR - Create table payment_option - ".$mysqli->error; delete_database($dbpassword); return $log;}
-
-	// Create table paymenttype
-	$mysqli->query
-	("
-		CREATE TABLE `{$pref}paymenttype` (
-		  `id` int(11) NOT NULL,
-		  `name` text COLLATE utf8_unicode_ci,
-		  `description` text COLLATE utf8_unicode_ci,
-		  `active` tinyint(11) NOT NULL DEFAULT '1'
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-	");
-	if ($mysqli->error) {$log[] = "ERROR - Create table paymenttype - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
 	// Create table settings
 	$mysqli->query
@@ -305,15 +304,15 @@ function create_database($dbpassword, $screenname, $password)
 	$mysqli->query("ALTER TABLE `{$pref}pages` ADD PRIMARY KEY (`id`);");
 	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys pages - ".$mysqli->error; delete_database($dbpassword); return $log;}
 	
-	$mysqli->query("ALTER TABLE `{$pref}payment` ADD PRIMARY KEY (`id`), ADD KEY `paymenttype_id` (`paymenttype_id`), ADD UNIQUE KEY `email` (`email`);");
+	$mysqli->query("ALTER TABLE `{$pref}payment` ADD PRIMARY KEY (`id`), ADD UNIQUE KEY `email` (`email`);");
 	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys payment - ".$mysqli->error; delete_database($dbpassword); return $log;}
 	
+	$mysqli->query("ALTER TABLE `{$pref}payment_item` ADD PRIMARY KEY (`id`), ADD KEY `payment_id` (`payment_id`), ADD KEY `payment_option_id` (`payment_option_id`);");
+	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys payment_item - ".$mysqli->error; delete_database($dbpassword); return $log;}
+
 	$mysqli->query("ALTER TABLE `{$pref}payment_option` ADD PRIMARY KEY (`id`);");
 	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys payment_option - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
-	$mysqli->query("ALTER TABLE `{$pref}paymenttype` ADD PRIMARY KEY (`id`);");
-	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys paymenttype - ".$mysqli->error; delete_database($dbpassword); return $log;}
-	
 	$mysqli->query("ALTER TABLE `{$pref}settings` ADD PRIMARY KEY (`key`);");
 	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys settings - ".$mysqli->error; delete_database($dbpassword); return $log;}
 	
@@ -352,11 +351,11 @@ function create_database($dbpassword, $screenname, $password)
 	$mysqli->query("ALTER TABLE `{$pref}payment` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
 	if ($mysqli->error) {$log[] = "ERROR - Auto increment payment - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
+	$mysqli->query("ALTER TABLE `{$pref}payment_item` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
+	if ($mysqli->error) {$log[] = "ERROR - Auto increment payment_item - ".$mysqli->error; delete_database($dbpassword); return $log;}
+
 	$mysqli->query("ALTER TABLE `{$pref}payment_option` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
 	if ($mysqli->error) {$log[] = "ERROR - Auto increment payment_option - ".$mysqli->error; delete_database($dbpassword); return $log;}
-
-	$mysqli->query("ALTER TABLE `{$pref}paymenttype` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
-	if ($mysqli->error) {$log[] = "ERROR - Auto increment paymenttype - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
 	// Foreign keys ///////////////////////////////////////////////////////////////////////////////
 
@@ -395,10 +394,17 @@ function create_database($dbpassword, $screenname, $password)
 	$mysqli->query
 	("
 		ALTER TABLE `{$pref}payment`
-		  ADD CONSTRAINT `{$pref}payment_ibfk_1` FOREIGN KEY (`email`) REFERENCES `{$pref}user` (`email`) ON DELETE SET NULL ON UPDATE CASCADE,
-		  ADD CONSTRAINT `{$pref}payment_ibfk_2` FOREIGN KEY (`paymenttype_id`) REFERENCES `{$pref}paymenttype` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;"
+		  ADD CONSTRAINT `{$pref}payment_ibfk_1` FOREIGN KEY (`email`) REFERENCES `{$pref}user` (`email`) ON DELETE SET NULL ON UPDATE CASCADE;"
 	);
 	if ($mysqli->error) {$log[] = "ERROR - Foreign keys payment - ".$mysqli->error; delete_database($dbpassword); return $log;}
+
+	$mysqli->query
+	("
+		ALTER TABLE `{$pref}payment_item`
+		  ADD CONSTRAINT `{$pref}payment_item_ibfk_1` FOREIGN KEY (`payment_id`) REFERENCES `{$pref}payment` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+		  ADD CONSTRAINT `{$pref}payment_item_ibfk_2` FOREIGN KEY (`payment_option_id`) REFERENCES `{$pref}payment_option` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;"
+	);
+	if ($mysqli->error) {$log[] = "ERROR - Foreign keys payment_item - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
 	$mysqli->query
 	("
@@ -475,11 +481,11 @@ function delete_database($dbpassword)
 	if ($mysqli->error) $log[] = $mysqli->error;
 
 	// Deleting payment tables
-	$mysqli->query("DROP TABLE if exists `{$pref}payment`;");
-	if ($mysqli->error) $log[] = $mysqli->error;
-	$mysqli->query("DROP TABLE if exists `{$pref}paymenttype`;");
+	$mysqli->query("DROP TABLE if exists `{$pref}payment_item`;");
 	if ($mysqli->error) $log[] = $mysqli->error;
 	$mysqli->query("DROP TABLE if exists `{$pref}payment_option`;");
+	if ($mysqli->error) $log[] = $mysqli->error;
+	$mysqli->query("DROP TABLE if exists `{$pref}payment`;");
 	if ($mysqli->error) $log[] = $mysqli->error;
 
 	// Deleting certification tables

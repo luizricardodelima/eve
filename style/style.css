@@ -77,14 +77,6 @@ button.big .buttonlabel
 	height: 3.5rem;
 }
 
-button.medium
-{
-	max-width: 20em;
-	line-height: 2em;
-	vertical-align: middle;
-	margin: 1em 1em 1em 0;
-}
-
 .section
 {
 	background-color: cornflowerblue;
@@ -144,7 +136,7 @@ table.data_table button
 table.data_table th
 {
 	background-color: cornflowerblue;
-	color: white;
+	color: white;cornflowerblue
 	padding: 0.5rem;
 	font-size: 0.8rem;
 	text-transform: uppercase;
@@ -378,4 +370,46 @@ table.data_table tr.selected
 	font-size: 			1.1rem;
 	line-height: 		1.9rem;
 	outline:			0;
+}
+
+.payment_option
+{
+	border: 1px solid gray;
+	display: flex;
+	flex-direction: row;
+	align-content: center;
+	flex-wrap: nowrap;
+}
+
+.payment_container
+{
+	align-self: center;
+}
+
+.payment_radio
+{
+	align-self: center;
+	width: 2rem;
+}
+
+.payment_name
+{
+	font-size: 	1.4rem;
+}
+
+.payment_description
+{
+	font-size: 	0.9rem;
+}
+
+.payment_value
+{
+	font-size: 	1.1rem;
+	font-weight: bold;
+	color: cornflowerblue;
+}
+
+.payment_selected
+{
+	background-color: lightgray;
 }

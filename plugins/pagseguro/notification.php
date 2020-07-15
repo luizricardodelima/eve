@@ -3,57 +3,51 @@ require_once '../../eve.class.php';
 require_once '../../evepaymentservice.php';
 require_once 'lib/PagSeguroLibrary.php';
 
-$eve = new Eve();
-$date = date("Y_m_d");
-$date_time = date("c");
+error_reporting(E_ERROR | E_PARSE);
+header("Content-Type: text/plain");
 
-var_dump($_POST);
-
-$log_line_1 = "$date_time Received notification - {$_POST['notificationCode']}\n";
-file_put_contents("log/$date.txt", $log_line_1, FILE_APPEND);
-echo $log_line_1;
+function log_message($message)
+{
+	$date = date("Y_m_d");
+	$date_time = date("c");
+	$log_line = $date_time. " " . $message ."\n";
+	file_put_contents("log/$date.txt", $log_line, FILE_APPEND);
+	echo $log_line;
+}
 
 try
 {  
+	log_message("Start of PagSeguro notification - {$_POST['notificationCode']}");
 	$credentials = PagSeguroConfig::getAccountCredentials();  
 	$response = PagSeguroNotificationService::checkTransaction($credentials, $_POST['notificationCode']);
-
-	$log_line_2 = ">>> PAGSEGURO Reference: {$response->getReference()} | Status: {$response->getStatus()->getValue()} {$response->getStatus()->getTypeFromValue()}\n";
-	file_put_contents("log/$date.txt", $log_line_2, FILE_APPEND);
-	echo $log_line_2;
+	log_message(">> Reference: {$response->getReference()} | Status: {$response->getStatus()->getValue()} {$response->getStatus()->getTypeFromValue()}");
 
 	if ($response->getStatus()->getTypeFromValue() == 'PAID')
 	{
+		$items = array();
 		$value_paid = 0;
 		$value_received = $response->getNetAmount();
-		$items = array();
-
+		
 		foreach($response->getItems() as $item)
 		{
-			 $value_paid += ($item->getQuantity() * $item->getAmount());
-			 $items[] = $item->getId();
+			$items[] = $item->getId(); 
+			$value_paid += ($item->getQuantity() * $item->getAmount());
 		}
 
+		$eve = new Eve();
 		$evePaymentService = new EvePaymentService($eve);
+		$pmt = $evePaymentService->payment_register($response->getReference(), "PagSeguro", date("Y-m-d"), $response->getCode(), $value_paid, $value_received, $items);
 		// TODO #6 Create an option for configuring a different payment method name on PagSeguro plugin
-		$pmt = $evePaymentService->perform_payment($response->getReference(), "PagSeguro", date("Y_m_d"), $response->getCode(), $value_paid, $value_received);
-
-		$log_line_3 = ">>> EVE Result: $pmt\n";
-		file_put_contents("log/$date.txt", $log_line_3, FILE_APPEND);
-		echo $log_line_3;
 		
-		$log_line_4 = ">>> VALUE RECEIVED: $value_received\n";
-		file_put_contents("log/$date.txt", $log_line_4, FILE_APPEND);
-		echo $log_line_4;
-
-		$log_line_5 = "\n";
-		file_put_contents("log/$date.txt", $log_line_5, FILE_APPEND);
-		echo $log_line_5;
+		log_message(">> EVE Result: $pmt");
+		log_message(">> VALUE RECEIVED: $value_received");
+		log_message("End of PagSeguro notification\n");
 	}
 }
-catch (PagSeguroServiceException $e)
+catch (Exception $e)
 {  
-	die($e->getMessage());  
+	log_message(">> " . $e->getMessage());
+	log_message("End of PagSeguro notification\n");
 }
 
 ?>

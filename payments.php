@@ -25,7 +25,7 @@ else if (isset($_POST['action']))
 	{
 		case "delete":
 			$evePaymentService = new EvePaymentService($eve);
-			$evePaymentService->remove_payment($_POST['pmt_id']);
+			$evePaymentService->payment_delete($_POST['pmt_id']);
 			$eve->output_redirect_page(basename(__FILE__).""); // TODO ordering and filter
 		break;
 	}

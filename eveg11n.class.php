@@ -1,7 +1,7 @@
 <?php
-
 require_once 'eve.class.php';
 
+/**  TODO deprecated */
 class EveG11n
 {
 	private $eve;

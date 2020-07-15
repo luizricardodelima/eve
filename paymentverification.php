@@ -28,7 +28,7 @@ else
 	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Pagamentos", "payments.php", "Pagamento", null);
 
 	?>
-	<div class="section">Pagamento</div>
+	<div class="section">Pagamento - <?php echo $_GET['screenname'];?></div>
 	<?php
 
 	$data = array();
@@ -60,7 +60,7 @@ else
 		else 
 		{
 			// No errors on validation. Performing payment and displaying outcome
-			$pmt = $evePaymentService->perform_payment($_GET['screenname'], $_POST['paymenttype_id'], $_POST['date'], $_POST['note'], $_POST['value_paid'], $_POST['value_received']);
+			$pmt = $evePaymentService->payment_register($_GET['screenname'], $_POST['paymenttype_id'], $_POST['date'], $_POST['note'], $_POST['value_paid'], $_POST['value_received']);
 			switch ($pmt)
 			{
 				case EvePaymentService::PAYMENT_ERROR :
@@ -88,8 +88,6 @@ else
 	<form action="<?php echo basename(__FILE__)."?screenname={$_GET['screenname']}";?>" method="post">
 	<div class="dialog_panel">
 	
-	<p>Pagamento para <?php echo $_GET['screenname'];?></p>
-
 	<label for="iptdate">Data</label>
 	<input id="iptdate" type="date" name="date" value="<?php echo $data['date'];?>"/>
 
@@ -104,6 +102,18 @@ else
 
 	<label for="note">Observação</label>
 	<textarea id="note" name="note" rows="5"><?php echo is_null($data['note']) ? '' : $data['note'];?></textarea>
+
+	<table class="data_table">
+	<th>Ítens adquiridos</th>
+	<?php
+	if (isset($data['id'])) foreach ($evePaymentService->payment_item_list($data['id']) as $item)
+	{
+		echo "<tr>";
+		echo "<td>{$item['name']}</td>";
+		echo "</tr>";
+	}
+	?>
+	</table>
 
 	<button type="submit" class="submit"><?php echo $eve->_('common.action.save');?></button>
 	<button type="button" class="altaction" onclick="window.location.href='payments.php'"><?php echo $eve->_('common.action.back');?></button>

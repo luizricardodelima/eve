@@ -5,65 +5,126 @@ require_once 'evemail.php';
 
 class EvePaymentService
 {
-	//TODO create a Payment object with native objects not strings, pass this object on register payment and validate it on its creation.
 	private $eve;
 	private $evemail;
 
-	const PAYMENT_ERROR = 0;	
-	const PAYMENT_SUCCESSFUL = 1;
-	const PAYMENT_SUCCESSFUL_WITH_EMAIL_ALERT = 2;
+	const PAYMENT_ERROR = "payment.error";	
+	const PAYMENT_ERROR_ID_NOT_RETRIEVED = "payment.error.id.not.retrieved";
+	const PAYMENT_ERROR_SQL = "payment.error.sql";
+	const PAYMENT_SUCCESSFUL = "payment.successful";
+	const PAYMENT_SUCCESSFUL_WITH_EMAIL_ALERT = "payment.successful.with.email.alert";
 
 	const PAYMENT_OPTION_CREATE_ERROR_SQL = 'payment.option.create.error.sql';
 	const PAYMENT_OPTION_CREATE_SUCCESS = 'payment.option.create.success';
 	const PAYMENT_OPTION_DELETE_ERROR_SQL = 'payment.option.delete.error.sql';
 	const PAYMENT_OPTION_DELETE_SUCCESS = 'payment.option.delete.success';
 	
-	function perform_payment($screenname, $payment_method, $date, $note, $value_paid, $value_received, $items = null)
+	/** 
+	 * Returns the Payment id associated to the $screenname. If no payment is found,
+	 * the function creates a payment object associated to the $screenname and then
+	 * returns the id. The function retuns null in case of an error.
+	 */
+	function payment_create_or_get_id($screenname)
+	{
+		$id = null;
+		$stmt = $this->eve->mysqli->prepare
+		("
+			select	`{$this->eve->DBPref}payment`.`id`
+			from	`{$this->eve->DBPref}payment`
+			where	`{$this->eve->DBPref}payment`.`user_email` = ?
+		");
+		if ($stmt === false)
+		{
+			return null;
+		}	
+		$stmt->bind_param('s', $screenname);
+		$stmt->execute();
+		$stmt->bind_result($id_);
+		if ($stmt->fetch())
+		{
+			$id = $id_;
+			$stmt->close();
+			return $id;
+		}
+		else
+		{
+			$stmt->close();
+			$stmt1 = $this->eve->mysqli->prepare
+			("
+				insert into `{$this->eve->DBPref}payment` (`user_email`)
+				values (?)
+			");
+			if ($stmt1 === false)
+			{
+				return null;
+			}
+			$stmt1->bind_param('s', $screenname);
+			$stmt1->execute();
+			if (!empty($stmt1->error))
+			{
+				$stmt1->close();
+				return null;
+			}
+			$id = $stmt1->insert_id;
+			$stmt1->close();
+			return $id;
+		}
+	}
+
+	function payment_register($screenname, $payment_method, $date, $note, $value_paid, $value_received, $items = null)
 	{
 		// Default case, to be changed if a successful payment occurs
 		$result = self::PAYMENT_ERROR;
 
-		// If there's no associated payment, create one
-		$stmt = $this->eve->mysqli->prepare("SELECT * FROM `{$this->eve->DBPref}payment` WHERE `email`=?;");
-		if ($stmt === false)
+		// Getting or creating payment id
+		$id = $this->payment_create_or_get_id($screenname);
+		if ($id === null) return self::PAYMENT_ERROR_ID_NOT_RETRIEVED;
+
+		//Populating payment with data
+		$stmt1 = $this->eve->mysqli->prepare
+		("
+			update 
+				`{$this->eve->DBPref}payment`
+			set
+				`payment_method` = ?,
+				`value_paid` = ?,
+				`value_received` = ?,
+				`date` = ?,
+				`note` = ?
+			where
+				`id` = ?;
+		");
+		if ($stmt1 === false)
 		{
-			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
-			return self::PAYMENT_ERROR;
+			return self::PAYMENT_ERROR_SQL;
 		}
-		$stmt->bind_param('s', $screenname);
-		$stmt->execute();
-		$stmt->store_result();
-		$payment_found = ($stmt->num_rows > 0);
-		$stmt->close();
-		if (!$payment_found)
-		{
-			$stmt1 = $this->eve->mysqli->prepare("INSERT INTO `{$this->eve->DBPref}payment` (`email`) VALUES (?);");
-			if ($stmt1 === false)
-			{
-				trigger_error($this->eve->mysqli->error, E_USER_ERROR);
-				return self::PAYMENT_ERROR;
-			}
-			$stmt1->bind_param('s', $screenname);
-			$stmt1->execute();
-			$stmt1->close();
-		}
-		
+		$stmt1->bind_param('sddssi', $payment_method, $value_paid, $value_received, $date, $note, $id);
+		if ($stmt1->execute())
+			$result = self::PAYMENT_SUCCESSFUL;
+		else
+			$result = self::PAYMENT_ERROR_SQL;
+		$stmt1->close();
+
+		// Inserting payment items
 		$stmt2 = $this->eve->mysqli->prepare
 		("
-			UPDATE `{$this->eve->DBPref}payment`
-			SET `payment_method` = ?, `value_paid` = ?, `value_received` = ?, `date` = ?, `note` = ?
-			WHERE `email` = ?;
+			insert into `{$this->eve->DBPref}payment_item` (`payment_id`, `payment_option_id`)
+			values (?, ?)
 		");
 		if ($stmt2 === false)
 		{
-			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
-			return self::PAYMENT_ERROR;
+			return self::PAYMENT_ERROR_SQL;
 		}
-		$stmt2->bind_param('sddsss', $payment_method, $value_paid, $value_received, $date, $note, $screenname);
-		if ($stmt2->execute())
-			$result = self::PAYMENT_SUCCESSFUL;
-		else
-			$result = self::PAYMENT_ERROR;
+		foreach ($items as $item)
+		{
+			$stmt2->bind_param('ii', $id, $item);
+			$stmt2->execute();
+			if (!empty($stmt2->error))
+			{
+				$stmt2->close();
+				return self::PAYMENT_ERROR_SQL;
+			}
+		}
 		$stmt2->close();
 
 		// Blocking user form if the setting says so
@@ -79,41 +140,57 @@ class EvePaymentService
 			$stmt3->execute();
 			$stmt3->close();
 		}
-		
-		if ($result == self::PAYMENT_SUCCESSFUL && $this->eve->getSetting('email_snd_payment'))
+
+		if ($result == self::PAYMENT_SUCCESSFUL && $this->eve->getSetting('email_snd_payment_update'))
 		{
-			$paymenttype_id_sql = intval($paymenttype_id); // Sanitizing value.
-			// TODO USE PREPARED STATEMENTS - CREATE A METHOD IN THIS CLASS
-			$paymenttype = $this->eve->mysqli->query("SELECT * FROM `{$this->eve->DBPref}paymenttype` where `id`=$paymenttype_id_sql;")->fetch_assoc();
-			
+			$date_formatter = new IntlDateFormatter($this->eve->getSetting('system_locale'), IntlDateFormatter::SHORT, IntlDateFormatter::NONE);
+			$money_formatter = new NumberFormatter($this->eve->getSetting('system_locale'), NumberFormatter::CURRENCY);
+
 			$placeholders = array
 			(
 				'$email' => $screenname,
-				'$paymenttype_name' => $paymenttype['name'],
-				'$paymenttype_description' => $paymenttype['description'],
 				'$support_email_address' => $this->eve->getSetting('support_email_address'),
 				'$system_name' => $this->eve->getSetting('system_name'),
-				'$site_url' => $this->eve->sysurl()
+				'$site_url' => $this->eve->sysurl(),
+				'$payment_date' => $date_formatter->format(strtotime($date)),
+				'$payment_method' => $payment_method,
+				'$payment_value_paid' => $money_formatter->format($value_paid)
 			);
-			$send_successful = $this->evemail->send_mail($screenname, $placeholders, $this->eve->getSetting('email_sbj_payment'), $this->eve->getSetting('email_msg_payment'));
+			$send_successful = $this->evemail->send_mail($screenname, $placeholders, $this->eve->getSetting('email_sbj_payment_update'), $this->eve->getSetting('email_msg_payment_update'));
 			if ($send_successful) $result = self::PAYMENT_SUCCESSFUL_WITH_EMAIL_ALERT;
 		}
 		return $result;
 	}
 
-	function remove_payment($payment_id)
+	const PAYMENT_DELETE_ERROR_SQL = 'payment.delete.error.sql';
+	const PAYMENT_DELETE_SUCCESS = 'payment.delete.success';
+
+	function payment_delete($id, $send_email = 'true')
 	{
-		// Sanitizing input
-		if (!is_numeric($payment_id)) return;
-		
-		// Updating DB
-		// TODO Prepared statements
-		$payment = $this->eve->mysqli->query("select * from `{$this->eve->DBPref}payment` where `{$this->eve->DBPref}payment`.`id` = $payment_id;")->fetch_assoc();
-		$date_time = date("c");	
-		$new_note = "PAYMENT DELETED AT $date_time BY {$_SESSION['screenname']}. This payment belonged to {$payment['email']}\n".$payment['note'];	
-		$this->eve->mysqli->query("update `{$this->eve->DBPref}payment` set `{$this->eve->DBPref}payment`.`note` = '$new_note' where `{$this->eve->DBPref}payment`.`id` = $payment_id;");
-		$this->eve->mysqli->query("update `{$this->eve->DBPref}payment` set `{$this->eve->DBPref}payment`.`email` = null where `{$this->eve->DBPref}payment`.`id` = $payment_id;");
-		
+		$payment = $this->payment_get($id);
+		$agent = (isset($_SESSION['screenname'])) ? $_SESSION['screenname'] : "Unknown user";
+		$new_note = "Payment deleted at " . date("c") . " by $agent. This payment belonged to {$payment['user_email']}\n";
+
+		$stmt1 = $this->eve->mysqli->prepare
+		("
+			update 	`{$this->eve->DBPref}payment`
+			set 	`{$this->eve->DBPref}payment`.`note` = CONCAT(?, `{$this->eve->DBPref}payment`.`note`),
+					`{$this->eve->DBPref}payment`.`user_email` = NULL
+			where 	`{$this->eve->DBPref}payment`.`id` = ?;
+		");
+		if ($stmt1 === false)
+		{
+			return self::PAYMENT_DELETE_ERROR_SQL;
+		}
+		$stmt1->bind_param('si', $new_note, $id);
+		$stmt1->execute();
+		if (!empty($stmt1->error))
+		{
+			$stmt1->close();
+			return self::PAYMENT_DELETE_ERROR_SQL;
+		}
+		$stmt1->close();
+
 		// Unblocking user form if the setting says so
 		if ($this->eve->getSetting('block_user_form') == 'after_payment')
 		{
@@ -128,35 +205,78 @@ class EvePaymentService
 			$stmt3->close();
 		}
 
-		if ($this->eve->getSetting('email_snd_payment'))
+		if ($send_email)
 		{
 			$placeholders = array
 			(
-				'$email' => $payment['email'],
-				'$paymenttype_name' => $this->eve->_('paymenttype.name.null'),
-				'$paymenttype_description' => $this->eve->_('paymenttype.description.null'),
+				'$email' => $payment['user_email'],
 				'$support_email_address' => $this->eve->getSetting('support_email_address'),
 				'$system_name' => $this->eve->getSetting('system_name'),
 				'$site_url' => $this->eve->sysurl()
 			);
-			$this->evemail->send_mail($payment['email'], $placeholders, $this->eve->getSetting('email_sbj_payment'), $this->eve->getSetting('email_msg_payment'));
+			$this->evemail->send_mail($payment['user_email'], $placeholders, $this->eve->getSetting('email_sbj_payment_delete'), $this->eve->getSetting('email_msg_payment_delete'));
 		}
+
+		return self::PAYMENT_DELETE_SUCCESS;
 	}
 
-	/* TODO IMPLEMENT
 	function payment_get($id)
 	{
-	}
-	*/
-	
-	function payment_get_by_user($email)
-	{
-		$payment = null;
 		$stmt1 = $this->eve->mysqli->prepare
 		("
 			select * 
 			from   `{$this->eve->DBPref}payment`
-			where  `user_email` = ?
+			where  `{$this->eve->DBPref}payment`.`id` = ?
+		");
+		if ($stmt1 === false)
+		{
+			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
+			return null;
+		}		
+		$stmt1->bind_param('i', $id);
+		$stmt1->execute();
+		// Binding result variable - Column by column to ensure compability
+		// From PHP Verions 5.3+ there is the get_result() method
+    	$stmt1->bind_result
+		(
+			$id,
+			$user_email,
+			$date,
+			$payment_method,
+			$value_paid,
+			$value_received,
+			$note,
+			$file
+		);
+		// Fetching values		
+		if ($stmt1->fetch())
+		{
+			$payment = array();
+			$payment['id'] = $id;
+			$payment['user_email'] = $user_email;
+			$payment['date'] = $date;
+			$payment['payment_method'] = $payment_method;
+			$payment['value_paid'] = $value_paid;
+			$payment['value_received'] = $value_received;
+			$payment['note'] = $note;
+			$payment['file'] = $file;
+			$stmt1->close();
+			return $payment;
+		}
+		else
+		{
+			$stmt1->close();
+			return null;
+		}
+	}
+
+	function payment_get_by_user($email)
+	{
+		$stmt1 = $this->eve->mysqli->prepare
+		("
+			select * 
+			from   `{$this->eve->DBPref}payment`
+			where  `{$this->eve->DBPref}payment`.`user_email` = ?
 		");
 		if ($stmt1 === false)
 		{
@@ -170,30 +290,34 @@ class EvePaymentService
     	$stmt1->bind_result
 		(
 			$id,
-			$email_,
+			$user_email,
 			$date,
-			$paymenttype_id,
+			$payment_method,
 			$value_paid,
 			$value_received,
 			$note,
-			$image
+			$file
 		);
-		$payment = null;
 		// Fetching values		
 		if ($stmt1->fetch())
 		{
 			$payment = array();
 			$payment['id'] = $id;
-			$payment['email'] = $email;
+			$payment['user_email'] = $user_email;
 			$payment['date'] = $date;
-			$payment['paymenttype_id'] = $paymenttype_id;
+			$payment['payment_method'] = $payment_method;
 			$payment['value_paid'] = $value_paid;
 			$payment['value_received'] = $value_received;
 			$payment['note'] = $note;
-			$payment['image'] = $image;
+			$payment['file'] = $file;
+			$stmt1->close();
+			return $payment;
 		}
-		$stmt1->close();
-		return $payment;
+		else
+		{
+			$stmt1->close();
+			return null;
+		}
 	}
 
 	function payment_list($order_by = 'name', $specific_emails = null)
@@ -273,6 +397,52 @@ class EvePaymentService
 		}
 	}
 
+	function payment_item_list($payment_id)
+	{
+		$result = array();
+		$stmt1 = $this->eve->mysqli->prepare
+		("
+			select 	`{$this->eve->DBPref}payment_item`.`id`,
+					`{$this->eve->DBPref}payment_item`.`payment_id`,
+					`{$this->eve->DBPref}payment_item`.`payment_option_id`,
+					`{$this->eve->DBPref}payment_option`.`type`,
+					`{$this->eve->DBPref}payment_option`.`name`,
+					`{$this->eve->DBPref}payment_option`.`description`,
+					`{$this->eve->DBPref}payment_option`.`value`,
+					`{$this->eve->DBPref}payment_option`.`available_from`,
+					`{$this->eve->DBPref}payment_option`.`available_to`,
+					`{$this->eve->DBPref}payment_option`.`admin_only`,
+					`{$this->eve->DBPref}payment_option`.`active`
+			from	`{$this->eve->DBPref}payment_item`, `{$this->eve->DBPref}payment_option`
+			where	`{$this->eve->DBPref}payment_item`.`payment_option_id` = `{$this->eve->DBPref}payment_option`.`id` and
+					`{$this->eve->DBPref}payment_item`.`payment_id` = ?
+		");
+		if ($stmt1 === false)
+		{
+			return null;
+		}
+		$stmt1->bind_param('i', $payment_id);
+		$stmt1->execute();		
+		// Binding result variable - Column by column to ensure compability
+		// From PHP Verions 5.3+ there is the get_result() method
+    	$stmt1->bind_result
+		(
+			$id, $payment_id, $payment_option_id, $type, $name, $description,
+			$value, $available_from, $available_to, $admin_only, $active
+		);
+		// Fetching values
+		while ($stmt1->fetch())
+		{
+			$result[] = array(
+				'id' => $id, 'payment_id' => $payment_id, 'payment_option_id' => $payment_option_id, 'type' =>$type, 'name' => $name, 'description' => $description,
+				'value' => $value, 'available_from' => $available_from, 'available_to' => $available_to,
+				'admin_only' => $admin_only, 'active' => $active
+			);
+		}
+		$stmt1->close();
+		return $result;
+	}
+
 	function payment_option_delete($id)
 	{	
 		$stmt = $this->eve->mysqli->prepare
@@ -339,7 +509,6 @@ class EvePaymentService
 			return null;
 		}
 	}
-
 
 	function payment_option_list($id_as_array_key = false)
 	{	// TODO ERROR MESSAGES

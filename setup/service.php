@@ -183,7 +183,7 @@ function create_database($dbpassword, $screenname, $password)
 	("
 		CREATE TABLE `{$pref}payment` (
 		  `id` int(11) NOT NULL,
-		  `email` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+		  `user_email` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
 		  `date` date,
 		  `payment_method` text COLLATE utf8_unicode_ci,
 		  `value_paid` double NOT NULL DEFAULT '0',
@@ -304,7 +304,7 @@ function create_database($dbpassword, $screenname, $password)
 	$mysqli->query("ALTER TABLE `{$pref}pages` ADD PRIMARY KEY (`id`);");
 	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys pages - ".$mysqli->error; delete_database($dbpassword); return $log;}
 	
-	$mysqli->query("ALTER TABLE `{$pref}payment` ADD PRIMARY KEY (`id`), ADD UNIQUE KEY `email` (`email`);");
+	$mysqli->query("ALTER TABLE `{$pref}payment` ADD PRIMARY KEY (`id`), ADD UNIQUE KEY `user_email` (`user_email`);");
 	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys payment - ".$mysqli->error; delete_database($dbpassword); return $log;}
 	
 	$mysqli->query("ALTER TABLE `{$pref}payment_item` ADD PRIMARY KEY (`id`), ADD KEY `payment_id` (`payment_id`), ADD KEY `payment_option_id` (`payment_option_id`);");
@@ -394,7 +394,7 @@ function create_database($dbpassword, $screenname, $password)
 	$mysqli->query
 	("
 		ALTER TABLE `{$pref}payment`
-		  ADD CONSTRAINT `{$pref}payment_ibfk_1` FOREIGN KEY (`email`) REFERENCES `{$pref}user` (`email`) ON DELETE SET NULL ON UPDATE CASCADE;"
+		  ADD CONSTRAINT `{$pref}payment_ibfk_1` FOREIGN KEY (`user_email`) REFERENCES `{$pref}user` (`email`) ON DELETE SET NULL ON UPDATE CASCADE;"
 	);
 	if ($mysqli->error) {$log[] = "ERROR - Foreign keys payment - ".$mysqli->error; delete_database($dbpassword); return $log;}
 

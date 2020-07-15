@@ -81,7 +81,7 @@ else
 		$data = $evePaymentService->payment_get_by_user($_GET['screenname']);
 		$date_value = date('Y-m-d');
 		// TODO Creating new payment object goes to service
-		if ($data === null) $data = array ('date' => $date_value, 'paymenttype_id' => null, 'value_paid' => 0, 'value_received' => 0, 'note' => null);
+		if ($data === null) $data = array ('date' => $date_value, 'payment_method' => null, 'value_paid' => 0, 'value_received' => 0, 'note' => null);
 	}
 		
 	?>

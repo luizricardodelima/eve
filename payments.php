@@ -32,83 +32,12 @@ else if (isset($_POST['action']))
 }
 else
 {
+	$evePaymentService = new EvePaymentService($eve);
+	$formatter = new NumberFormatter($eve->getSetting('system_locale'), NumberFormatter::CURRENCY);
+
 	$eve->output_html_header();
 	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('userarea.option.admin.payments'), null);
-	setlocale(LC_MONETARY, $eve->getSetting('system_locale'));
 
-	// TODO NOW IT'S GOING TO BE PAYMENT_METHODS. SELECT DISTINCT PAYMENT METHODS
-	// Loading payment types information
-	$paymenttypes = array();
-	$paymenttypes_res = $eve->mysqli->query("SELECT * FROM `{$eve->DBPref}paymenttype` where `active` = 1;");
-	while ($paymenttype = $paymenttypes_res->fetch_assoc())
-	{
-		$paymenttypes[$paymenttype['id']]['name'] = $paymenttype['name'];
-		$paymenttypes[$paymenttype['id']]['description'] = $paymenttype['description'];
-		$paymenttypes[$paymenttype['id']]['user_count'] = 0;
-		$paymenttypes[$paymenttype['id']]['value_count'] = 0;
-		$paymenttypes[$paymenttype['id']]['value_received_count'] = 0;
-	}
-	$paymenttypes[NULL]['name'] = $eve->_('paymenttype.name.null');
-	$paymenttypes[NULL]['description'] = $eve->_('paymenttype.description.null');
-	$paymenttypes[NULL]['user_count'] = 0;
-	$paymenttypes[NULL]['value_count'] = 0;
-	$paymenttypes[NULL]['value_received_count'] = 0;
-	// According to manual, null will be cast to the empty string, i.e. the key null will actually be stored under "".
-	// Source: http://php.net/manual/en/language.types.array.php
-	
-	// Ordering
-	$order_by = (isset($_GET["order-by"])) ? $_GET["order-by"] : "name";
-	$order_sql = '';
-	switch ($order_by)
-	{
-		
-		case 'email':
-			$ordering = "`{$eve->DBPref}userdata`.`email`";
-			break;
-		case 'category':
-			$ordering = "`{$eve->DBPref}usercategory`.`description`";
-			break;
-		case 'payment-type':
-			$ordering = "`{$eve->DBPref}payment`.`paymenttype_id`";
-			break;
-		case 'value-paid':
-			$ordering = "`{$eve->DBPref}payment`.`value_paid`";
-			break;
-		case 'value-received':
-			$ordering = "`{$eve->DBPref}payment`.`value_received`";
-			break;
-		case 'date':
-			$ordering = "`{$eve->DBPref}payment`.`date`";
-			break;
-		case 'note':
-			$ordering = "`{$eve->DBPref}payment`.`note`";
-			break;
-		case 'name':
-		default:
-			$ordering = "`{$eve->DBPref}userdata`.`name`";
-		break;
-	}
-	$user_res = $eve->mysqli->query
-	("	select 
-			`{$eve->DBPref}userdata`.`email`,
-			`{$eve->DBPref}userdata`.`name`,
-			`{$eve->DBPref}usercategory`.`description`,
-			`{$eve->DBPref}payment`.`id`,
-			`{$eve->DBPref}payment`.`paymenttype_id`,
-			`{$eve->DBPref}payment`.`value_paid`,
-			`{$eve->DBPref}payment`.`value_received`,
-			`{$eve->DBPref}payment`.`date`,
-			`{$eve->DBPref}payment`.`note`
-		from
-			`{$eve->DBPref}userdata`
-		left outer join
-			`{$eve->DBPref}payment` on (`{$eve->DBPref}userdata`.`email` = `{$eve->DBPref}payment`.`email`)
-		left outer join
-			`{$eve->DBPref}usercategory` on (`{$eve->DBPref}userdata`.`category_id` = `{$eve->DBPref}usercategory`.`id`)
-		order by
-			$ordering;
-	");
-	
 	?>
 	<script>
 	function toggle(source, elementname)
@@ -120,6 +49,7 @@ else
 			toggleRow(checkboxes[i]);
 		}
 	}
+
 	function toggleRow(source)
 	{
 		if (source.checked)
@@ -127,6 +57,7 @@ else
 		else
 			source.parentNode.parentNode.classList.remove('selected');
 	}
+
 	function credentials() {
 		var container = document.getElementById("credentials_form");
 		checkboxes = document.getElementsByName("screenname[]");
@@ -160,7 +91,8 @@ else
 		}
 		document.forms['export_form'].submit();
 	}
-
+	/*
+	TODO: REIMPLEMENT Summary View
 	function change_view()
 	{
 		switch (document.querySelector('input[name="view"]:checked').value)
@@ -175,6 +107,7 @@ else
 				break;
 		}
 	}
+	*/
 	</script>	
 
 	<form id="credentials_form" method="post" action="credential.php"></form>
@@ -185,60 +118,50 @@ else
 	<button type="button" onclick="export_selected()">Exportar</button>
 	<button type="button" onclick="credentials()">Credencial</button>
 	<button type="button" onclick="window.location='settingspaymentslisting.php';">Configurar</button>
+	<!-- TODO Reimplement Summary View
 	<span style="float: right;">
 	<input type="radio" name="view" id="complete_view_option" value="complete" checked="checked" onchange="change_view();"><label for="complete_view_option">Completo</label>
 	<input type="radio" name="view" id="short_view_option" value="short" onchange="change_view();"><label for="short_view_option">Resumido</label>
 	</span>
+	-->
 	</div>
 	<table class="data_table" id="complete_view_table">
 	<tr>
-	<th style="width: 3%"><input type="checkbox" onClick="toggle(this, 'screenname[]')"/></th>
-	<th style="width: 15%"><a href="<?php echo basename(__FILE__);?>">Nome</a></th>
+	<th style="width: 5%"><input type="checkbox" onClick="toggle(this, 'screenname[]')"/></th>
+	<th style="width: 20%"><a href="<?php echo basename(__FILE__);?>">Nome</a></th>
 	<th style="width: 15%"><a href="<?php echo basename(__FILE__);?>?order-by=email">E-mail</a></th>
-	<th style="width: 10%"><a href="<?php echo basename(__FILE__);?>?order-by=category">Categoria</a></th>		
-	<th style="width: 10%"><a href="<?php echo basename(__FILE__);?>?order-by=payment-type">Tipo pgt.</a></th>
-	<th style="width: 08%"><a href="<?php echo basename(__FILE__);?>?order-by=value-paid">Valor pago</a></th>
-	<th style="width: 08%"><a href="<?php echo basename(__FILE__);?>?order-by=value-received">Valor receb.</a></th>
-	<th style="width: 09%"><a href="<?php echo basename(__FILE__);?>?order-by=date">Data</a></th>
-	<th style="width: 17%"><a href="<?php echo basename(__FILE__);?>?order-by=note">Observação</a></th>
+	<th style="width: 10%"><a href="<?php echo basename(__FILE__);?>?order-by=payment-method">Tipo pgt.</a></th>
+	<th style="width: 10%"><a href="<?php echo basename(__FILE__);?>?order-by=value-paid">Valor pago</a></th>
+	<th style="width: 10%"><a href="<?php echo basename(__FILE__);?>?order-by=value-received">Valor receb.</a></th>
+	<th style="width: 10%"><a href="<?php echo basename(__FILE__);?>?order-by=date">Data</a></th>
+	<th style="width: 15%"><a href="<?php echo basename(__FILE__);?>?order-by=note">Observação</a></th>
 	<th style="width: 05%" colspan="3"><?php echo $eve->_('common.table.header.options');?></th>		
 	</tr>
 	<?php
-	
-	while ($user_row = $user_res->fetch_assoc())
+	foreach ($evePaymentService->payment_list() as $payment)
 	{
 		echo "<tr>";
-		echo "<td><input type=\"checkbox\" name=\"screenname[]\" value=\"{$user_row['email']}\" onclick=\"toggleRow(this)\"/></td>";
-		echo "<td>{$user_row['name']}</td>";
-		echo "<td>{$user_row['email']}</td>";
-		echo "<td>{$user_row['description']}</td>";
-		echo "<td>{$paymenttypes[$user_row['paymenttype_id']]['name']}</td>";
-		echo "<td>";
-		// TODO money_format is deprecated!
-		if (!is_null($user_row['value_paid'])) echo money_format('%n', $user_row['value_paid']);
-		echo "</td>";
-		echo "<td>";
-		// TODO money_format is deprecated!
-		if (!is_null($user_row['value_received'])) echo money_format('%n', $user_row['value_received']);
-		echo "</td>";
-		echo "<td>{$user_row['date']}</td>";
-		echo "<td>{$user_row['note']}</td>";
-		if (!is_null($user_row['id']))
+		echo "<td><input type=\"checkbox\" name=\"screenname[]\" value=\"{$payment['email']}\" onclick=\"toggleRow(this)\"/></td>";
+		echo "<td>{$payment['name']}</td>";
+		echo "<td>{$payment['email']}</td>";
+		echo "<td>{$payment['payment_method']}</td>";
+		echo "<td>".$formatter->format($payment['value_paid'])."</td>";
+		echo "<td>".$formatter->format($payment['value_received'])."</td>";
+		echo "<td>{$payment['date']}</td>";
+		echo "<td>{$payment['note']}</td>";
+		if (!is_null($payment['id']))
 		{
-			echo "<td><button type=\"button\" onclick=\"window.location='paymentverification.php?screenname={$user_row['email']}'\"><img src=\"style/icons/payment_edit.png\"></button></td>";
-			echo "<td><button type=\"button\" onclick=\"window.location='user.php?user={$user_row['email']}'\"><img src=\"style/icons/user_edit.png\"></button></td>";
-			echo "<td><button type=\"button\" onclick=\"delete_row({$user_row['id']},'{$user_row['email']}')\"><img src=\"style/icons/delete.png\"></button></td>";
+			echo "<td><button type=\"button\" onclick=\"window.location='paymentverification.php?screenname={$payment['email']}'\"><img src=\"style/icons/payment_edit.png\"></button></td>";
+			echo "<td><button type=\"button\" onclick=\"window.location='user.php?user={$payment['email']}'\"><img src=\"style/icons/user_edit.png\"></button></td>";
+			echo "<td><button type=\"button\" onclick=\"delete_row({$payment['id']},'{$payment['email']}')\"><img src=\"style/icons/delete.png\"></button></td>";
 		}
 		else
 		{
 			echo "<td></td>";
-			echo "<td><button type=\"button\" onclick=\"window.location='user.php?user={$user_row['email']}'\"><img src=\"style/icons/user_edit.png\"></button></td>";
-			echo "<td><button type=\"button\" onclick=\"window.location='paymentverification.php?screenname={$user_row['email']}'\"><img src=\"style/icons/payment_verification.png\"></button></td>";
+			echo "<td><button type=\"button\" onclick=\"window.location='user.php?user={$payment['email']}'\"><img src=\"style/icons/user_edit.png\"></button></td>";
+			echo "<td><button type=\"button\" onclick=\"window.location='paymentverification.php?screenname={$payment['email']}'\"><img src=\"style/icons/payment_verification.png\"></button></td>";
 		}
 		echo "</tr>";
-		$paymenttypes[$user_row['paymenttype_id']]['user_count']++;
-		if (!is_null($user_row['value_paid'])) $paymenttypes[$user_row['paymenttype_id']]['value_count'] += $user_row['value_paid'];
-		if (!is_null($user_row['value_received'])) $paymenttypes[$user_row['paymenttype_id']]['value_received_count'] += $user_row['value_received'];
 	}
 	?>
 	</table>
@@ -260,6 +183,7 @@ else
 	}
 	</script>
 	
+	<!-- TODO Reimplement Summary View
 	<table class="data_table" id="short_view_table" style="display:none;">
 	<thead>	
 	<th style="width: 40%">Tipo de pagamento</th>
@@ -268,34 +192,15 @@ else
 	<th style="width: 20%">Valor recebido</th>
 	</thead>
 	<tbody>
-	<?php
-	$total_user_count = 0;
-	$total_value_paid_sum = 0;
-	$total_value_received_sum = 0;
-	foreach ($paymenttypes as $paymenttype)
-	{
-		?>
-		<tr>
-		<td><?php echo $paymenttype['name'];?></td>
-		<td><?php echo $paymenttype['user_count'];?></td>
-		<td><?php echo money_format('%n', $paymenttype['value_count']);?></td>
-		<td><?php echo money_format('%n', $paymenttype['value_received_count']);?></td>
-		</tr>
-		<?php
-		$total_user_count += $paymenttype['user_count'];
-		$total_value_paid_sum += $paymenttype['value_count'];
-		$total_value_received_sum += $paymenttype['value_received_count'];
-	}
-	?>
 	<tr>
 	<td><strong>Total</strong></td>
-	<td><strong><?php echo $total_user_count;?></strong></td>
-	<td><strong><?php echo money_format('%n', $total_value_paid_sum);?></strong></td>
-	<td><strong><?php echo money_format('%n', $total_value_received_sum);?></strong></td>
+	<td><strong><?php echo 0;?></strong></td>
+	<td><strong><?php echo $formatter->format(0);?></strong></td>
+	<td><strong><?php echo $formatter->format(0);?></strong></td>
 	</tr>
 	</tbody>
 	</table>
-		
+	-->
 	<?php
 	$eve->output_html_footer();
 }

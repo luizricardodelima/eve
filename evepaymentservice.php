@@ -156,7 +156,7 @@ class EvePaymentService
 		("
 			select * 
 			from   `{$this->eve->DBPref}payment`
-			where  `email` = ?
+			where  `user_email` = ?
 		");
 		if ($stmt1 === false)
 		{
@@ -194,6 +194,59 @@ class EvePaymentService
 		}
 		$stmt1->close();
 		return $payment;
+	}
+
+	function payment_list($order_by = 'name', $specific_emails = null)
+	{
+		$result = array();
+
+		// TODO Remove SQL injection
+		$where_sql_clause = '';
+		if ($specific_emails !== null)
+		{
+			$where_sql_clause = "where `{$this->eve->DBPref}userdata`.`email` in ('" . implode("','",$specific_emails). "')";
+		}
+
+		$ordering = '';
+		switch ($order_by)
+		{
+			case 'email':
+				$ordering = "`{$this->eve->DBPref}userdata`.`email`";
+				break;
+			case 'payment-method':
+				$ordering = "`{$this->eve->DBPref}payment`.`payment_method`";
+				break;
+			case 'value-paid':
+				$ordering = "`{$this->eve->DBPref}payment`.`value_paid`";
+				break;
+			case 'value-received':
+				$ordering = "`{$this->eve->DBPref}payment`.`value_received`";
+				break;
+			case 'date':
+				$ordering = "`{$this->eve->DBPref}payment`.`date`";
+				break;
+			case 'note':
+				$ordering = "`{$this->eve->DBPref}payment`.`note`";
+				break;
+			case 'name':
+			default:
+				$ordering = "`{$this->eve->DBPref}userdata`.`name`";
+			break;
+		}
+		$resource = $this->eve->mysqli->query
+		("	
+			select 
+				*
+			from
+				`{$this->eve->DBPref}userdata`
+			left outer join
+				`{$this->eve->DBPref}payment` on (`{$this->eve->DBPref}userdata`.`email` = `{$this->eve->DBPref}payment`.`user_email`)
+			$where_sql_clause
+			order by
+				$ordering;
+		");
+		while ($item = $resource->fetch_assoc()) $result[] = $item;
+		return $result;
 	}
 
 	function payment_option_create($name = "")

@@ -12,12 +12,14 @@ _Event management system_
 - **(under development usability)** Change the flags for the flags from the project RegionFlags (https://github.com/google/region-flags)
 - **(under development usability)** Changed the deprecated phpExcel library to PHP_XLSXWriter (https://github.com/mk-j/PHP_XLSXWriter). Although PHPExcel (Now PHPSpreadsheet) is good, this application perform basic exports and a simpler library will consume less resources and new deploys will be faster (PHPExcel has too many files).
 - **(under development feature)** New Password Retrieval dynamics - An expirable acess is sent to users e-mail. After access this code, user is prompted to change his password.
-- 2019-06-03 **(feature)** Masks can be applied to user custom text fields now 
-- 2019-05-28 **(bug fix)** Bug fixes for increased compatibility with SQL Strict mode - text fields on database are null by default
+- 2020-07-15 **(feature)** New Payment model with configurable options and simplified payment plugins.
+- 2020-07-15 **(usability)** The entities Paymenttype and (user)category were removed. The removal of this rarely used elements will make room for more powerful relations between entities.
+- 2020-06-03 **(feature)** Masks can be applied to user custom text fields now 
+- 2020-05-28 **(bug fix)** Bug fixes for increased compatibility with SQL Strict mode - text fields on database are null by default
 - 2020-05-28 **(security)** All database operations on settings screens now use prepared statements
 - 2020-05-28 **(usability)** Better look and feel on settings screens
-- 2019-05-27 **(feature)** Send e-mails on submission create, delete and update operations
-- 2019-05-26 **(bug fix)** Now payments screen display table with 100% of width on summary mode
+- 2020-05-27 **(feature)** Send e-mails on submission create, delete and update operations
+- 2020-05-26 **(bug fix)** Now payments screen display table with 100% of width on summary mode
 - 2020-05-26 **(usability)** Better error handling on certification error text. Certification error text is defined by a json structure, and the parser now displays messages in case of errors, making it easier to identify where the error is.
 - 2020-05-24 **(usability)** New setup screen. It's much more modern and dynamic. Initial database settings are now stored in json files, with a separate file for custom deployment values.
 - 2020-05-23 **(usability)** Removed alternate e-mail text (as an alternative of html e-mails) for all e-mails. Some settings screens are now simpler because of this.

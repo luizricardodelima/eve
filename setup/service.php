@@ -214,8 +214,8 @@ function create_database($dbpassword, $screenname, $password)
 		  `name` text COLLATE utf8_unicode_ci,
 		  `description` text COLLATE utf8_unicode_ci,
 		  `value` double NOT NULL DEFAULT '0',
-		  `available_from` date,
-		  `available_to` date,
+		  `available_from` datetime,
+		  `available_to` datetime,
 		  `admin_only` tinyint(11) NOT NULL DEFAULT '0',
 		  `active` tinyint(11) NOT NULL DEFAULT '1'
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;

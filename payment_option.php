@@ -52,7 +52,7 @@ else
 
 	?>
 	<form action="<?php echo basename(__FILE__)."?id={$payment_option['id']}";?>" id="payment_option_form" method="post" class="dialog_panel">
-	<input type="hidden" name="id" value="<?php echo $payment_option['id'];?>""/>
+	<input type="hidden" name="id" value="<?php echo $payment_option['id'];?>"/>
 	<label for="id"><?php echo $eve->_('payment.option.id');?></label>
 	<input 	id="id" type="text" value="<?php echo $payment_option['id'];?>" disabled="disabled"/>
 	<label for="type"><?php echo $eve->_('payment.option.type');?></label>
@@ -73,9 +73,9 @@ else
 	<label for="value"><?php echo $eve->_('payment.option.value');?></label>
 	<input 	id="value" type="number" name="value" value="<?php echo $payment_option['value'];?>" min="0.0" step="0.01"/>
 	<label for="available_from"><?php echo $eve->_('payment.option.available.from');?></label>
-	<input 	id="available_from" type="date" name="available_from" value="<?php echo $payment_option['available_from'];?>"/>
+	<input 	id="available_from" type="datetime-local" name="available_from" value="<?php if($payment_option['available_from']) echo date('Y-m-d\TH:i:s', strtotime($payment_option['available_from']));?>"/>
 	<label for="available_to"><?php echo $eve->_('payment.option.available.to');?></label>
-	<input 	id="available_to" type="date" name="available_to" value="<?php echo $payment_option['available_to'];?>"/>
+	<input 	id="available_to" type="datetime-local" name="available_to" value="<?php if($payment_option['available_to']) echo date('Y-m-d\TH:i:s', strtotime($payment_option['available_to']));?>"/>
 	<label for="admin_only">
 	<input type="hidden" name="admin_only" value="0"/>
 	<input type="checkbox" name="admin_only" id="admin_only" value="1" <?php if ($payment_option['admin_only']) echo "checked=\"checked\"";?> />

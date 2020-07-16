@@ -510,7 +510,11 @@ class EvePaymentService
 		}
 	}
 
-	function payment_option_list($id_as_array_key = false)
+	/**
+	 * @param boolean $id_as_array_key
+	 * @param boolean $only_currently_available_to_users
+	 */
+	function payment_option_list($id_as_array_key = false, $only_currently_available_to_users = false)
 	{	// TODO ERROR MESSAGES
 		$result = array();
 		$stmt1 = $this->eve->mysqli->prepare
@@ -538,6 +542,20 @@ class EvePaymentService
 		// Fetching values
 		while ($stmt1->fetch())
 		{
+			// If this function is asked to retrive only currently available options to users
+			// and the current option is only to be used by admins or the current time is out of
+			// the range of availability, the loop continues without adding the option to the 
+			// list. 
+			if
+			( 	$only_currently_available_to_users &&
+				(
+					($admin_only) ||
+					($available_from && (strtotime($available_from) > strtotime('now'))) ||
+					($available_to && (strtotime($available_to) < strtotime('now')))
+				)
+			)
+			continue; 
+				
 			$payment_option = array(
 				'id' => $id, 'type' =>$type, 'name' => $name, 'description' => $description,
 				'value' => $value, 'available_from' => $available_from, 'available_to' => $available_to,
@@ -571,8 +589,8 @@ class EvePaymentService
 		// $payment_option['available_from'] and $payment_option['available_to'] since
 		// they arepassed as text. Any incorrect value may break the SQL query execution.
 		$payment_option['value'] = floatval($payment_option['value']);
-		$payment_option['available_from'] = DateTime::createFromFormat('Y-m-d', $payment_option['available_from']) ? $payment_option['available_from'] : null;
-		$payment_option['available_to'] = DateTime::createFromFormat('Y-m-d', $payment_option['available_to']) ? $payment_option['available_to'] : null;
+		$payment_option['available_from'] = strtotime($payment_option['available_from']) ? $payment_option['available_from'] : null;
+		$payment_option['available_to'] = strtotime($payment_option['available_to']) ? $payment_option['available_to'] : null;
 		
 		$stmt = $this->eve->mysqli->prepare
 		("

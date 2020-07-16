@@ -59,7 +59,7 @@ else
 	<th style="width:15%" colspan="2"><?php echo $eve->_('common.table.header.options');?></th>		
 	</tr>
 	<?php
-	foreach ($evePaymentService->payment_option_list() as $payment_option)
+	foreach ($evePaymentService->payment_option_list(false, false) as $payment_option)
 	{	
 		?>
 		<tr>

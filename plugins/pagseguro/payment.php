@@ -29,7 +29,7 @@ else
 	$evePaymentService = new EvePaymentService($eve);
 	$paymentRequest = new PagSeguroPaymentRequest();	
 	$user = $eveUserService->user_get($_SESSION['screenname']);
-	$paymentOptions = $evePaymentService->payment_option_list(true);
+	$paymentOptions = $evePaymentService->payment_option_list(true, false);
 
 	// Adding main option
 	if (isset($_POST['payment_main']))

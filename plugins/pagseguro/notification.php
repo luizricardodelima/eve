@@ -1,6 +1,6 @@
 <?php
 require_once '../../eve.class.php';
-require_once '../../evepaymentservice.php';
+require_once '../../evepaymentservice.class.php';
 require_once 'lib/PagSeguroLibrary.php';
 
 error_reporting(E_ERROR | E_PARSE);

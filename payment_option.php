@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once 'eve.class.php';
-require_once 'evepaymentservice.php';
+require_once 'evepaymentservice.class.php';
 
 $eve = new Eve();
 $evePaymentService = new EvePaymentService($eve);

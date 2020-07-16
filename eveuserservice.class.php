@@ -1,7 +1,7 @@
 <?php
 
 require_once 'eve.class.php';
-require_once 'evemail.php';
+require_once 'evemail.class.php';
 
 class EveUserService
 {

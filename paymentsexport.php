@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once 'eve.class.php';
-require_once 'evepaymentservice.php';
+require_once 'evepaymentservice.class.php';
 require_once 'eveuserservice.class.php';
 require_once 'lib/phpexcel/PHPExcel.php';
 require_once 'lib/countries/countries.php';

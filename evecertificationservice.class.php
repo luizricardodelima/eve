@@ -2,7 +2,7 @@
 require_once 'lib/dynamicform/dynamicform.class.php';
 require_once 'lib/dynamicform/dynamicformhelper.class.php';
 require_once 'eve.class.php';
-require_once 'evemail.php';
+require_once 'evemail.class.php';
 require_once 'evesubmissionservice.class.php';
 
 class EveCertificationService

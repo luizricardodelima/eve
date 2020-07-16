@@ -1,8 +1,8 @@
 <?php
 session_start();
 require_once 'eve.class.php';
-require_once 'evecertificationservice.php';
-require_once 'evepaymentservice.php';
+require_once 'evecertificationservice.class.php';
+require_once 'evepaymentservice.class.php';
 require_once 'evesubmissionservice.class.php';
 require_once 'eveuserservice.class.php';
 

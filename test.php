@@ -2,7 +2,7 @@
 session_start();
 $_SESSION['screenname'] = "luizricardodelima9@gmail.com";
 require_once 'eve.class.php';
-require_once 'evepaymentservice.php';
+require_once 'evepaymentservice.class.php';
 
 $eve = new Eve();
 $evePaymentService = new EvePaymentService($eve);

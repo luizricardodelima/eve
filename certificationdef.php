@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once 'eve.class.php';
-require_once 'evecertificationservice.php';
+require_once 'evecertificationservice.class.php';
 
 $eve = new Eve();
 

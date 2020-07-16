@@ -4,6 +4,7 @@
 	"admin.remove.error.user.does.not.exist":"Error on removing admin. User does no exist.",
 	"admin.remove.error.cannot.remove.itself":"Error on removing admin. Currrent admin cannot remove its privileges. Another user has to do it.",
 	"admin.remove.success":"Admin removed successfully",
+	"certification.action.view":"View certification",
 	"certification.text.list.and":" and ",
 	"certification.text.list.comma":", ",
 	"certification.text.error.invalid.element":"(ERROR - Invalid element)",

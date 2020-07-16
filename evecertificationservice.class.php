@@ -24,6 +24,46 @@ class EveCertificationService
 	private $eve;
 	private $evemail;
 
+	function certification_get($id)
+	{
+		$stmt = $this->eve->mysqli->prepare
+		("
+			select * 
+			from   `{$this->eve->DBPref}certification`
+			where  `id`=?
+		");
+		if ($stmt === false)
+		{
+			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
+			return null;
+		}
+		$stmt->bind_param('i', $id);
+		$stmt->execute();
+		$certification = array();
+		// Binding result variable - Column by column to ensure compability
+		// From PHP Verions 5.3+ there is the get_result() method
+    	$stmt->bind_result
+		(
+			$certification['id'],
+			$certification['certificationdef_id'],
+			$certification['screenname'],
+			$certification['submissionid'],
+			$certification['locked'],
+			$certification['views']
+		);
+		// Fetching values
+		if ($stmt->fetch())
+		{
+			$stmt->close();
+			return $certification;
+		}
+		else
+		{
+			$stmt->close();
+			return null;
+		}
+	}
+
 	/**
 	 * Generates the certification text defined by the structure defined in $structure
 	 * 
@@ -505,7 +545,7 @@ class EveCertificationService
 		$certificationmodel = array();
 		// Binding result variable - Column by column to ensure compability
 		// From PHP Verions 5.3+ there is the get_result() method
-    		$stmt->bind_result
+    	$stmt->bind_result
 		(
 			$certificationmodel['id'],
 			$certificationmodel['type'],

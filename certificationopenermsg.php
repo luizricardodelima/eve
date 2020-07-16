@@ -1,63 +1,44 @@
 <?php
 session_start();
 require_once 'eve.class.php';
+require_once 'evecertificationservice.class.php';
 
 $eve = new Eve();
+$eveCertificationService = new EveCertificationService($eve);
+$certification = $eveCertificationService->certification_get($_GET['id']);
 
 // Session verification.
 if (!isset($_SESSION['screenname']))
 {	
 	$eve->output_redirect_page("userarea.php?sessionexpired=1");
 }
-else if (!isset($_GET['id']))
+// Checking whether the id passed is valid. This page can also open deactivated certifications
+else if ($certification === null)
 {
 	$eve->output_error_page('common.message.invalid.parameter');
 }
-// Blocking sql injections by accepting numbers only for id
-else if (!is_numeric($_GET['id'])) 
+// Checking if the current user has acces to this page.
+else if (!$eve->is_admin($_SESSION['screenname']) || $certification['screenname'] != $_SESSION['screenname'])
 {
-	$eve->output_error_page('common.message.invalid.parameter'); 
+	$eve->output_error_page('common.message.no.permission');
 }
-// Checking whether the id passed is valid. This code will also open deactivated certifications
-else if (!$eve->mysqli->query("SELECT * FROM `{$eve->DBPref}certification` WHERE `id` = {$_GET['id']};")->num_rows)
-{
-	$eve->output_error_page('common.message.invalid.parameter');
-}
-
+// If there is a valid session, a valid id passed, and the user has rights to access this
+// page, display its contents
 else
 {
-	// At this point it's guaranteed that:
-	// - There is a valid session
-	// - A valid, numeric ID was passed as a get variable
-	// - This ID refers to a valid certificate
-
-	// Loading certification
-	$certification = $eve->mysqli->query("SELECT * FROM `{$eve->DBPref}certification` WHERE `id`={$_GET['id']};")->fetch_assoc();
-	// The user who is acessing this certification
-	$current_user = $eve->mysqli->query("SELECT * FROM `{$eve->DBPref}userdata` WHERE `email`='{$_SESSION['screenname']}'")->fetch_assoc();
+	$certificationdef = $eveCertificationService->certificationmodel_get($certification['id']);
+	$eve->output_html_header();
+	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php",  $certificationdef['name'], null);
 	
-	// If current user is not the admin nor the owner...
-	if (!$current_user['admin'] && ($certification['screenname'] != $current_user['email'])) 
-		$eve->output_error_page("Você não pode acessar este certificado.");
-	else
-	{
-		// Loading certification template
-		$certificationdef = $eve->mysqli->query("SELECT * FROM `{$eve->DBPref}certificationdef` WHERE `id`={$certification['certificationdef_id']};")->fetch_assoc();
+	?>
+	<div class="dialog_panel">
+	<?php echo $certificationdef['openermsg']; ?>
+	<button type="button" class="submit" onclick="window.location.href='certification.php?id=<?php echo $_GET['id'];?>'">
+	<?php echo $eve->_('certification.action.view');?>
+	</button>
+	</div>
+	<?php
 
-		// Displaying opener message for certification
-		$eve->output_html_header();
-		$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php",  $certificationdef['name'], null);
-		
-		?>
-		<div class="dialog_panel">
-		<?php echo $certificationdef['openermsg']; ?>
-		<button type="button" class="submit" onclick="window.location.href='certification.php?id=<?php echo $_GET['id'];?>'">
-		Acessar certificado<!-- TODO G11N -->
-		</button>
-		</div>
-		<?php
-
-		$eve->output_html_footer();	
-	}
+	$eve->output_html_footer();	
 }
 ?>

@@ -40,7 +40,7 @@ else
 		'user_country_visible', 'user_country_mandatory', 'user_postalcode_visible', 'user_postalcode_mandatory', 
 		'user_birthday_visible', 'user_birthday_mandatory', 'user_gender_visible', 'user_gender_mandatory', 
 		'user_phone1_visible', 'user_phone1_mandatory', 'user_phone2_visible', 'user_phone2_mandatory', 
-		'user_institution_visible', 'user_institution_mandatory', 'user_category_visible', 'user_category_mandatory', 
+		'user_institution_visible', 'user_institution_mandatory', 
 		'user_customtext1_visible', 'user_customtext1_mandatory', 'user_customtext1_label', 'user_customtext1_mask', 
 		'user_customtext2_visible', 'user_customtext2_mandatory', 'user_customtext2_label', 'user_customtext2_mask', 
 		'user_customtext3_visible', 'user_customtext3_mandatory', 'user_customtext3_label', 'user_customtext3_mask', 
@@ -125,10 +125,6 @@ else
 	<td><input type="hidden" name="user_institution_visible" value="0"/><input type="checkbox" name="user_institution_visible" value="1" <?php if ($settings['user_institution_visible']) echo "checked=\"checked\"";?> /></td>
 	<td><input type="hidden" name="user_institution_mandatory" value="0"/><input type="checkbox" name="user_institution_mandatory" value="1" <?php if ($settings['user_institution_mandatory']) echo "checked=\"checked\"";?> /></td>
 	<td><?php echo $eve->_('user.data.institution');?></td></tr>
-	<tr>
-	<td><input type="hidden" name="user_category_visible" value="0"/><input type="checkbox" name="user_category_visible" value="1" <?php if ($settings['user_category_visible']) echo "checked=\"checked\"";?> /></td>
-	<td><input type="hidden" name="user_category_mandatory" value="0"/><input type="checkbox" name="user_category_mandatory" value="1" <?php if ($settings['user_category_mandatory']) echo "checked=\"checked\"";?> /></td>
-	<td><?php echo $eve->_('user.data.category');?></td></tr>
 	<tr>
 	<td><input type="hidden" name="user_customtext1_visible" value="0"/><input type="checkbox" name="user_customtext1_visible" value="1" <?php if ($settings['user_customtext1_visible']) echo "checked=\"checked\"";?> /></td>
 	<td><input type="hidden" name="user_customtext1_mandatory" value="0"/><input type="checkbox" name="user_customtext1_mandatory" value="1" <?php if ($settings['user_customtext1_mandatory']) echo "checked=\"checked\"";?> /></td>

@@ -34,14 +34,12 @@ class EveSubmissionService
 	const SUBMISSION_DEFINITION_DELETE_ERROR_SQL  = 'submission.definition.delete.error.sql';
 	const SUBMISSION_DEFINITION_DELETE_SUCCESS = 'submission.definition.delete.success';
 
-	const SUBMISSION_DEFINITION_ACCESS_CREATE_ERROR_INVALID_EMAIL = 13;
-	const SUBMISSION_DEFINITION_ACCESS_CREATE_ERROR_USER_DOES_NOT_EXIST = 14;
-	const SUBMISSION_DEFINITION_ACCESS_CREATE_ERROR_INVALID_CATEGORY = 15;
-	const SUBMISSION_DEFINITION_ACCESS_CREATE_ERROR_CATEGORY_DOES_NOT_EXIST = 16;
-	const SUBMISSION_DEFINITION_ACCESS_CREATE_ERROR_SQL = 17;
-	const SUBMISSION_DEFINITION_ACCESS_CREATE_SUCCESS = 18;
-	const SUBMISSION_DEFINITION_ACCESS_DELETE_ERROR_SQL = 19;
-	const SUBMISSION_DEFINITION_ACCESS_DELETE_SUCCESS = 20;
+	const SUBMISSION_DEFINITION_ACCESS_CREATE_ERROR_INVALID_EMAIL = 'submission.definition.access.create.error.invalid.email';
+	const SUBMISSION_DEFINITION_ACCESS_CREATE_ERROR_USER_DOES_NOT_EXIST = 'submission.definition.access.create.error.user.does.not.exist';
+	const SUBMISSION_DEFINITION_ACCESS_CREATE_ERROR_SQL = 'submission.definition.access.create.error.sql';
+	const SUBMISSION_DEFINITION_ACCESS_CREATE_SUCCESS = 'submission.definition.access.create.success';
+	const SUBMISSION_DEFINITION_ACCESS_DELETE_ERROR_SQL = 'submission.definition.access.delete.error.sql';
+	const SUBMISSION_DEFINITION_ACCESS_DELETE_SUCCESS = 'submission.definition.access.delete.success';
 
     const SUBMISSION_DEFINITION_REVIEWER_ADD_ERROR_INVALID_EMAIL = 'submission.definition.reviewer.add.error.invalid.email';
 	const SUBMISSION_DEFINITION_REVIEWER_ADD_ERROR_USER_DOES_NOT_EXIST = 'submission.definition.reviewer.add.error.user.does.not.exist';
@@ -52,8 +50,8 @@ class EveSubmissionService
 	const SUBMISSION_DEFINITION_REVIEWER_DELETE_ERROR_SQL = 'submission.definition.reviewer.delete.error.sql';
 	const SUBMISSION_DEFINITION_REVIEWER_DELETE_SUCCESS = 'submission.definition.reviewer.delete.success';
 
-	const SUBMISSION_DEFINITION_SAVE_ERROR_SQL = 29;
-	const SUBMISSION_DEFINITION_SAVE_SUCCESS = 30;
+	const SUBMISSION_DEFINITION_SAVE_ERROR_SQL = 'submission_definition.message.save.error.sql';
+	const SUBMISSION_DEFINITION_SAVE_SUCCESS = 'submission_definition.message.save.success';
 
 	/** Check if user with given $email has permission to post new submissions in the given submission definition $id */
 	function submission_definition_user_access_permitted($id, $email)
@@ -754,24 +752,6 @@ class EveSubmissionService
 				else if (!$this->eve->user_exists($content))
 					return self::SUBMISSION_DEFINITION_ACCESS_CREATE_ERROR_USER_DOES_NOT_EXIST;
 				break;
-			case 'specific_category':
-				if (!is_numeric($content))
-					return self::SUBMISSION_DEFINITION_ACCESS_CREATE_ERROR_INVALID_CATEGORY;
-				else
-				{
-					$stmt = $this->eve->mysqli->prepare
-					("
-						select count(*) from `{$this->eve->DBPref}usercategory` where `id`=?;
-					");
-					$stmt->bind_param('i', $content);
-					$stmt->execute();
-					$result = null;
-					$stmt->bind_result($result); // Since it is a select count(*) there will be only one column
-					if ($result <= 0) // Since it is a select count(*) there will be only one row (there is no need of a while loop)
-						return self::SUBMISSION_DEFINITION_ACCESS_CREATE_ERROR_CATEGORY_DOES_NOT_EXIST;
-					$stmt->close();
-				}
-				break;
 		}
 				
 		// Data successfully validated - creating new submission_definition_access	
@@ -1088,17 +1068,6 @@ class EveSubmissionService
 				`{$this->eve->DBPref}submission_definition_access`.`submission_definition_id` = `{$this->eve->DBPref}submission_definition`.`id` AND
 				`{$this->eve->DBPref}submission_definition_access`.`type` = 'specific_user' AND			
 				`{$this->eve->DBPref}submission_definition_access`.`content` = ?
-			UNION
-
-			SELECT 	`{$this->eve->DBPref}submission_definition`.`id`, `{$this->eve->DBPref}submission_definition`.`description`, `{$this->eve->DBPref}submission_definition`.`deadline`
-			FROM 	`{$this->eve->DBPref}submission_definition`, `{$this->eve->DBPref}submission_definition_access`, `{$this->eve->DBPref}userdata`
-			WHERE	`{$this->eve->DBPref}submission_definition`.`active` = 1 AND
-				`{$this->eve->DBPref}submission_definition`.`access_restricted` = 1 AND
-				`{$this->eve->DBPref}submission_definition`.`requirement` = ? AND
-				`{$this->eve->DBPref}userdata`.`email` = ? AND
-				`{$this->eve->DBPref}submission_definition_access`.`submission_definition_id` = `{$this->eve->DBPref}submission_definition`.`id` AND
-				`{$this->eve->DBPref}submission_definition_access`.`type` = 'specific_category' AND			
-				`{$this->eve->DBPref}submission_definition_access`.`content` = `{$this->eve->DBPref}userdata`.`category_id`
 
 			ORDER BY `deadline`;
 		");
@@ -1107,7 +1076,7 @@ class EveSubmissionService
 			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
 			return null;
 		}
-		$stmt->bind_param('sssss', $requirement, $requirement, $screenname, $requirement, $screenname);
+		$stmt->bind_param('sss', $requirement, $requirement, $screenname);
 		$stmt->execute();
 		// Binding result variable - Column by column to ensure compability
 		// From PHP Verions 5.3+ there is the get_result() method

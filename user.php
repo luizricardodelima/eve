@@ -83,9 +83,6 @@ else
 			// Validating institution, if visible and mandatory
 			if ($eve->getSetting('user_institution_visible') && $eve->getSetting('user_institution_mandatory') && $user['institution'] == '')
 				$validation_errors[] = $validation_missing_field_start.$eve->_('user.data.institution').$validation_missing_field_end;
-			// Validating category, if visible and mandatory
-			if ($eve->getSetting('user_category_visible') && $eve->getSetting('user_category_mandatory') && !is_numeric($user['category_id']))
-				$validation_errors[] = $validation_missing_field_start.$eve->_('user.data.category').$validation_missing_field_end;
 			// TODO VALIDATE CUSTOMTEXTS ACCORDING TO THEIR MASKS
 			// Validating customtext1, if visible and mandatory
 			if ($eve->getSetting('user_customtext1_visible') && $eve->getSetting('user_customtext1_mandatory') && $user['customtext1'] == '')
@@ -229,24 +226,6 @@ else
 	<?php if ($eve->getSetting('user_institution_visible')) { ?>
 	<label for="user_data_institution"><?php echo $eve->_('user.data.institution'); if ($eve->getSetting('user_institution_mandatory')) echo $mandatory;?></label>
 	<input id="user_data_institution" type="text" name="institution" value="<?php echo $user['institution'];?>"/>
-	<?php } ?>
-
-	<?php if ($eve->getSetting('user_category_visible')) { ?>
-	<label for="user_data_category"><?php echo $eve->_('user.data.category'); if ($eve->getSetting('user_category_mandatory')) echo $mandatory;?></label>
-	<select id="user_data_category" name="category_id"/>
-	<option value="null"><?php echo $eve->_('common.select.null');?></option>
-	<?php
-	//TODO SERVICE	
-	$category_res = $eve->mysqli->query("SELECT * FROM `{$eve->DBPref}usercategory`;");
-	while ($category = $category_res->fetch_assoc())
-	{	
-		if ($category['special'] && !$admin_mode) continue;		
-		echo "<option value=\"{$category['id']}\"";
-		if ($user['category_id'] == $category['id']) echo " selected=\"selected\"";
-		echo ">{$category['description']}</option>";
-	}
-	?>
-	</select>
 	<?php } ?>
 
 	<?php if ($eve->getSetting('user_customtext1_visible')) { ?>

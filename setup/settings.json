@@ -151,8 +151,6 @@
 	"user_address_visible":"1",
 	"user_birthday_mandatory":"0",
 	"user_birthday_visible":"0",
-	"user_category_mandatory":"0",
-	"user_category_visible":"0",
 	"user_city_mandatory":"0",
 	"user_city_visible":"1",
 	"user_country_mandatory":"0",

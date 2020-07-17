@@ -68,7 +68,7 @@ function create_database($dbpassword, $screenname, $password)
 		CREATE TABLE `{$pref}submission_definition_access` (
 		  `id` int(11) NOT NULL,
 		  `submission_definition_id` int(11) NOT NULL,
-		  `type` enum('specific_user','specific_category','submission_after_deadline') COLLATE utf8_unicode_ci DEFAULT 'specific_user',
+		  `type` enum('specific_user','submission_after_deadline') COLLATE utf8_unicode_ci DEFAULT 'specific_user',
 		  `content` varchar(255) COLLATE utf8_unicode_ci
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 	");
@@ -104,17 +104,6 @@ function create_database($dbpassword, $screenname, $password)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 	");
 	if ($mysqli->error) {$log[] = "ERROR - Create table submission - ".$mysqli->error; delete_database($dbpassword); return $log;}
-	
-	// Create table usercategory
-	$mysqli->query
-	("
-		CREATE TABLE `{$pref}usercategory` (
-		  `id` int(11) NOT NULL,
-		  `description` varchar(255) COLLATE utf8_unicode_ci,
-		  `special` tinyint(4) NOT NULL DEFAULT '0'
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-	");
-	if ($mysqli->error) {$log[] = "ERROR - Create table usercategory - ".$mysqli->error; delete_database($dbpassword); return $log;}
 	
 	// Create table certification
 	$mysqli->query
@@ -260,7 +249,6 @@ function create_database($dbpassword, $screenname, $password)
 		  `phone1` text COLLATE utf8_unicode_ci,
 		  `phone2` text COLLATE utf8_unicode_ci,
 		  `institution` text COLLATE utf8_unicode_ci,
-		  `category_id` int(11) DEFAULT NULL,
 		  `customtext1` text COLLATE utf8_unicode_ci,
 		  `customtext2` text COLLATE utf8_unicode_ci,
 		  `customtext3` text COLLATE utf8_unicode_ci,
@@ -289,9 +277,6 @@ function create_database($dbpassword, $screenname, $password)
 	$mysqli->query("ALTER TABLE `{$pref}submission` ADD PRIMARY KEY (`id`), ADD KEY `submission_definition_id` (`submission_definition_id`), ADD KEY `email` (`email`), ADD KEY `reviewer_email` (`reviewer_email`);");
 	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys submission - ".$mysqli->error; delete_database($dbpassword); return $log;}
 	
-	$mysqli->query("ALTER TABLE `{$pref}usercategory` ADD PRIMARY KEY (`id`); ");
-	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys usercategory - ".$mysqli->error; delete_database($dbpassword); return $log;}
-	
 	$mysqli->query("ALTER TABLE `{$pref}certification` ADD PRIMARY KEY (`id`), ADD KEY `certificationdef_id` (`certificationdef_id`), ADD KEY `screenname` (`screenname`), ADD KEY `submissionid` (`submissionid`);");
 	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys certification - ".$mysqli->error; delete_database($dbpassword); return $log;}
 	
@@ -319,7 +304,7 @@ function create_database($dbpassword, $screenname, $password)
 	$mysqli->query("ALTER TABLE `{$pref}user` ADD PRIMARY KEY (`email`);");
 	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys user - ".$mysqli->error; delete_database($dbpassword); return $log;}
 	
-	$mysqli->query("ALTER TABLE `{$pref}userdata` ADD UNIQUE KEY `email` (`email`), ADD KEY `category_id` (`category_id`);");
+	$mysqli->query("ALTER TABLE `{$pref}userdata` ADD UNIQUE KEY `email` (`email`);");
 	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys userdata - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
 	// Auto increments ////////////////////////////////////////////////////////////////////////////
@@ -335,9 +320,6 @@ function create_database($dbpassword, $screenname, $password)
 
 	$mysqli->query("ALTER TABLE `{$pref}submission` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
 	if ($mysqli->error) {$log[] = "ERROR - Auto increment submission - ".$mysqli->error; delete_database($dbpassword); return $log;}
-
-	$mysqli->query("ALTER TABLE `{$pref}usercategory` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
-	if ($mysqli->error) {$log[] = "ERROR - Auto increment usercategory - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
 	$mysqli->query("ALTER TABLE `{$pref}certification` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
 	if ($mysqli->error) {$log[] = "ERROR - Auto increment certification - ".$mysqli->error; delete_database($dbpassword); return $log;}
@@ -409,8 +391,7 @@ function create_database($dbpassword, $screenname, $password)
 	$mysqli->query
 	("
 		ALTER TABLE `{$pref}userdata`
-		  ADD CONSTRAINT `{$pref}userdata_ibfk_1` FOREIGN KEY (`email`) REFERENCES `{$pref}user` (`email`) ON DELETE CASCADE ON UPDATE CASCADE,
-		  ADD CONSTRAINT `{$pref}userdata_ibfk_2` FOREIGN KEY (`category_id`) REFERENCES `{$pref}usercategory` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+		  ADD CONSTRAINT `{$pref}userdata_ibfk_1` FOREIGN KEY (`email`) REFERENCES `{$pref}user` (`email`) ON DELETE CASCADE ON UPDATE CASCADE;
 	");
 	if ($mysqli->error) {$log[] = "ERROR - Foreign keys userdata - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
@@ -506,8 +487,6 @@ function delete_database($dbpassword)
 
 	// Deleting user tables
 	$mysqli->query("DROP TABLE if exists `{$pref}userdata`;");
-	if ($mysqli->error) $log[] = $mysqli->error;
-	$mysqli->query("DROP TABLE if exists `{$pref}usercategory`;");
 	if ($mysqli->error) $log[] = $mysqli->error;
 	$mysqli->query("DROP TABLE if exists `{$pref}user`;");
 	if ($mysqli->error) $log[] = $mysqli->error;

@@ -144,7 +144,6 @@ class EveUserService
 			$user['phone1'],
 			$user['phone2'],
 			$user['institution'],
-			$user['category_id'],
 			$user['customtext1'],
 			$user['customtext2'],
 			$user['customtext3'],
@@ -167,16 +166,14 @@ class EveUserService
 	   This function does not update $user['email'] */
 	function user_save($user)
 	{ 
-		// Verifying the consistency of values $user['birthday'], $user['gender'] and 
-		// $user['category_id'] since they are passed as text values and can contain incorrect
-		// values that may break the execution of SQL update query
+		// Verifying the consistency of values $user['birthday'] and $user['gender'], since
+		// they are passed as text values and can contain incorrect values that may break the
+		// execution of SQL update query
 		$user_birthday = null;
 		if (strtotime($user['birthday'])) $user_birthday = $user['birthday'];
 		$user_gender = null;
 		if (in_array($user['gender'], $this->user_genders())) $user_gender = $user['gender'];
-		$user_category_id = null;
-		if ($this->user_category_exists($user['category_id'])) $user_category_id = $user['category_id'];
-
+		
 		$stmt1 = $this->eve->mysqli->prepare
 		("
 			update	`{$this->eve->DBPref}userdata` 
@@ -193,7 +190,6 @@ class EveUserService
 				`phone1` = ?,
 				`phone2` = ?,
 				`institution` = ?,
-				`category_id` = ?,
 				`customtext1` = ?,
 				`customtext2` = ?,
 				`customtext3` = ?,
@@ -213,10 +209,10 @@ class EveUserService
 			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
 			return null;
 		}
-		$stmt1->bind_param('iisssssssssssisssssiiiiiss',
+		$stmt1->bind_param('iissssssssssssssssiiiiiss',
 				$user['admin'], $user['locked_form'], $user['name'], $user['address'],
 				$user['city'], $user['state'], $user['country'], $user['postalcode'],
-				$user_birthday, $user_gender, $user['phone1'], $user['phone2'], $user['institution'], $user_category_id,
+				$user_birthday, $user_gender, $user['phone1'], $user['phone2'], $user['institution'],
 				$user['customtext1'], $user['customtext2'], $user['customtext3'], $user['customtext4'], $user['customtext5'],
 				$user['customflag1'], $user['customflag2'], $user['customflag3'], $user['customflag4'], $user['customflag5'],
 				$user['note'], $user['email']);
@@ -352,23 +348,6 @@ class EveUserService
 		return self::UNVERIFIED_USER_SEND_VERIFICATION_EMAIL_SUCCESS;
 	}
 
-	function user_category_exists($user_category_id)
-	{
-		$stmt = $this->eve->mysqli->prepare
-		("
-			select	count(*)
-			from	`{$this->eve->DBPref}usercategory`
-			where	`id` = ?
-		");
-		$stmt->bind_param('i', $user_category_id);
-		$stmt->execute();
-		$result = null;
-		$stmt->bind_result($result); // Since it is a select count(*) there will be only one column
-		$stmt->fetch(); // Since it is a select count(*) there will be only one row (there is no need of a while loop)
-		$stmt->close();
-		return ($result > 0);
-	}
-
 	// Changes the password for the user registered with $email.
 	// $password is asked for security reasons
 	// $newpassword is the new password for the user
@@ -418,7 +397,7 @@ class EveUserService
 		return $enum;
 	}
 
-	/** Retrieves a list of users with general data: email, name, note, locked_form and category description*/
+	/** Retrieves a list of users with general data: email, name, note and locked_form */
 	function user_general_list($orderby = "email")
 	{
 		// Sanitizing input		
@@ -436,19 +415,16 @@ class EveUserService
 				$orderby = "email";
 				break;
 		}
-		// TODO Prepared statement and return array
+		// TODO return array
 		return $this->eve->mysqli->query
 		("
 			select 
 				`{$this->eve->DBPref}userdata`.`email`,
 				`{$this->eve->DBPref}userdata`.`name`,
 				`{$this->eve->DBPref}userdata`.`note`,
-				`{$this->eve->DBPref}userdata`.`locked_form`,
-				`{$this->eve->DBPref}usercategory`.`description`
+				`{$this->eve->DBPref}userdata`.`locked_form`
 			from
 				`{$this->eve->DBPref}userdata`
-			left outer join
-				`{$this->eve->DBPref}usercategory` on (`{$this->eve->DBPref}userdata`.`category_id` = `{$this->eve->DBPref}usercategory`.`id`)
 			order by
 				`$orderby`;
 		");

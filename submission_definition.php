@@ -45,18 +45,11 @@ else
 	<button type="button" onclick="window.location.href='submission_definition_access.php?id=<?php echo $_GET['id'];?>';"><?php echo $eve->_('submission_definition.button.restrict_access');?></button>
 	</div>
 	<?php
-	$eve->output_wysiwig_editor_code();
-	if (isset($_GET['msg'])) switch ($_GET['msg'])
-	{
-		case EveSubmissionService::SUBMISSION_DEFINITION_SAVE_ERROR_SQL:
-			$eve->output_error_message('submission_definition.message.save.error.sql');
-			break;
-		case EveSubmissionService::SUBMISSION_DEFINITION_SAVE_SUCCESS:
-			$eve->output_success_message('submission_definition.message.save.success');
-			break;
-	}
-	?>
 
+	$eve->output_wysiwig_editor_code();
+	if (isset ($_GET['msg'])) $eve->output_service_message($_GET['msg']);
+
+	?>
 	<form action="<?php echo basename(__FILE__)."?id={$_GET['id']}";?>" method="post" id="submission_definition_form">
 	<input type="hidden" name="action" value="save"/>
 	<input type="hidden" name="id" value="<?php echo $submission_definition['id'];?>"/>

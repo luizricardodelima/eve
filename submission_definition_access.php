@@ -40,33 +40,7 @@ else
 	$eve->output_html_header();
 	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('submission_definitions'), "submission_definitions.php", $submission_definition['description'], "submission_definition.php?id={$_GET['id']}", "Gerenciar acesso restrito", null);
 
-	if (isset ($_GET['msg'])) switch ($_GET['msg'])
-	{
-		case EveSubmissionService::SUBMISSION_DEFINITION_ACCESS_CREATE_ERROR_INVALID_EMAIL:
-			$eve->output_error_message('submission.definition.access.create.error.invalid.email');
-			break;
-		case EveSubmissionService::SUBMISSION_DEFINITION_ACCESS_CREATE_ERROR_USER_DOES_NOT_EXIST:
-			$eve->output_error_message('submission.definition.access.create.error.user.does.not.exist');
-			break;
-		case EveSubmissionService::SUBMISSION_DEFINITION_ACCESS_CREATE_ERROR_INVALID_CATEGORY:
-			$eve->output_error_message('submission.definition.access.create.error.invalid.category');
-			break;
-		case EveSubmissionService::SUBMISSION_DEFINITION_ACCESS_CREATE_ERROR_CATEGORY_DOES_NOT_EXIST:
-			$eve->output_error_message('submission.definition.access.create.error.category.does.not.exist');
-			break;
-		case EveSubmissionService::SUBMISSION_DEFINITION_ACCESS_CREATE_ERROR_SQL:
-			$eve->output_error_message('submission.definition.access.create.error.sql');
-			break;
-		case EveSubmissionService::SUBMISSION_DEFINITION_ACCESS_CREATE_SUCCESS:
-			$eve->output_success_message('submission.definition.access.create.success');
-			break;
-		case EveSubmissionService::SUBMISSION_DEFINITION_ACCESS_DELETE_ERROR_SQL:
-			$eve->output_error_message('submission.definition.access.delete.error.sql');
-			break;
-		case EveSubmissionService::SUBMISSION_DEFINITION_ACCESS_DELETE_SUCCESS:
-			$eve->output_success_message('submission.definition.access.delete.success');
-			break;
-	}
+	if (isset ($_GET['msg'])) $eve->output_service_message($_GET['msg']);
 	?>
 
 	<div class="section">
@@ -91,7 +65,6 @@ else
 	{	
 		echo "<tr>";
 		echo "<td>".$eve->_('submission.definition.access.type.'.$access['type'])."</td>";
-		// TODO: Display category name when it is a category
 		echo "<td>{$access['content']}</td>";
 		echo "<td>";
 		echo "<button type=\"button\" onclick=\"delete_access('{$access['id']}')\"><img src=\"style/icons/delete.png\"/></button>";
@@ -110,9 +83,6 @@ else
 			case 'specific_user':
 			case 'submission_after_deadline': 
 				promptmessage = "Insira o e-mail do usuário";
-				break;
-			case 'specific_category':
-				promptmessage = "Insira o ID da categoria";
 				break;
 			default: // In case a new access type is created in db and not treated here
 				promptmessage = "Insira a especificação";

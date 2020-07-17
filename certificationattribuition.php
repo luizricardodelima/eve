@@ -214,7 +214,6 @@ else
 		<th><input type="checkbox" onClick="toggle(this, 'screenname[]')"/></th>
 		<th>Nome</th>
 		<th>E-mail</th>
-		<th>Categoria</th>
 		<th>Obs</th>
 		<th>Bloq.</th>
 		</thead>
@@ -228,11 +227,8 @@ else
 				`{$eve->DBPref}userdata`.`note`,
 				`{$eve->DBPref}userdata`.`admin`,
 				`{$eve->DBPref}userdata`.`locked_form`,
-				`{$eve->DBPref}usercategory`.`description`
 			from
 				`{$eve->DBPref}userdata`
-			left outer join
-				`{$eve->DBPref}usercategory` on (`{$eve->DBPref}userdata`.`category_id` = `{$eve->DBPref}usercategory`.`id`)
 			order by
 				`{$eve->DBPref}userdata`.`name`;
 		");
@@ -243,7 +239,6 @@ else
 			echo "<td><input type=\"checkbox\" name=\"screenname[]\" value=\"{$user['email']}\" onclick=\"toggleRow(this)\"/></td>";
 			echo "<td>{$user['name']}</td>";
 			echo "<td>{$user['email']}</td>";
-			echo "<td>{$user['description']}</td>";
 			echo "<td>{$user['note']}</td>";
 			echo "<td style=\"text-align:center\">$locked_form</td>";
 			echo "</tr>";

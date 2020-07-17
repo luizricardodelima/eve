@@ -177,7 +177,6 @@ else
 		echo "<div>";
 		$eve->output_big_goto_button("userarea.option.admin.unverifiedusers", "&#80;", "unverifiedusers.php");
 		$eve->output_big_goto_button("userarea.option.admin.users", "&#80;", "users.php");
-		$eve->output_big_goto_button("userarea.option.admin.usercategories", "&#80;", "usercategories.php");
 		$eve->output_big_goto_button('submission_definitions', "&#67;", "submission_definitions.php");
 		$eve->output_big_goto_button("userarea.option.admin.payments", "&#91;", "payments.php");
 		$eve->output_big_goto_button("payment_options", "&#91;", "payment_options.php");

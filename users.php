@@ -4,6 +4,7 @@ require_once 'eve.class.php';
 require_once 'eveuserservice.class.php';
 
 $eve = new Eve();
+$eveUserService = new EveUserService($eve);
 
 // Session verification.
 if (!isset($_SESSION['screenname']))
@@ -21,46 +22,22 @@ else if (isset($_POST['action']))
 	switch ($_POST['action'])
 	{
 		case 'change_email':
-			// Validation
-			$EveUserService = new EveUserService($eve);
-			
-			if (!filter_var($_POST['newemail'], FILTER_VALIDATE_EMAIL))
-				$eve->output_redirect_page(basename(__FILE__)."?error=1");
-			else if ($EveUserService->userExists($_POST['newemail']))
-				$eve->output_redirect_page(basename(__FILE__)."?error=2");
-			else
-			{
-				$EveUserService->changeEmail($_POST['oldemail'], $_POST['newemail']);
-				$eve->output_redirect_page(basename(__FILE__)."?success=1");
-				
-			}
-		break;
-		
+			$msg = $eveUserService->user_change_email($_POST['oldemail'], $_POST['newemail']);
+			$eve->output_redirect_page(basename(__FILE__)."?msg=$msg");
+			break;
 		case 'delete_user':
-			$EveUserService = new EveUserService($eve);
-			$EveUserService->deleteUser($_POST['screenname']);
-			$eve->output_redirect_page(basename(__FILE__)."?success=2");
-		break;
-		
+			$msg = $eveUserService->user_delete($_POST['screenname']);
+			$eve->output_redirect_page(basename(__FILE__)."?msg=$msg");
+			break;
 	}
 }
 // Regular view
 else
 {
-	$EveUserService = new EveUserService($eve);
 	$eve->output_html_header();
 	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Usuários", null);	
+	if (isset ($_GET['msg'])) $eve->output_service_message($_GET['msg']);
 
-	if (isset($_GET['success']))
-	{
-		if ($_GET['success'] == 1) $eve->output_success_message("E-mail alterado com sucesso.");
-		else if ($_GET['success'] == 2) $eve->output_success_message("Usuário apagado com sucesso.");
-	}
-	else if (isset($_GET['error']))
-	{
-		if ($_GET['error'] == 1) $eve->output_error_message("O e-mail inserido é inválido.");
-		else if ($_GET['error'] == 2) $eve->output_error_message("O e-mail inserido já existe em sistema.");
-	}
 	?>
 	<script>
 	function toggle(source, elementname)
@@ -74,16 +51,10 @@ else
 	}
 	function toggleRow(source)
 	{
-		if (source.checked)
-		{
-			source.parentNode.parentNode.classList.add('selected');
-		}
-		else
-		{
-			source.parentNode.parentNode.classList.remove('selected');
-		}
+		if (source.checked) source.parentNode.parentNode.classList.add('selected');
+		else source.parentNode.parentNode.classList.remove('selected');
 	}
-	function changeemail(oldemail)
+	function user_change_email(oldemail)
 	{
 		var newemail = prompt("Insira o novo e-mail em substituição a " + oldemail + ".");
 		if (newemail != null)
@@ -116,26 +87,24 @@ else
 	<th><input type="checkbox" onClick="toggle(this, 'screenname[]')"/></th>
 	<th><a href="<?php echo basename(__FILE__);?>?order-by=name">Nome</a></th>
 	<th><a href="<?php echo basename(__FILE__);?>?order-by=email">E-mail</a></th>
-	<th><a href="<?php echo basename(__FILE__);?>?order-by=description">Categoria</a></th>
 	<th><a href="<?php echo basename(__FILE__);?>?order-by=note">Obs</a></th>
 	<th><a href="<?php echo basename(__FILE__);?>?order-by=locked_form">Bloq.</a></th>
 	<th colspan="3"><?php echo $eve->_('common.table.header.options');?></th>		
 	</tr>
 	<?php
-	$order_criteria = isset($_GET["order-by"]) ? $_GET["order-by"] : "";
-	$users = $EveUserService->user_general_list($order_criteria);
-	while ($user = $users->fetch_assoc())
+
+	$orderby = isset($_GET["order-by"]) ? $_GET["order-by"] : '';
+	foreach($eveUserService->user_general_list($orderby) as $user)
 	{	
 		$locked_form = ($user['locked_form']) ? "&#8226;" : "";
 		echo "<tr>";
 		echo "<td><input type=\"checkbox\" name=\"screenname[]\" value=\"{$user['email']}\" onclick=\"toggleRow(this)\"/></td>";
 		echo "<td>{$user['name']}</td>";
 		echo "<td>{$user['email']}</td>";
-		echo "<td>{$user['description']}</td>";
 		echo "<td>{$user['note']}</td>";
 		echo "<td class=\"icon\">$locked_form</td>";
 		echo "<td><button type=\"button\" onclick=\"window.location.href='user.php?user={$user['email']}'\"><img src=\"style/icons/user_edit.png\"></button></td>";
-		echo "<td><button type=\"button\" onclick=\"changeemail('{$user['email']}')\"><img src=\"style/icons/changeemail.png\"/></td>";
+		echo "<td><button type=\"button\" onclick=\"user_change_email('{$user['email']}')\"><img src=\"style/icons/changeemail.png\"/></td>";
 		echo "<td><button type=\"button\" onclick=\"delete_user('{$user['email']}')\"><img src=\"style/icons/delete.png\"/></td>";
 		echo "</tr>";
 	}

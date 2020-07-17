@@ -95,30 +95,15 @@ class EveSubmissionService
 			$stmt1->bind_param('is', $id, $email);
 			$stmt1->execute();
 			$stmt1->store_result();
-			if ($stmt1->num_rows > 0) return true;
-			$stmt1->close();
-						
-			$stmt2 = $this->eve->mysqli->prepare
-			("
-				select	* 
-				from	`{$this->eve->DBPref}userdata`, `{$this->eve->DBPref}submission_definition_access` 
-				where	`{$this->eve->DBPref}userdata`.`email` = ? and
-					`{$this->eve->DBPref}submission_definition_access`.`submission_definition_id` = ? and
-					`{$this->eve->DBPref}submission_definition_access`.`type` = 'specific_category' and			
-					`{$this->eve->DBPref}submission_definition_access`.`content` = `{$this->eve->DBPref}userdata`.`category_id`;
-			");
-			if ($stmt2 === false)
+			if ($stmt1->num_rows > 0)
 			{
-				trigger_error($this->eve->mysqli->error, E_USER_ERROR);
-				return false;
+				$stmt1->close();
+				return true;
 			}
-			$stmt2->bind_param('si', $email, $id);
-			$stmt2->execute();
-			$stmt2->store_result();
-			if ($stmt2->num_rows > 0) return true;
-			$stmt2->close();
-
-			return false;
+			else
+			{
+				return false;
+			}			
 		}
 		else
 		{

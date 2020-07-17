@@ -74,11 +74,12 @@ else
 	?>
 	<form method="post" id="newuser_form">
 	<div class="dialog_panel">
-	<label>E-mail</label>
-	<input class="user_form" type="text" name="screenname" value="<?php if(isset($_POST['screenname'])) echo $_POST['screenname'];?>"/></td></tr>
-	<label>Senha</label>
-	<input class="user_form" type="text" name="password" value="<?php if(isset($_POST['password']))  echo $_POST['password'];?>"/></td></tr>
-	<span><input type="checkbox" name="sendwelcomeemail" <?php if ($_POST['sendwelcomeemail']) echo "checked=\"checked\"";?> id="chk_sendwelcomeemail"/><label for="chk_sendwelcomeemail">E-mail de boas vindas?</label></span>
+	<label for="screenname">E-mail</label>
+	<input  id="screenname" type="text" name="screenname" value="<?php if(isset($_POST['screenname'])) echo $_POST['screenname'];?>"/></td></tr>
+	<label for="password">Senha</label>
+	<input  id="password"type="text" name="password" value="<?php if(isset($_POST['password']))  echo $_POST['password'];?>"/></td></tr>
+	<label for="sendwelcomeemail"><input type="hidden" name="sendwelcomeemail" value="0"/>
+	<input  id="sendwelcomeemail" type="checkbox" name="sendwelcomeemail" <?php if ($_POST['sendwelcomeemail']) echo "checked=\"checked\"";?>/>E-mail de boas vindas?</label>
 	<button type="button" class="submit" onclick="document.forms['newuser_form'].submit();">Criar</button>
 	</div>	
 	</form>

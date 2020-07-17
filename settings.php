@@ -39,7 +39,7 @@ else
 	<button type="button" class="submit" onclick="window.location.href='settingsuserdata.php'">Dados do usuário</button>
 	<button type="button" class="submit" onclick="window.location.href='settingscredential.php'">Credenciais</button>
 	<button type="button" class="submit" onclick="window.location.href='settingspayments.php'">Pagamentos</button>
-	<button type="button" class="submit" onclick="window.location.href='settingspayments.php'">Listagem dos Pagamentos</button>
+	<button type="button" class="submit" onclick="window.location.href='settingspaymentslisting.php'">Listagem dos Pagamentos</button>
 	</div>
 
 	<div class="dialog_panel_thin">

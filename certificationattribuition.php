@@ -3,6 +3,7 @@ session_start();
 require_once 'eve.class.php';
 require_once 'evecertificationservice.class.php';
 require_once 'evesubmissionservice.class.php';
+require_once 'eveuserservice.class.php';
 
 $eve = new Eve();
 $eveCertificationService = new EveCertificationService($eve);
@@ -208,6 +209,7 @@ else
 	}
 	else if ($certificationmodel['type'] == "usercertification") 
 	{
+		$eveUserService = new EveUserService($eve);
 		?>
 		<table class="data_table">
 		<thead>
@@ -219,20 +221,8 @@ else
 		</thead>
 		<tbody>
 		<?php
-		$user_res = $eve->mysqli->query
-		("
-			select 
-				`{$eve->DBPref}userdata`.`email`,
-				`{$eve->DBPref}userdata`.`name`,
-				`{$eve->DBPref}userdata`.`note`,
-				`{$eve->DBPref}userdata`.`admin`,
-				`{$eve->DBPref}userdata`.`locked_form`,
-			from
-				`{$eve->DBPref}userdata`
-			order by
-				`{$eve->DBPref}userdata`.`name`;
-		");
-		while ($user = $user_res->fetch_assoc())
+		
+		foreach($eveUserService->user_general_list($order_criteria) as $user)
 		{	
 			$locked_form = ($user['locked_form']) ? "&#8226;" : "";
 			echo "<tr>";

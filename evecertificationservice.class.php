@@ -82,7 +82,7 @@ class EveCertificationService
 	 *   {"type": "variable", "entity": "submission-content", "parameter" : "1-1"}
 	 * 
 	 * Parameters for the entity "user": admin, locked_form, name, address, city, state, country,
-	 * postalcode, birthday, gender, phone1, phone2, instituition, category_id, customtext1,
+	 * postalcode, birthday, gender, phone1, phone2, instituition, customtext1,
 	 * customtext2, customtext3, customtext4, customtext5, customflag1, customflag2, customflag3,
 	 * customflag4, customflag5, note.
 	 * 

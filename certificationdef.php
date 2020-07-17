@@ -92,7 +92,7 @@ else
 				'Ex: {"type": "variable", "entity": "submission-content", "parameter" : "1"}\n'+
 				'Ex: {"type": "variable", "entity": "submission-content", "parameter" : "1-1"}\n'+
 				'Parâmetros para "user": admin, locked_form, name, address, city, state, country,\n'+
-				'postalcode, birthday, gender, phone1, phone2, instituition, category_id,\n'+
+				'postalcode, birthday, gender, phone1, phone2, instituition, \n'+
 				'customtext1, customtext2, customtext3, customtext4, customtext5, customflag1,\n'+
 				'customflag2, customflag3, customflag4, customflag5, note.\n'+
 				'Parâmetros para "submission-content": o número indicando a posição.\n'+

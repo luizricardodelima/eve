@@ -33,6 +33,13 @@ class EveUserService
 
 	const UNVERIFIED_USER_SEND_VERIFICATION_EMAIL_SUCCESS = 13;
 
+	const USER_CHANGE_EMAIL_ERROR_INVALID_EMAIL = 'user.change.email.error.invalid.email';
+	const USER_CHANGE_EMAIL_ERROR_EMAIL_IN_USE = 'user.change.email.error.email.in.use';
+	const USER_CHANGE_EMAIL_ERROR_SQL = 'user.change.email.error.sql';
+	const USER_CHANGE_EMAIL_SUCCESS = 'user.change.email.success';
+	const USER_DELETE_ERROR_SQL = 'user.delete.error.sql';
+	const USER_DELETE_SUCCESS = 'user.delete.success';
+
 	const USER_CHANGE_PASSWORD_ERROR = 14;	
 	const USER_CHANGE_PASSWORD_ERROR_PASSWORD_TOO_SMALL = 15;	
 	const USER_CHANGE_PASSWORD_ERROR_PASSWORDS_DO_NOT_MATCH = 16;
@@ -400,23 +407,12 @@ class EveUserService
 	/** Retrieves a list of users with general data: email, name, note and locked_form */
 	function user_general_list($orderby = "email")
 	{
-		// Sanitizing input		
-		switch ($orderby)
-		{
-			case "email":			
-			case "name":
-			case "note":
-			case "locked_form":
-			case "description":			
-				// Everything is fine, these are the acceptable values.
-				break;
-			default:		
-				// Unnacceptable value. Changing it to "email".
-				$orderby = "email";
-				break;
-		}
-		// TODO return array
-		return $this->eve->mysqli->query
+		$result = array();
+		// Sanitizing input
+		if (!in_array ($orderby, ['email','name','note','locked_form']))
+			$orderby = "email";
+				
+		$user_res = $this->eve->mysqli->query
 		("
 			select 
 				`{$this->eve->DBPref}userdata`.`email`,
@@ -428,6 +424,9 @@ class EveUserService
 			order by
 				`$orderby`;
 		");
+		while ($user = $user_res->fetch_assoc())
+			$result[] = $user;
+		return $result;
 	}
 
 	function user_login($email, $password)
@@ -506,24 +505,63 @@ class EveUserService
 		return true;
 	}
 
-	// TODO rename: user_change_email
-	function changeEmail($oldemail, $newemail)
+	function user_change_email($oldemail, $newemail)
 	{
-		// Just one SQL line. It relies on the relationships among tables and cascade settings on update.
-		$stmt1 = $this->eve->mysqli->prepare("update `{$this->eve->DBPref}user` set `email` = ? where `email`=?;");
-		$stmt1->bind_param('ss', $newemail, $oldemail);
-		$stmt1->execute();
-		$stmt1->close();
+		if (!filter_var($newemail, FILTER_VALIDATE_EMAIL))
+			return self::USER_CHANGE_EMAIL_ERROR_INVALID_EMAIL;
+		else if ($this->userExists($newemail))
+			return self::USER_CHANGE_EMAIL_ERROR_EMAIL_IN_USE;
+		else
+		{	
+			// Change e-mail consists of only one SQL line. It relies on the relationships
+			// among tables and cascade settings on update.
+			$stmt = $this->eve->mysqli->prepare
+			("
+				update `{$this->eve->DBPref}user` set `email` = ? where `email` = ?
+			");
+			if ($stmt === false)
+			{
+				return self::USER_CHANGE_EMAIL_ERROR_SQL;
+			}
+			$stmt->bind_param('ss', $newemail, $oldemail);
+			$stmt->execute();
+			if ($this->eve->mysqli->affected_rows)
+			{
+				$stmt->close();
+				return self::USER_CHANGE_EMAIL_SUCCESS;
+			}
+			else
+			{
+				$stmt->close();
+				return self::USER_CHANGE_EMAIL_ERROR_SQL;
+			}
+		}
 	}
 
-	// TODO rename: user_delete
-	function deleteUser($email)
+	function user_delete($email)
 	{
-		// Just one SQL line. It relies on the relationships among tables and cascade/null settings on delete.
-		$stmt1 = $this->eve->mysqli->prepare("delete from `{$this->eve->DBPref}user` where `email`=?;");
-		$stmt1->bind_param('s', $email);
-		$stmt1->execute();
-		$stmt1->close();
+		// User delete consists of only one SQL line. It relies on the relationships
+		// among tables and cascade settings on update.
+		$stmt = $this->eve->mysqli->prepare
+		("
+			delete from `{$this->eve->DBPref}user` where `email` = ?
+		");
+		if ($stmt === false)
+		{
+			return self::USER_DELETE_ERROR_SQL;
+		}
+		$stmt->bind_param('s', $email);
+		$stmt->execute();
+		if ($this->eve->mysqli->affected_rows)
+		{
+			$stmt->close();
+			return self::USER_DELETE_SUCCESS;
+		}
+		else
+		{
+			$stmt->close();
+			return self::USER_DELETE_ERROR_SQL;
+		}
 	}
 
 	// Boolean function. Returns true if a user with given $sceenname exists.
@@ -533,7 +571,7 @@ class EveUserService
 		return $this->eve->user_exists($screenname);
 	}
 
-	// TODO rename: user_change_email
+	// TODO rename: user_retrieve_password
 	// TODO DEPRECATED - new method for retrieving passwords - this is not safe
 	function retrievePassword($email)
 	{

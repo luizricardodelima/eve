@@ -122,7 +122,7 @@ else
 		$eve->output_big_goto_button("userarea.option.payment", "&#91;", "payment.php");
 
 	// Submissions with payment requirement
-	if (!$eve->getSetting('payment_closed') && $evePaymentService->payment_get_by_user($_SESSION['screenname']))
+	if (!$eve->getSetting('payment_closed') && $evePaymentService->payment_get_id($_SESSION['screenname']))
 	foreach ($eveSubmissionService->submission_definition_list_for_user($_SESSION['screenname'], 'after_payment') as $submission_definition)
 		$eve->output_big_goto_button($submission_definition['description'], "&#67;", "submission.php?id={$submission_definition['id']}");
 

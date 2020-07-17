@@ -91,8 +91,7 @@ else
 		}
 		document.forms['export_form'].submit();
 	}
-	/*
-	TODO: REIMPLEMENT Summary View
+
 	function change_view()
 	{
 		switch (document.querySelector('input[name="view"]:checked').value)
@@ -107,7 +106,6 @@ else
 				break;
 		}
 	}
-	*/
 	</script>	
 
 	<form id="credentials_form" method="post" action="credential.php"></form>
@@ -118,12 +116,12 @@ else
 	<button type="button" onclick="export_selected()">Exportar</button>
 	<button type="button" onclick="credentials()">Credencial</button>
 	<button type="button" onclick="window.location='settingspaymentslisting.php';">Configurar</button>
-	<!-- TODO Reimplement Summary View
+	
 	<span style="float: right;">
 	<input type="radio" name="view" id="complete_view_option" value="complete" checked="checked" onchange="change_view();"><label for="complete_view_option">Completo</label>
 	<input type="radio" name="view" id="short_view_option" value="short" onchange="change_view();"><label for="short_view_option">Resumido</label>
 	</span>
-	-->
+	
 	</div>
 	<table class="data_table" id="complete_view_table">
 	<tr>
@@ -183,7 +181,6 @@ else
 	}
 	</script>
 	
-	<!-- TODO Reimplement Summary View
 	<table class="data_table" id="short_view_table" style="display:none;">
 	<thead>	
 	<th style="width: 40%">Tipo de pagamento</th>
@@ -192,15 +189,32 @@ else
 	<th style="width: 20%">Valor recebido</th>
 	</thead>
 	<tbody>
+	<?php
+	$total_user_count = 0;
+	$total_value_paid_sum = 0;
+	$total_value_received_sum = 0;	
+	foreach ($evePaymentService->payment_list_summary() as $summary_item)
+	{
+		echo "<tr>";
+		echo ($summary_item['payment_method'] === null) ? "<td>{$eve->_('payment.null')}</td>" : "<td>{$summary_item['payment_method']}</td>";
+		echo "<td>{$summary_item['user_count']}</td>";
+		echo "<td>{$formatter->format($summary_item['value_paid_sum'])}</td>";
+		echo "<td>{$formatter->format($summary_item['value_received_sum'])}</td>";
+		echo "</tr>";
+		$total_user_count += $summary_item['user_count'];
+		$total_value_paid_sum += $summary_item['value_paid_sum'];
+		$total_value_received_sum += $summary_item['value_received_sum'];	
+	}
+	?>
 	<tr>
-	<td><strong>Total</strong></td>
-	<td><strong><?php echo 0;?></strong></td>
-	<td><strong><?php echo $formatter->format(0);?></strong></td>
-	<td><strong><?php echo $formatter->format(0);?></strong></td>
+	<td><strong>Total</strong></td><!-- TODO G11N -->
+	<td><strong><?php echo $total_user_count;?></strong></td>
+	<td><strong><?php echo $formatter->format($total_value_paid_sum);?></strong></td>
+	<td><strong><?php echo $formatter->format($total_value_received_sum);?></strong></td>
 	</tr>
 	</tbody>
 	</table>
-	-->
+	
 	<?php
 	$eve->output_html_footer();
 }

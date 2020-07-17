@@ -18,13 +18,17 @@ class EvePaymentService
 	const PAYMENT_OPTION_CREATE_SUCCESS = 'payment.option.create.success';
 	const PAYMENT_OPTION_DELETE_ERROR_SQL = 'payment.option.delete.error.sql';
 	const PAYMENT_OPTION_DELETE_SUCCESS = 'payment.option.delete.success';
+	const PAYMENT_OPTION_UPDATE_SUCCESS = 'payment.option.update.success';
+	const PAYMENT_OPTION_UPDATE_ERROR_SQL = 'payment.option.update.error.sql';
 	
+	// TODO Maybe payment does not need this restriction of one payment per user.
+
 	/** 
-	 * Returns the Payment id associated to the $screenname. If no payment is found,
-	 * the function creates a payment object associated to the $screenname and then
-	 * returns the id. The function retuns null in case of an error.
+	 * Returns the Payment id associated to the $screenname. If $create_new_if_not_found
+	 * is true and no payment is found, the function creates a payment object associated
+	 * to the $screenname and then returns the id. The function retuns null otherwise.
 	 */
-	function payment_create_or_get_id($screenname)
+	function payment_get_id($screenname, $create_new_if_not_found = false)
 	{
 		$id = null;
 		$stmt = $this->eve->mysqli->prepare
@@ -46,7 +50,7 @@ class EvePaymentService
 			$stmt->close();
 			return $id;
 		}
-		else
+		else if ($create_new_if_not_found)
 		{
 			$stmt->close();
 			$stmt1 = $this->eve->mysqli->prepare
@@ -69,6 +73,10 @@ class EvePaymentService
 			$stmt1->close();
 			return $id;
 		}
+		else
+		{
+			return null;
+		}
 	}
 
 	function payment_register($screenname, $payment_method, $date, $note, $value_paid, $value_received, $items = null)
@@ -77,7 +85,7 @@ class EvePaymentService
 		$result = self::PAYMENT_ERROR;
 
 		// Getting or creating payment id
-		$id = $this->payment_create_or_get_id($screenname);
+		$id = $this->payment_get_id($screenname, true);
 		if ($id === null) return self::PAYMENT_ERROR_ID_NOT_RETRIEVED;
 
 		//Populating payment with data
@@ -235,81 +243,23 @@ class EvePaymentService
 		}		
 		$stmt1->bind_param('i', $id);
 		$stmt1->execute();
+		$payment = array();
 		// Binding result variable - Column by column to ensure compability
 		// From PHP Verions 5.3+ there is the get_result() method
     	$stmt1->bind_result
 		(
-			$id,
-			$user_email,
-			$date,
-			$payment_method,
-			$value_paid,
-			$value_received,
-			$note,
-			$file
+			$payment['id'],
+			$payment['user_email'],
+			$payment['date'],
+			$payment['payment_method'],
+			$payment['value_paid'],
+			$payment['value_received'],
+			$payment['note'],
+			$payment['file']
 		);
 		// Fetching values		
 		if ($stmt1->fetch())
 		{
-			$payment = array();
-			$payment['id'] = $id;
-			$payment['user_email'] = $user_email;
-			$payment['date'] = $date;
-			$payment['payment_method'] = $payment_method;
-			$payment['value_paid'] = $value_paid;
-			$payment['value_received'] = $value_received;
-			$payment['note'] = $note;
-			$payment['file'] = $file;
-			$stmt1->close();
-			return $payment;
-		}
-		else
-		{
-			$stmt1->close();
-			return null;
-		}
-	}
-
-	function payment_get_by_user($email)
-	{
-		$stmt1 = $this->eve->mysqli->prepare
-		("
-			select * 
-			from   `{$this->eve->DBPref}payment`
-			where  `{$this->eve->DBPref}payment`.`user_email` = ?
-		");
-		if ($stmt1 === false)
-		{
-			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
-			return null;
-		}		
-		$stmt1->bind_param('s', $email);
-		$stmt1->execute();
-		// Binding result variable - Column by column to ensure compability
-		// From PHP Verions 5.3+ there is the get_result() method
-    	$stmt1->bind_result
-		(
-			$id,
-			$user_email,
-			$date,
-			$payment_method,
-			$value_paid,
-			$value_received,
-			$note,
-			$file
-		);
-		// Fetching values		
-		if ($stmt1->fetch())
-		{
-			$payment = array();
-			$payment['id'] = $id;
-			$payment['user_email'] = $user_email;
-			$payment['date'] = $date;
-			$payment['payment_method'] = $payment_method;
-			$payment['value_paid'] = $value_paid;
-			$payment['value_received'] = $value_received;
-			$payment['note'] = $note;
-			$payment['file'] = $file;
 			$stmt1->close();
 			return $payment;
 		}
@@ -373,28 +323,25 @@ class EvePaymentService
 		return $result;
 	}
 
-	function payment_option_create($name = "")
-	{   
-		$stmt = $this->eve->mysqli->prepare
-		("
-			insert into `{$this->eve->DBPref}payment_option` (`name`) values (?)
+	function payment_list_summary()
+	{
+		$result = array();
+		$resource = $this->eve->mysqli->query
+		("	
+			select 
+				`{$this->eve->DBPref}payment`.`payment_method` as `payment_method`,
+				count(`{$this->eve->DBPref}userdata`.`email`) as `user_count`,
+				sum(`{$this->eve->DBPref}payment`.`value_paid`) as `value_paid_sum`,
+				sum(`{$this->eve->DBPref}payment`.`value_received`) as `value_received_sum`
+			from
+				`{$this->eve->DBPref}userdata`
+			left outer join
+				`{$this->eve->DBPref}payment` on (`{$this->eve->DBPref}userdata`.`email` = `{$this->eve->DBPref}payment`.`user_email`)
+			group by
+				`{$this->eve->DBPref}payment`.`payment_method`;
 		");
-		if ($stmt === false)
-		{
-			return self::PAYMENT_OPTION_CREATE_ERROR_SQL;
-		}
-		$stmt->bind_param('s', $name);
-		$stmt->execute();
-		if (!empty($stmt->error))
-		{
-			$stmt->close();
-			return self::PAYMENT_OPTION_CREATE_ERROR_SQL;
-		}
-		else
-		{
-			$stmt->close();
-			return self::PAYMENT_OPTION_CREATE_SUCCESS;
-		}
+		while ($item = $resource->fetch_assoc()) $result[] = $item;
+		return $result;
 	}
 
 	function payment_item_list($payment_id)
@@ -441,6 +388,30 @@ class EvePaymentService
 		}
 		$stmt1->close();
 		return $result;
+	}
+
+	function payment_option_create($name = "")
+	{   
+		$stmt = $this->eve->mysqli->prepare
+		("
+			insert into `{$this->eve->DBPref}payment_option` (`name`) values (?)
+		");
+		if ($stmt === false)
+		{
+			return self::PAYMENT_OPTION_CREATE_ERROR_SQL;
+		}
+		$stmt->bind_param('s', $name);
+		$stmt->execute();
+		if (!empty($stmt->error))
+		{
+			$stmt->close();
+			return self::PAYMENT_OPTION_CREATE_ERROR_SQL;
+		}
+		else
+		{
+			$stmt->close();
+			return self::PAYMENT_OPTION_CREATE_SUCCESS;
+		}
 	}
 
 	function payment_option_delete($id)
@@ -579,9 +550,6 @@ class EvePaymentService
 		$enum = str_getcsv($matches[1], ",", "'");
 		return $enum;
 	}
-
-	const PAYMENT_OPTION_UPDATE_SUCCESS = 'payment.option.update.success';
-	const PAYMENT_OPTION_UPDATE_ERROR_SQL = 'payment.option.update.error.sql';
 
 	function payment_option_update($payment_option)
 	{	

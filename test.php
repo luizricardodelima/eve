@@ -10,7 +10,7 @@ $evePaymentService = new EvePaymentService($eve);
 
 $create_result = $evePaymentService->payment_register('luizricardodelima9@gmail.com', 'PMT METHOD X', date("Y-m-d"), "ORIGINAL NOTE", 99, 88, [1]);
 var_dump($create_result);
-$find_result = $evePaymentService->payment_create_or_get_id('luizricardodelima9@gmail.com');
+$find_result = $evePaymentService->payment_get_id('luizricardodelima9@gmail.com');
 var_dump($find_result);
 /*
 $delete_result = $evePaymentService->payment_delete($find_result);

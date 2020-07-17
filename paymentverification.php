@@ -78,7 +78,8 @@ else
 	else
 	{
 		// There is no postdata. Retrieving payment info, if any.
-		$data = $evePaymentService->payment_get_by_user($_GET['screenname']);
+		$paymentId = $evePaymentService->payment_get_id($_GET['screenname']);
+		$data = $evePaymentService->payment_get($paymentId);
 		$date_value = date('Y-m-d');
 		// TODO Creating new payment object goes to service
 		if ($data === null) $data = array ('date' => $date_value, 'payment_method' => null, 'value_paid' => 0, 'value_received' => 0, 'note' => null);

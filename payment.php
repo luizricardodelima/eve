@@ -24,7 +24,8 @@ else
 	]);
 
 	// Retrieving payment info from user
-	$payment = $evePaymentService->payment_get_by_user($_SESSION['screenname']);
+	$paymentId = $evePaymentService->payment_get_id($_SESSION['screenname']);
+	$payment = $evePaymentService->payment_get($paymentId);
 
 	if ($payment === null)
 	{
@@ -158,11 +159,12 @@ else
 		$money_formatter = new NumberFormatter($eve->getSetting('system_locale'), NumberFormatter::CURRENCY);
 
 		echo "<p>{$eve->_('payment.message.payment.verified')}</p>";
-		echo "<ul>";
-		echo "<li>Data: {$date_formatter->format(strtotime($payment['date']))}</li>";
-		echo "<li>Método de pagamento: {$payment['payment_method']}</li>";
-		echo "<li>Valor pago: {$money_formatter->format($payment['value_paid'])}</li>";
-		echo "</ul>";
+		echo "<div class=\"dialog_section\">Dados do pagamento</div>";
+		echo "<table class=\"data_table\">";
+		echo "<tr><td>Data</td><td>{$date_formatter->format(strtotime($payment['date']))}</td></tr>";
+		echo "<tr><td>Método de pagamento</td><td>{$payment['payment_method']}</td></tr>";
+		echo "<tr><td>Valor pago</td><td>{$money_formatter->format($payment['value_paid'])}</td></tr>";
+		echo "</table>";
 		echo "<div class=\"dialog_section\">Ítens adquiridos</div>";
 		echo "<table class=\"data_table\">";
 		if (isset($payment['id'])) foreach ($evePaymentService->payment_item_list($payment['id']) as $item)

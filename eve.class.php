@@ -65,9 +65,6 @@ class Eve
 		}
 	}
 
- 	// TODO CREATE setting_list
- 	// TODO CREATE setting_save
-
 	function output_html_header() 
 	{
 		?>
@@ -179,6 +176,7 @@ class Eve
 		?>
 		</div>
 		<?php
+		// TODO G11N
 		if ($this->getSetting('show_footer'))
 			echo "<div id=\"footer\"><a href=\"https://eveeventos.wordpress.com/\" target=\"_blank\">EVE | Gerenciador de eventos acad&ecirc;micos</a></div>";
 		?>		
@@ -198,7 +196,7 @@ class Eve
 			case 'success': $class = 'msg_success'; $icon = '&#217;'; break;
 			default: return null; break;
 		}
-		echo "<div class=\"$class\"><button class=\"msg_close\" onclick=\"this.parentNode.style.display='none';\">X</button><span class=\"msg_icon\">$icon</span><span class=\"msg_body\">$text</span></div>";
+		echo "<div class=\"$class\"><button type=\"button\" class=\"msg_close\" onclick=\"this.parentNode.style.display='none';\">X</button><span class=\"msg_icon\">$icon</span><span class=\"msg_body\">$text</span></div>";
 	}
 
 	function output_error_list_message($message_array)

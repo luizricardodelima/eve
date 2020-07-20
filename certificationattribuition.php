@@ -48,7 +48,7 @@ else if (isset($_POST['action'])) switch ($_POST['action'])
 else
 {
 	$eve->output_html_header();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Modelos de certificado", "certificationdefs.php", "Atribuição de certificados", null);
+	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Modelos de certificado", "certification_models.php", "Atribuição de certificados", null);
 	
 	?>
 	<form method="post" action="<?php echo basename(__FILE__)."?id=".$_GET['id'];?>" id="specialsubmissionattibuition_form">
@@ -222,7 +222,7 @@ else
 		<tbody>
 		<?php
 		
-		foreach($eveUserService->user_general_list($order_criteria) as $user)
+		foreach($eveUserService->user_general_list() as $user)
 		{	
 			$locked_form = ($user['locked_form']) ? "&#8226;" : "";
 			echo "<tr>";

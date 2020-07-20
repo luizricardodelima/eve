@@ -35,7 +35,7 @@ else if
 else if
 (
 	(isset($_GET['id']) && !$eve->mysqli->query("SELECT * FROM `{$eve->DBPref}certification` WHERE `id` = {$_GET['id']};")->num_rows) ||
-	(isset($_GET['templateid']) && !$eve->mysqli->query("SELECT * FROM `{$eve->DBPref}certificationdef` WHERE `id` = {$_GET['templateid']};")->num_rows)
+	(isset($_GET['templateid']) && !$eve->mysqli->query("SELECT * FROM `{$eve->DBPref}certification_model` WHERE `id` = {$_GET['templateid']};")->num_rows)
 )
 {
 	$eve->output_error_page('common.message.invalid.parameter');
@@ -44,7 +44,7 @@ else
 {
 	// At this point it's guaranteed that:
 	// - There is a valid session
-	// - A numeric ID, which refers to an existing certification or an existing certificationdef, was passed as a get variable
+	// - A numeric ID, which refers to an existing certification or an existing certification_model, was passed as a get variable
 	
 	// Checking user access priviledges to this certification.
 	// The user can access this certification if he/she is an admin or if he/she's the owner.
@@ -61,53 +61,53 @@ else
 		// Displaying certification		
 		// Loading user data and submission data
 		$certification = null;
-		$certificationdef = null;
+		$certification_model = null;
 		$user = null;
 		$submission = null;
 		if (isset($_GET['id']))
 		{
 			// TODO use method from service
 			$certification = $eve->mysqli->query("SELECT * FROM `{$eve->DBPref}certification` WHERE `id`={$_GET['id']};")->fetch_assoc();
-			$certificationdef = $eveCertificationService->certificationmodel_get($certification['certificationdef_id']);			
+			$certification_model = $eveCertificationService->certificationmodel_get($certification['certification_model_id']);			
 			$user = $eveUserService->user_get($certification['screenname']);			
 			$submission = $eveSubmissionService->submission_get($certification['submissionid']);
 		}
 		else if (isset($_GET['templateid']))
 		{
-			$certificationdef = $eveCertificationService->certificationmodel_get($_GET['templateid']);
+			$certification_model = $eveCertificationService->certificationmodel_get($_GET['templateid']);
 		}
 		
 		// Replacing the certificate text variables
 		if (isset($_GET['id']))
-			$certificate_text = $eveCertificationService->certification_text(json_decode($certificationdef['text']), $user, $submission);		
+			$certificate_text = $eveCertificationService->certification_text(json_decode($certification_model['text']), $user, $submission);		
 		else if (isset($_GET['templateid']))
-			$certificate_text = $eveCertificationService->certification_text(json_decode($certificationdef['text']), $user, $submission);
+			$certificate_text = $eveCertificationService->certification_text(json_decode($certification_model['text']), $user, $submission);
 
 		// Only Reporting Errors. If less critical messages (such as warnings) are displayed, the pdf cannot be sent.
 		error_reporting(E_ERROR);
 		
 		// Creating PDF
-		$pdf = new FPDF($certificationdef['pageorientation'], 'mm', $certificationdef['pagesize']);
-		$pdf->SetTopMargin($certificationdef['topmargin']); // Top Margin has to be called before the page is created
+		$pdf = new FPDF($certification_model['pageorientation'], 'mm', $certification_model['pagesize']);
+		$pdf->SetTopMargin($certification_model['topmargin']); // Top Margin has to be called before the page is created
 		$pdf->AddPage();
 
 		// Background Image
-		$bg_image_filename = "upload/certification/{$certificationdef['backgroundimage']}";
+		$bg_image_filename = "upload/certification/{$certification_model['backgroundimage']}";
 		$bg_image_file = fopen($bg_image_filename, "r");
 		if ($bg_image_file && is_file($bg_image_filename))
-			$pdf->Image("upload/certification/{$certificationdef['backgroundimage']}",0,0, $pdf->w, $pdf->h);
+			$pdf->Image("upload/certification/{$certification_model['backgroundimage']}",0,0, $pdf->w, $pdf->h);
 		
 		// Using FPDF's encoding...
 		$certificate_text = iconv('UTF-8', 'windows-1252', $certificate_text);
 		
 		// Setting margins and writing text
-		$pdf->SetLeftMargin($certificationdef['leftmargin']);
-		$pdf->SetRightMargin($certificationdef['rightmargin']);
-		$pdf->SetFont('Arial','',$certificationdef['text_fontsize']);
+		$pdf->SetLeftMargin($certification_model['leftmargin']);
+		$pdf->SetRightMargin($certification_model['rightmargin']);
+		$pdf->SetFont('Arial','',$certification_model['text_fontsize']);
 		$pdf->MultiCell
 		(
 			0,	// until right margin
-			$certificationdef['text_lineheight'],
+			$certification_model['text_lineheight'],
 			$certificate_text,
 			0,	// no border
 			'C'	// center alignment

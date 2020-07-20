@@ -25,7 +25,7 @@ else if (!is_numeric($_GET['id']))
 {
 	$eve->output_error_page('common.message.invalid.parameter'); // Blocking sql injections by accepting numbers only
 }
-else if (!$eve->mysqli->query("SELECT * FROM `{$eve->DBPref}certificationdef` WHERE `id` = {$_GET['id']};")->num_rows)
+else if (!$eve->mysqli->query("SELECT * FROM `{$eve->DBPref}certification_model` WHERE `id` = {$_GET['id']};")->num_rows)
 {
 	$eve->output_error_page('common.message.invalid.parameter');
 }
@@ -34,7 +34,7 @@ else
 	// In this block we're sure that user has admin privileges and that $_GET['id'] exists and is valid.
 	$eveCertificationService = new EveCertificationService($eve);
 	$eve->output_html_header();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Modelos de certificado", "certificationdefs.php","Modelo de certificado (ID: {$_GET['id']})", null);
+	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Modelos de certificado", "certification_models.php","Modelo de certificado (ID: {$_GET['id']})", null);
 	$eve->output_wysiwig_editor_code();
 
 	$data = array();
@@ -44,7 +44,7 @@ else
 	{
 		//No POST data. Retrieving data from database.
 		//TODO use service!
-		$result = $eve->mysqli->query("SELECT * FROM `{$eve->DBPref}certificationdef` WHERE `id`={$_GET['id']};");
+		$result = $eve->mysqli->query("SELECT * FROM `{$eve->DBPref}certification_model` WHERE `id`={$_GET['id']};");
 		$row = $result->fetch_assoc();
 		foreach ($row as $column => $value) 
 		{
@@ -67,7 +67,7 @@ else
 			foreach ($data as $column => $value)
 			{
 				$value = $eve->mysqli->real_escape_string($value);
-				$eve->mysqli->query("UPDATE `{$eve->DBPref}certificationdef` SET `$column` = '$value' WHERE `id` = {$_GET['id']};");
+				$eve->mysqli->query("UPDATE `{$eve->DBPref}certification_model` SET `$column` = '$value' WHERE `id` = {$_GET['id']};");
 			}
 			$eve->output_success_message("Dados salvos com sucesso.");
 		}

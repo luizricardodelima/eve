@@ -45,7 +45,7 @@ else if (isset($_POST['action'])) switch ($_POST['action'])
 else
 {	
 	$eve->output_html_header();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Modelos de certificado", "certificationdefs.php", "Imagens de fundo", null);
+	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Modelos de certificado", "certification_models.php", "Imagens de fundo", null);
 
 	if (isset($_GET['fileerrorcode']))
 		$eve->output_error_message("Erro ao enviar o arquivo. Código de erro: {$_GET['fileerrormsg']}.");

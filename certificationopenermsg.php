@@ -26,13 +26,13 @@ else if (!$eve->is_admin($_SESSION['screenname']) || $certification['screenname'
 // page, display its contents
 else
 {
-	$certificationdef = $eveCertificationService->certificationmodel_get($certification['id']);
+	$certification_model = $eveCertificationService->certificationmodel_get($certification['id']);
 	$eve->output_html_header();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php",  $certificationdef['name'], null);
+	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php",  $certification_model['name'], null);
 	
 	?>
 	<div class="dialog_panel">
-	<?php echo $certificationdef['openermsg']; ?>
+	<?php echo $certification_model['openermsg']; ?>
 	<button type="button" class="submit" onclick="window.location.href='certification.php?id=<?php echo $_GET['id'];?>'">
 	<?php echo $eve->_('certification.action.view');?>
 	</button>

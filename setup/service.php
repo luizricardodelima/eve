@@ -100,17 +100,36 @@ function create_database($dbpassword, $screenname, $password)
 		  `revision_structure` text COLLATE utf8_unicode_ci,
 		  `revision_content` text COLLATE utf8_unicode_ci,
 		  `revision_status` int(11) NOT NULL DEFAULT '0',
+		  `access` enum('default','user_review', 'reviewer_review') COLLATE utf8_unicode_ci DEFAULT 'default',
 		  `active` tinyint(4) NOT NULL DEFAULT '1'
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 	");
 	if ($mysqli->error) {$log[] = "ERROR - Create table submission - ".$mysqli->error; delete_database($dbpassword); return $log;}
+
+	// Create table submission_history
+	$mysqli->query
+		("
+			CREATE TABLE `{$pref}submission_history` (
+			  `id` int(11) NOT NULL,
+			  `submission_id` int(11) NOT NULL,
+			  `agent_email` varchar(255) COLLATE utf8_unicode_ci,
+			  `date` datetime,
+			  `type` enum('creation','update','removal') COLLATE utf8_unicode_ci DEFAULT 'creation',
+			  `submission_structure` text COLLATE utf8_unicode_ci,
+			  `submission_content` text COLLATE utf8_unicode_ci,
+			  `revision_structure` text COLLATE utf8_unicode_ci,
+			  `revision_content` text COLLATE utf8_unicode_ci
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+		");
+	if ($mysqli->error) {$log[] = "ERROR - Create table submission_history - ".$mysqli->error; delete_database($dbpassword); return $log;}
+
 	
 	// Create table certification
 	$mysqli->query
 	("
 		CREATE TABLE `{$pref}certification` (
 		  `id` int(11) NOT NULL,
-		  `certificationdef_id` int(11) DEFAULT NULL,
+		  `certification_model_id` int(11) DEFAULT NULL,
 		  `screenname` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
 		  `submissionid` int(11) DEFAULT NULL,
 		  `locked` int(11) NOT NULL DEFAULT '0',
@@ -119,10 +138,10 @@ function create_database($dbpassword, $screenname, $password)
 	");
 	if ($mysqli->error) {$log[] = "ERROR - Create table certification - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
-	// Create table certificationdef
+	// Create table certification_model
 	$mysqli->query
 	("
-		CREATE TABLE `{$pref}certificationdef` (
+		CREATE TABLE `{$pref}certification_model` (
 		  `id` int(11) NOT NULL,
 		  `type` enum('usercertification','submissioncertification') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'usercertification',
 		  `name` text COLLATE utf8_unicode_ci,
@@ -135,11 +154,13 @@ function create_database($dbpassword, $screenname, $password)
 		  `rightmargin` smallint(6) NOT NULL DEFAULT '0',
 		  `text_lineheight` int(11) NOT NULL DEFAULT '0',
 		  `text_fontsize` int(11) NOT NULL DEFAULT '0',
+		  `text_font` text COLLATE utf8_unicode_ci,
+		  `text_alignment` enum('left','right','center','justified') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'left',
 		  `hasopenermsg` smallint(6) NOT NULL DEFAULT '0',
 		  `openermsg` text COLLATE utf8_unicode_ci
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 	");
-	if ($mysqli->error) {$log[] = "ERROR - Create table certificationdef - ".$mysqli->error; delete_database($dbpassword); return $log;}
+	if ($mysqli->error) {$log[] = "ERROR - Create table certification_model - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
 	// Create table unverifieduser
 	$mysqli->query
@@ -277,11 +298,14 @@ function create_database($dbpassword, $screenname, $password)
 	$mysqli->query("ALTER TABLE `{$pref}submission` ADD PRIMARY KEY (`id`), ADD KEY `submission_definition_id` (`submission_definition_id`), ADD KEY `email` (`email`), ADD KEY `reviewer_email` (`reviewer_email`);");
 	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys submission - ".$mysqli->error; delete_database($dbpassword); return $log;}
 	
-	$mysqli->query("ALTER TABLE `{$pref}certification` ADD PRIMARY KEY (`id`), ADD KEY `certificationdef_id` (`certificationdef_id`), ADD KEY `screenname` (`screenname`), ADD KEY `submissionid` (`submissionid`);");
+	$mysqli->query("ALTER TABLE `{$pref}submission_history` ADD PRIMARY KEY (`id`), ADD KEY `submission_id` (`submission_id`), ADD KEY `agent_email` (`agent_email`);");
+	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys submission_history - ".$mysqli->error; delete_database($dbpassword); return $log;}
+
+	$mysqli->query("ALTER TABLE `{$pref}certification` ADD PRIMARY KEY (`id`), ADD KEY `certification_model_id` (`certification_model_id`), ADD KEY `screenname` (`screenname`), ADD KEY `submissionid` (`submissionid`);");
 	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys certification - ".$mysqli->error; delete_database($dbpassword); return $log;}
 	
-	$mysqli->query("ALTER TABLE `{$pref}certificationdef` ADD PRIMARY KEY (`id`);");
-	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys certificationdef- ".$mysqli->error; delete_database($dbpassword); return $log;}
+	$mysqli->query("ALTER TABLE `{$pref}certification_model` ADD PRIMARY KEY (`id`);");
+	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys certification_model- ".$mysqli->error; delete_database($dbpassword); return $log;}
 	
 	$mysqli->query("ALTER TABLE `{$pref}unverifieduser` ADD PRIMARY KEY (`email`);");
 	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys unverifieduser - ".$mysqli->error; delete_database($dbpassword); return $log;}
@@ -321,11 +345,14 @@ function create_database($dbpassword, $screenname, $password)
 	$mysqli->query("ALTER TABLE `{$pref}submission` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
 	if ($mysqli->error) {$log[] = "ERROR - Auto increment submission - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
+	$mysqli->query("ALTER TABLE `{$pref}submission_history` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
+	if ($mysqli->error) {$log[] = "ERROR - Auto increment submission_history - ".$mysqli->error; delete_database($dbpassword); return $log;}
+
 	$mysqli->query("ALTER TABLE `{$pref}certification` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
 	if ($mysqli->error) {$log[] = "ERROR - Auto increment certification - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
-	$mysqli->query("ALTER TABLE `{$pref}certificationdef` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
-	if ($mysqli->error) {$log[] = "ERROR - Auto increment certificationdef - ".$mysqli->error; delete_database($dbpassword); return $log;}
+	$mysqli->query("ALTER TABLE `{$pref}certification_model` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
+	if ($mysqli->error) {$log[] = "ERROR - Auto increment certification_model - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
 	$mysqli->query("ALTER TABLE `{$pref}pages` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
 	if ($mysqli->error) {$log[] = "ERROR - Auto increment pages - ".$mysqli->error; delete_database($dbpassword); return $log;}
@@ -366,8 +393,16 @@ function create_database($dbpassword, $screenname, $password)
 
 	$mysqli->query
 	("
+		ALTER TABLE `{$pref}submission_history`
+		  ADD CONSTRAINT `{$pref}submission_history_ibfk_1` FOREIGN KEY (`submission_id`) REFERENCES `{$pref}submission` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+		  ADD CONSTRAINT `{$pref}submission_history_ibfk_2` FOREIGN KEY (`agent_email`) REFERENCES `{$pref}user` (`email`) ON DELETE CASCADE ON UPDATE CASCADE;
+	");
+		if ($mysqli->error) {$log[] = "ERROR - Foreign keys submission_history - ".$mysqli->error; delete_database($dbpassword); return $log; }
+
+	$mysqli->query
+	("
 		ALTER TABLE `{$pref}certification`
-		  ADD CONSTRAINT `{$pref}certification_ibfk_1` FOREIGN KEY (`certificationdef_id`) REFERENCES `{$pref}certificationdef` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+		  ADD CONSTRAINT `{$pref}certification_ibfk_1` FOREIGN KEY (`certification_model_id`) REFERENCES `{$pref}certification_model` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
 		  ADD CONSTRAINT `{$pref}certification_ibfk_2` FOREIGN KEY (`screenname`) REFERENCES `{$pref}user` (`email`) ON DELETE CASCADE ON UPDATE CASCADE,
 		  ADD CONSTRAINT `{$pref}certification_ibfk_3` FOREIGN KEY (`submissionid`) REFERENCES `{$pref}submission`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 	");
@@ -472,13 +507,15 @@ function delete_database($dbpassword)
 	// Deleting certification tables
 	$mysqli->query("DROP TABLE if exists `{$pref}certification`;");
 	if ($mysqli->error) $log[] = $mysqli->error;
-	$mysqli->query("DROP TABLE if exists `{$pref}certificationdef`;");
+	$mysqli->query("DROP TABLE if exists `{$pref}certification_model`;");
 	if ($mysqli->error) $log[] = $mysqli->error;
 
 	// Deleting submission tables
 	$mysqli->query("DROP TABLE if exists `{$pref}submission_definition_access`;");
 	if ($mysqli->error) $log[] = $mysqli->error;
 	$mysqli->query("DROP TABLE if exists `{$pref}submission_definition_reviewer`;");
+	if ($mysqli->error) $log[] = $mysqli->error;
+	$mysqli->query("DROP TABLE if exists `{$pref}submission_history`;");
 	if ($mysqli->error) $log[] = $mysqli->error;
 	$mysqli->query("DROP TABLE if exists `{$pref}submission`;");
 	if ($mysqli->error) $log[] = $mysqli->error;

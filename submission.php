@@ -4,7 +4,6 @@ session_start();
 require_once 'lib/dynamicform/dynamicform.class.php';
 require_once 'lib/dynamicform/dynamicformhelper.class.php';
 require_once 'eve.class.php';
-require_once 'eveg11n.class.php';
 require_once 'evesubmissionservice.class.php';
 
 $eve = new Eve();
@@ -64,7 +63,6 @@ else
 	// Validation error messages
 	if (!empty($validation_errors))	$eve->output_error_list_message($validation_errors);
 
-	$eveG11n = new EveG11n($eve);
 	$within_the_deadline = (!$submission_definition['deadline'] || time() < strtotime($submission_definition['deadline']));
 	$submissions_sent_by_user = $eveSubmissionService->submission_list($_GET['id'], 'owner', $_SESSION['screenname']);
 
@@ -119,6 +117,7 @@ else
 
 		</script>
 		<?php
+		$date_formatter = new IntlDateFormatter($eve->getSetting('system_locale'), IntlDateFormatter::SHORT, IntlDateFormatter::SHORT);
 		if ($submission_definition['allow_multiple_submissions'])
 		{
 			// Multiple submissions allowed. Displaying a list of them
@@ -133,7 +132,7 @@ else
 			<?php
 			foreach ($submissions_sent_by_user as $submission)		
 			{	
-				$formatted_date = $eveG11n->compact_date_time_format(strtotime($submission['date']));
+				$formatted_date = $date_formatter->format(strtotime($submission['date']));
 				echo "<tr>";
 				echo "<td style=\"text-align:center;\">{$submission['id']}</td>";
 				echo "<td style=\"text-align:center;\">{$formatted_date}</td>";
@@ -156,7 +155,7 @@ else
 		else
 		{
 			// Only one submission allowed, display it
-			echo "<div class=\"section\">Envio em ".$eveG11n->compact_date_time_format(strtotime($submissions_sent_by_user[0]['date']))." ";
+			echo "<div class=\"section\">Envio em ".$date_formatter->format(strtotime($submissions_sent_by_user[0]['date']))." ";
 			if ($submissions_sent_by_user[0]['revision_status'] >= 2) // Revision visible to user after final revision (status == 2)
 				echo "<button onclick=\"view_submission({$submissions_sent_by_user[0]['id']}, 'formatted_revision')\">Resultado da Revisão</button>";
 			if ($within_the_deadline && $submissions_sent_by_user[0]['revision_status'] == 0) // Delete available only if whithin deadline and is not reviewed.
@@ -183,9 +182,11 @@ else
 		<form action="<?php echo basename(__FILE__)."?id={$_GET['id']}";?>" method="post" enctype="multipart/form-data" class="dialog_panel_wide">
 		<?php if ($submission_definition['deadline'])
 		{
-			echo "<p>Prazo para envio: "; // TODO g11n
-			echo $eveG11n->full_date_time_format(strtotime($submission_definition['deadline']));
-			if($submission_after_deadline) echo "&nbsp;(O prazo para envio foi prorrogado para você)."; // TODO g11n
+			$full_date_formatter = new IntlDateFormatter($eve->getSetting('system_locale'), IntlDateFormatter::FULL, IntlDateFormatter::SHORT);
+			echo "<p>";
+			echo $eve->_('submission.userinterface.deadline');
+			echo $full_date_formatter->format(strtotime($submission_definition['deadline']));
+			if($submission_after_deadline) echo $eve->_('submission.userinterface.deadline.extended');
 			echo "</p>";
 		}
 		?>
@@ -200,7 +201,7 @@ else
 	{
 		// A new submission is not possible because there is a submission sent ?>
 		<div class="dialog_panel_wide">
-		<p>Envio já realizado.</p>
+		<p><?php echo $eve->_('submission.userinterface.submission.already.made');?></p>
 		</div>
 		<?php
 	}
@@ -208,7 +209,7 @@ else
 	{
 		// A new submission is not possible because the deadline is over ?>
 		<div class="dialog_panel_wide">
-		<p>Prazo encerrado para envios.</p>
+		<p><?php echo $eve->_('submission.userinterface.deadline.expired');?></p>
 		</div>
 		<?php
 	}

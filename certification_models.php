@@ -98,7 +98,7 @@ else
 		echo "<td>{$certificationmodel['name']}</td>";
 		echo "<td>".mb_substr($certificationmodel['text'], 0, 70, "UTF-8")."</td>";
 		echo "<td><button type=\"button\" onclick=\"window.location='certification.php?templateid={$certificationmodel['id']}';\"><img src=\"style/icons/view.png\"/></button></td>";
-		echo "<td><button type=\"button\" onclick=\"window.location='certificationdef.php?id={$certificationmodel['id']}';\"><img src=\"style/icons/edit.png\"/></button></td>";
+		echo "<td><button type=\"button\" onclick=\"window.location='certification_model.php?id={$certificationmodel['id']}';\"><img src=\"style/icons/edit.png\"/></button></td>";
 		echo "<td><button type=\"button\" onclick=\"window.location='certificationattribuition.php?id={$certificationmodel['id']}';\"><img src=\"style/icons/certification_attribuition.png\"></button></td>";	
 		echo "<td><button type=\"button\" onclick=\"certificationmodel_delete({$certificationmodel['id']});\"><img src=\"style/icons/delete.png\"/></button></td>";
 		echo "</tr>";

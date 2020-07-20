@@ -20,6 +20,9 @@ class EvePaymentService
 	const PAYMENT_OPTION_DELETE_SUCCESS = 'payment.option.delete.success';
 	const PAYMENT_OPTION_UPDATE_SUCCESS = 'payment.option.update.success';
 	const PAYMENT_OPTION_UPDATE_ERROR_SQL = 'payment.option.update.error.sql';
+
+	const PAYMENT_DELETE_ERROR_SQL = 'payment.delete.error.sql';
+	const PAYMENT_DELETE_SUCCESS = 'payment.delete.success';
 	
 	// TODO Maybe payment does not need this restriction of one payment per user.
 
@@ -170,13 +173,10 @@ class EvePaymentService
 		return $result;
 	}
 
-	const PAYMENT_DELETE_ERROR_SQL = 'payment.delete.error.sql';
-	const PAYMENT_DELETE_SUCCESS = 'payment.delete.success';
-
 	function payment_delete($id, $send_email = 'true')
 	{
 		$payment = $this->payment_get($id);
-		$agent = (isset($_SESSION['screenname'])) ? $_SESSION['screenname'] : "Unknown user";
+		$agent = (isset($_SESSION['screenname'])) ? $_SESSION['screenname'] : "unknown user";
 		$new_note = "Payment deleted at " . date("c") . " by $agent. This payment belonged to {$payment['user_email']}\n";
 
 		$stmt1 = $this->eve->mysqli->prepare
@@ -274,10 +274,14 @@ class EvePaymentService
 	{
 		$result = array();
 
-		// TODO Remove SQL injection
+		// If $specific_emails is set as an array, code will sanitize input and
+		// generate sql where clause
 		$where_sql_clause = '';
-		if ($specific_emails !== null)
+		if (is_array($specific_emails))
 		{
+			foreach($specific_emails as $i => $specific_email)
+				if (!filter_var($specific_email, FILTER_VALIDATE_EMAIL))
+					unset($specific_emails[$i]);
 			$where_sql_clause = "where `{$this->eve->DBPref}userdata`.`email` in ('" . implode("','",$specific_emails). "')";
 		}
 
@@ -441,7 +445,7 @@ class EvePaymentService
 	}
 
 	function payment_option_get($id)
-	{	// TODO ERROR MESSAGES
+	{	
 		$stmt1 = $this->eve->mysqli->prepare
 		("
 			select 	*
@@ -597,5 +601,4 @@ class EvePaymentService
 	}
 
 }
-
 ?>

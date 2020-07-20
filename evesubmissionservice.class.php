@@ -261,6 +261,7 @@ class EveSubmissionService
 			$submission['revision_structure'],
 			$submission['revision_content'],
 			$submission['revision_status'],
+			$submission['access'],
 			$submission['active']
 		);
 		// Fetching values

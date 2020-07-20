@@ -45,7 +45,7 @@ class EveCertificationService
     	$stmt->bind_result
 		(
 			$certification['id'],
-			$certification['certificationdef_id'],
+			$certification['certification_model_id'],
 			$certification['screenname'],
 			$certification['submissionid'],
 			$certification['locked'],
@@ -206,7 +206,7 @@ class EveCertificationService
 		$stmt2 = $this->eve->mysqli->prepare
 		("
 			insert
-			into `{$this->eve->DBPref}certification` (`certificationdef_id`, `screenname`, `submissionid`, `locked`)
+			into `{$this->eve->DBPref}certification` (`certification_model_id`, `screenname`, `submissionid`, `locked`)
 			values (?, ?, ?, ?);
 		");
 		if ($stmt2 === false)
@@ -236,7 +236,7 @@ class EveCertificationService
 		$stmt2 = $this->eve->mysqli->prepare
 		("
 			insert
-			into `{$this->eve->DBPref}certification` (`certificationdef_id`, `screenname`, `submissionid`, `locked`)
+			into `{$this->eve->DBPref}certification` (`certification_model_id`, `screenname`, `submissionid`, `locked`)
 			values (?, ?, ?, ?);
 		");
 		if ($stmt2 === false)
@@ -267,7 +267,7 @@ class EveCertificationService
 		$stmt2 = $this->eve->mysqli->prepare
 		("
 			insert
-			into `{$this->eve->DBPref}certification` (`certificationdef_id`, `screenname`, `locked`)
+			into `{$this->eve->DBPref}certification` (`certification_model_id`, `screenname`, `locked`)
 			values (?, ?, ?);
 		");
 		if ($stmt2 === false)
@@ -294,7 +294,7 @@ class EveCertificationService
 				$ordering = "`{$this->eve->DBPref}userdata`.`name`";
 				break;
 			case 'certificationname':
-				$ordering = "`{$this->eve->DBPref}certificationdef`.`name`";
+				$ordering = "`{$this->eve->DBPref}certification_model`.`name`";
 				break;
 			case 'locked':
 				$ordering = "`{$this->eve->DBPref}certification`.`locked` desc";
@@ -311,17 +311,17 @@ class EveCertificationService
 			SELECT
 				`{$this->eve->DBPref}certification`.`id`,	
 				`{$this->eve->DBPref}userdata`.`name`,
-				`{$this->eve->DBPref}certificationdef`.`name`, 
+				`{$this->eve->DBPref}certification_model`.`name`, 
 				`{$this->eve->DBPref}certification`.`locked`,
 				`{$this->eve->DBPref}certification`.`views`
 			FROM
-				`{$this->eve->DBPref}certificationdef`,
+				`{$this->eve->DBPref}certification_model`,
 				`{$this->eve->DBPref}certification`,
 				`{$this->eve->DBPref}userdata`
 			WHERE
 				`{$this->eve->DBPref}certification`.`screenname` = `{$this->eve->DBPref}userdata`.`email`
 				AND
-				`{$this->eve->DBPref}certificationdef`.`id` = `{$this->eve->DBPref}certification`.`certificationdef_id`
+				`{$this->eve->DBPref}certification_model`.`id` = `{$this->eve->DBPref}certification`.`certification_model_id`
 			ORDER BY
 				$ordering;
 		");
@@ -341,13 +341,13 @@ class EveCertificationService
 		("
 			SELECT  
 				`{$this->eve->DBPref}certification`.`id`,
-				`{$this->eve->DBPref}certificationdef`.`name`,
-				`{$this->eve->DBPref}certificationdef`.`hasopenermsg`
+				`{$this->eve->DBPref}certification_model`.`name`,
+				`{$this->eve->DBPref}certification_model`.`hasopenermsg`
 			FROM
 				`{$this->eve->DBPref}certification`,
-				`{$this->eve->DBPref}certificationdef`
+				`{$this->eve->DBPref}certification_model`
 			WHERE
-				`{$this->eve->DBPref}certification`.`certificationdef_id` = `{$this->eve->DBPref}certificationdef`.`id` 
+				`{$this->eve->DBPref}certification`.`certification_model_id` = `{$this->eve->DBPref}certification_model`.`id` 
 				AND
 				`{$this->eve->DBPref}certification`.`screenname` = '$screenname'
 				AND
@@ -433,12 +433,12 @@ class EveCertificationService
 		("
 			select  
 				`{$this->eve->DBPref}certification`.`screenname`,
-				`{$this->eve->DBPref}certificationdef`.`name`
+				`{$this->eve->DBPref}certification_model`.`name`
 			from
 				`{$this->eve->DBPref}certification`,
-				`{$this->eve->DBPref}certificationdef`
+				`{$this->eve->DBPref}certification_model`
 			where
-				`{$this->eve->DBPref}certification`.`certificationdef_id` = `{$this->eve->DBPref}certificationdef`.`id` 
+				`{$this->eve->DBPref}certification`.`certification_model_id` = `{$this->eve->DBPref}certification_model`.`id` 
 				AND
 				`{$this->eve->DBPref}certification`.`id` = ?;
 		");
@@ -473,7 +473,7 @@ class EveCertificationService
 	{
 		$stmt = $this->eve->mysqli->prepare
 		("
-			insert into `{$this->eve->DBPref}certificationdef`
+			insert into `{$this->eve->DBPref}certification_model`
 			(`name`) values (?);
 		");
 		if ($stmt === false)
@@ -490,8 +490,8 @@ class EveCertificationService
 	{
 		$stmt = $this->eve->mysqli->prepare
 		("
-			delete from `{$this->eve->DBPref}certificationdef`
-			where `{$this->eve->DBPref}certificationdef`.`id` = ?
+			delete from `{$this->eve->DBPref}certification_model`
+			where `{$this->eve->DBPref}certification_model`.`id` = ?
 			limit 1;
 		");
 		if ($stmt === false)
@@ -508,10 +508,10 @@ class EveCertificationService
 	{
 		$stmt = $this->eve->mysqli->prepare
 		("
-			insert into `{$this->eve->DBPref}certificationdef` 
-				(`type`, `name`, `text`, `backgroundimage`, `topmargin`, `leftmargin`, `rightmargin`, `text_lineheight`, `text_fontsize`, `hasopenermsg`, `openermsg` )
-				select `type`, `name`, `text`, `backgroundimage`, `topmargin`, `leftmargin`, `rightmargin`, `text_lineheight`, `text_fontsize`, `hasopenermsg`, `openermsg`
-				from `{$this->eve->DBPref}certificationdef` where `{$this->eve->DBPref}certificationdef`.`id` = ?;
+			insert into `{$this->eve->DBPref}certification_model` 
+				(`type`, `name`, `text`, `backgroundimage`, `topmargin`, `leftmargin`, `rightmargin`, `text_lineheight`, `text_fontsize`, `text_font`, `text_alignment`, `hasopenermsg`, `openermsg` )
+				select `type`, `name`, `text`, `backgroundimage`, `topmargin`, `leftmargin`, `rightmargin`, `text_lineheight`, `text_fontsize`, `text_font`, `text_alignment`, `hasopenermsg`, `openermsg`
+				from `{$this->eve->DBPref}certification_model` where `{$this->eve->DBPref}certification_model`.`id` = ?;
 		");
 		if ($stmt === false)
 		{
@@ -532,7 +532,7 @@ class EveCertificationService
 		$stmt = $this->eve->mysqli->prepare
 		("
 			select * 
-			from   `{$this->eve->DBPref}certificationdef`
+			from   `{$this->eve->DBPref}certification_model`
 			where  `id`=?
 		");
 		if ($stmt === false)
@@ -559,6 +559,8 @@ class EveCertificationService
 			$certificationmodel['rightmargin'],
 			$certificationmodel['text_lineheight'],
 			$certificationmodel['text_fontsize'],
+			$certificationmodel['text_font'],
+			$certificationmodel['text_alignment'],
 			$certificationmodel['hasopenermsg'],
 			$certificationmodel['openermsg']
 		);
@@ -583,15 +585,15 @@ class EveCertificationService
 		return $this->eve->mysqli->query
 		("	
 			select *
-			from `{$this->eve->DBPref}certificationdef`
-			order by `{$this->eve->DBPref}certificationdef`.`$orderby` ;
+			from `{$this->eve->DBPref}certification_model`
+			order by `{$this->eve->DBPref}certification_model`.`$orderby` ;
 		");
 	}
 
 	/** Returns list of possible values for the field 'pageorientation' of a certification model */
 	function certificationmodel_pageorientations()
 	{
-		$query = "SHOW COLUMNS FROM `{$this->eve->DBPref}certificationdef` WHERE Field = 'pageorientation'";
+		$query = "SHOW COLUMNS FROM `{$this->eve->DBPref}certification_model` WHERE Field = 'pageorientation'";
 		$result = $this->eve->mysqli->query($query);
 		$row = $result->fetch_assoc();
 		preg_match('#^enum\((.*?)\)$#ism', $row['Type'], $matches);
@@ -602,7 +604,7 @@ class EveCertificationService
 	/** Returns list of possible values for the field 'pagesize' of a certification model */
 	function certificationmodel_pagesizes()
 	{
-		$query = "SHOW COLUMNS FROM `{$this->eve->DBPref}certificationdef` WHERE Field = 'pagesize'";
+		$query = "SHOW COLUMNS FROM `{$this->eve->DBPref}certification_model` WHERE Field = 'pagesize'";
 		$result = $this->eve->mysqli->query($query);
 		$row = $result->fetch_assoc();
 		preg_match('#^enum\((.*?)\)$#ism', $row['Type'], $matches);
@@ -613,7 +615,7 @@ class EveCertificationService
 	/** Returns list of possible values for the field 'type' of a certification model */
 	function certificationmodel_types()
 	{
-		$query = "SHOW COLUMNS FROM `{$this->eve->DBPref}certificationdef` WHERE Field = 'type'";
+		$query = "SHOW COLUMNS FROM `{$this->eve->DBPref}certification_model` WHERE Field = 'type'";
 		$result = $this->eve->mysqli->query($query);
 		$row = $result->fetch_assoc();
 		preg_match('#^enum\((.*?)\)$#ism', $row['Type'], $matches);

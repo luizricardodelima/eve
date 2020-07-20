@@ -62,8 +62,8 @@ else
 	$submission_definitions = $eveSubmissionService->submission_definition_list();
 	while ($submission_definition = $submission_definitions->fetch_assoc())	
 	{	
-		// TODO format deadline with eveg11n.class.php
-		$deadline = ($submission_definition['deadline'])? $submission_definition['deadline'] : $eve->_('submission_definition.deadline.null');
+		$date_formatter = new IntlDateFormatter($eve->getSetting('system_locale'), IntlDateFormatter::SHORT, IntlDateFormatter::SHORT);
+		$deadline = ($submission_definition['deadline'])? $date_formatter->format(strtotime($submission_definition['deadline'])) : $eve->_('submission_definition.deadline.null');
 		$access_restricted = ($submission_definition['access_restricted'])? "&#8226;" : "";
 		echo "<tr>";
 		echo "<td style=\"text-align:center\">{$submission_definition['id']}</td>";

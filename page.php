@@ -25,7 +25,7 @@ else if (!is_numeric($_GET['id']))
 	$eve->output_error_page('common.message.invalid.parameter'); 
 }
 // Checking whether the id passed is valid
-else if (!$eve->mysqli->query("SELECT * FROM `{$eve->DBPref}pages` WHERE `id`={$_GET['id']};")->num_rows)
+else if (!$eve->mysqli->query("SELECT * FROM `{$eve->DBPref}page` WHERE `id`={$_GET['id']};")->num_rows)
 {
 	$eve->output_error_page('common.message.invalid.parameter');
 }
@@ -45,7 +45,7 @@ else
 	if (empty($_POST))
 	{
 		//No POST data. Retrieving data from database.
-		$page_res = $eve->mysqli->query("SELECT * FROM `{$eve->DBPref}pages` WHERE `id`={$_GET['id']};");
+		$page_res = $eve->mysqli->query("SELECT * FROM `{$eve->DBPref}page` WHERE `id`={$_GET['id']};");
 		$data = $page_res->fetch_assoc();
 	}
 	else
@@ -66,10 +66,10 @@ else
 			foreach ($data as $column => $value)
 			{
 				$value = $eve->mysqli->real_escape_string($value);
-				$eve->mysqli->query("UPDATE `{$eve->DBPref}pages` SET `$column` = '$value' WHERE `id` = {$_GET['id']};");
+				$eve->mysqli->query("UPDATE `{$eve->DBPref}page` SET `$column` = '$value' WHERE `id` = {$_GET['id']};");
 			}
 			// If current page is set as homepage, unset all the other pages as homepage
-			if ($data['is_homepage']) $eve->mysqli->query("UPDATE `{$eve->DBPref}pages` SET `is_homepage` = 0 WHERE `id` != {$_GET['id']};");
+			if ($data['is_homepage']) $eve->mysqli->query("UPDATE `{$eve->DBPref}page` SET `is_homepage` = 0 WHERE `id` != {$_GET['id']};");
 			$data_updated = 1;
 		}
 		

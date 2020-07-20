@@ -60,9 +60,8 @@ else
 	<th style="width:10%" colspan="5"><?php echo $eve->_('common.table.header.options');?></th>		
 	</tr>
 	<?php
-	$page_res = $evePageService->page_list(false);
 
-	while ($page = $page_res->fetch_assoc())
+	foreach ($evePageService->page_list(false) as $page)
 	{	
 		$home = ($page['is_homepage'])? "&#8226;" : "";
 		$visible = ($page['is_visible'])? "&#8226;" : "";
@@ -80,7 +79,6 @@ else
 		echo "<td><button type=\"button\" onclick=\"delete_row({$page['id']})\"><img src=\"style/icons/delete.png\"></button></td>";
 		echo "</tr>";
 	}
-	$page_res->close();
 	?>
 	</table>
 	<script>

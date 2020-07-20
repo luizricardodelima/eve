@@ -1,5 +1,6 @@
 <?php
 require_once 'evedbconfig.php';
+require_once 'evepageservice.class.php';
 class Eve
 {
 	public $DBPref;
@@ -160,8 +161,8 @@ class Eve
 		<nav id="menu">
 			<ul>
 			<?php
-			$page_res = $this->mysqli->query("select `id`, `title` from `{$this->DBPref}pages` where `is_visible` != 0 order by `position`;");
-			while ($page = $page_res->fetch_assoc()) echo "<li><a href=\"{$this->basepath}index.php?p={$page['id']}\">{$page['title']}</a></li>";
+			$evePageService = new EvePageService($this);
+			foreach ($evePageService->page_list(false) as $page) echo "<li><a href=\"{$this->basepath}index.php?p={$page['id']}\">{$page['title']}</a></li>";
 			echo "<li><a href=\"{$this->basepath}userarea.php\">{$this->getSetting('userarea_label')}</a></li>";
 			?>
 			</ul>

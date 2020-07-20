@@ -10,11 +10,11 @@ class EvePageService
 	{
 		// TODO: Return values
 		// TODO: Prepared statements
-		$page_res = $this->eve->mysqli->query("SELECT * FROM `{$this->eve->DBPref}pages` WHERE `id` = $id;");			
+		$page_res = $this->eve->mysqli->query("SELECT * FROM `{$this->eve->DBPref}page` WHERE `id` = $id;");			
 		$page = $page_res->fetch_assoc();
 		$oldposition = $page['position'];
-		$this->eve->mysqli->query("UPDATE `{$this->eve->DBPref}pages` SET `position` = $oldposition WHERE `position` = $newposition;");
-		$this->eve->mysqli->query("UPDATE `{$this->eve->DBPref}pages` SET `position` = $newposition WHERE `id` = $id;");
+		$this->eve->mysqli->query("UPDATE `{$this->eve->DBPref}page` SET `position` = $oldposition WHERE `position` = $newposition;");
+		$this->eve->mysqli->query("UPDATE `{$this->eve->DBPref}page` SET `position` = $newposition WHERE `id` = $id;");
 	}
 
 	function page_create()
@@ -22,13 +22,13 @@ class EvePageService
 		// TODO: Return values
 		// TODO: Prepared statements
 		// TODO: Search for the highest position and insert that + 1
-		$this->eve->mysqli->query("insert into `{$this->eve->DBPref}pages` () values ();");
+		$this->eve->mysqli->query("insert into `{$this->eve->DBPref}page` () values ();");
 	}
 
 	function page_delete($id)
 	{
 		// TODO: Return values
-		$stmt = $this->eve->mysqli->prepare("delete from `{$this->eve->DBPref}pages` where `{$this->eve->DBPref}pages`.`id` = ?;");
+		$stmt = $this->eve->mysqli->prepare("delete from `{$this->eve->DBPref}page` where `{$this->eve->DBPref}page`.`id` = ?;");
 		$stmt->bind_param('i', $id);
 		$stmt->execute();
 		$stmt->close();
@@ -40,7 +40,7 @@ class EvePageService
 	{
 		$stmt = $this->eve->mysqli->prepare
 		("
-			select `content` from `{$this->eve->DBPref}pages` where `id`= ? ;
+			select `content` from `{$this->eve->DBPref}page` where `id`= ? ;
 		");
 		$stmt->bind_param('i', $id);
 		$stmt->execute();
@@ -66,7 +66,7 @@ class EvePageService
 	{
 		$page_res = $this->eve->mysqli->query
 		("
-			select `id` from `{$this->eve->DBPref}pages` where `is_homepage` = 1;
+			select `id` from `{$this->eve->DBPref}page` where `is_homepage` = 1;
 		");
 		$page = $page_res->fetch_assoc();
 		if ($page) return $page['id'];
@@ -75,7 +75,7 @@ class EvePageService
 
 	function page_increase_view_count($id)
 	{
-		$stmt2 = $this->eve->mysqli->prepare("update `{$this->eve->DBPref}pages` set `views` = `views`+ 1 where `id` = ?;");
+		$stmt2 = $this->eve->mysqli->prepare("update `{$this->eve->DBPref}page` set `views` = `views`+ 1 where `id` = ?;");
 		$stmt2->bind_param('i', $id);
 		$stmt2->execute();
 		$stmt2->close();
@@ -83,27 +83,24 @@ class EvePageService
 
 	function page_list($only_visible = true)
 	{
-		// TODO: Prepared statements
-		if ($only_visible)
-		{
-			return $this->eve->mysqli->query
-			("
-				SELECT *
-				FROM `{$this->eve->DBPref}pages`
-				where `{$this->eve->DBPref}pages`.`visible` = 1
-				ORDER BY `{$this->eve->DBPref}pages`.`position`;
-			");
-		}
-		else
-		{
-			return $this->eve->mysqli->query
-			("
-				SELECT *
-				FROM `{$this->eve->DBPref}pages`
-				ORDER BY `{$this->eve->DBPref}pages`.`position`;
-			");
-
-		}
+		$page_query = ($only_visible) ?
+		"
+			select *
+			from `{$this->eve->DBPref}page`
+			where `{$this->eve->DBPref}page`.`visible` = 1
+			order by `{$this->eve->DBPref}page`.`position`;
+		"
+		:
+		"
+			select *
+			from `{$this->eve->DBPref}page`
+			order by `{$this->eve->DBPref}page`.`position`;
+		";
+		$page_res = $this->eve->mysqli->query($page_query);
+		$result = array();
+		while ($page = $page_res->fetch_assoc()) $result[] = $page;
+		$page_res->close();
+		return $result;
 	}
 
 	function __construct(Eve $eve)

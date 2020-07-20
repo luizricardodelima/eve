@@ -176,7 +176,7 @@ function create_database($dbpassword, $screenname, $password)
 	// Create table pages
 	$mysqli->query
 	("
-		CREATE TABLE `{$pref}pages` (
+		CREATE TABLE `{$pref}page` (
 		  `id` int(11) NOT NULL,
 		  `position` smallint(6) NOT NULL DEFAULT '0',
 		  `is_visible` tinyint(4) NOT NULL DEFAULT '1',
@@ -310,7 +310,7 @@ function create_database($dbpassword, $screenname, $password)
 	$mysqli->query("ALTER TABLE `{$pref}unverifieduser` ADD PRIMARY KEY (`email`);");
 	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys unverifieduser - ".$mysqli->error; delete_database($dbpassword); return $log;}
 	
-	$mysqli->query("ALTER TABLE `{$pref}pages` ADD PRIMARY KEY (`id`);");
+	$mysqli->query("ALTER TABLE `{$pref}page` ADD PRIMARY KEY (`id`);");
 	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys pages - ".$mysqli->error; delete_database($dbpassword); return $log;}
 	
 	$mysqli->query("ALTER TABLE `{$pref}payment` ADD PRIMARY KEY (`id`), ADD UNIQUE KEY `user_email` (`user_email`);");
@@ -354,7 +354,7 @@ function create_database($dbpassword, $screenname, $password)
 	$mysqli->query("ALTER TABLE `{$pref}certification_model` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
 	if ($mysqli->error) {$log[] = "ERROR - Auto increment certification_model - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
-	$mysqli->query("ALTER TABLE `{$pref}pages` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
+	$mysqli->query("ALTER TABLE `{$pref}page` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
 	if ($mysqli->error) {$log[] = "ERROR - Auto increment pages - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
 	$mysqli->query("ALTER TABLE `{$pref}payment` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;");
@@ -491,7 +491,7 @@ function delete_database($dbpassword)
 	// Deleting free tables
 	$mysqli->query("DROP TABLE if exists `{$pref}settings`;");
 	if ($mysqli->error) $log[] = $mysqli->error;
-	$mysqli->query("DROP TABLE if exists `{$pref}pages`;");
+	$mysqli->query("DROP TABLE if exists `{$pref}page`;");
 	if ($mysqli->error) $log[] = $mysqli->error;
 	$mysqli->query("DROP TABLE if exists `{$pref}unverifieduser`;");
 	if ($mysqli->error) $log[] = $mysqli->error;

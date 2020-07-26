@@ -4,6 +4,8 @@ require_once 'eve.class.php';
 require_once 'evecertificationservice.class.php';
 
 $eve = new Eve();
+$eveCertificationService = new EveCertificationService($eve);
+$data = isset($_GET['id']) ? $eveCertificationService->certificationmodel_get($_GET['id']) : null;
 
 // TODO #4 2 New variables for certification model: Text alignment and text font (use FPDFs fonts)
 
@@ -17,111 +19,54 @@ else if (!$eve->is_admin($_SESSION['screenname']))
 {
 	$eve->output_error_page('common.message.no.permission');
 }
-else if (!isset($_GET['id']))
+// Parameter verification
+else if ($data == null)
 {
 	$eve->output_error_page('common.message.invalid.parameter');
 }
-else if (!is_numeric($_GET['id'])) 
+// From now on we assume the id passed is valid. If there is post variables, make the operation
+if (!empty($_POST))
 {
-	$eve->output_error_page('common.message.invalid.parameter'); // Blocking sql injections by accepting numbers only
+	// The only currently existing operation is save.
+	$msg = $eveCertificationService->certificationmodel_save($_POST);
+	$eve->output_redirect_page("certification_model.php?id={$_GET['id']}&msg=$msg");
 }
-else if (!$eve->mysqli->query("SELECT * FROM `{$eve->DBPref}certification_model` WHERE `id` = {$_GET['id']};")->num_rows)
-{
-	$eve->output_error_page('common.message.invalid.parameter');
-}
+// If there is no post variables, display the regular page.
 else
 {
-	// In this block we're sure that user has admin privileges and that $_GET['id'] exists and is valid.
-	$eveCertificationService = new EveCertificationService($eve);
 	$eve->output_html_header();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Modelos de certificado", "certification_models.php","Modelo de certificado (ID: {$_GET['id']})", null);
+	$eve->output_navigation
+	([
+		$eve->getSetting('userarea_label') => "userarea.php", 
+		$eve->_('userarea.option.admin.certificationtemplates') => "certification_models.php",
+		$eve->_('certificationmodel')." ({$_GET['id']})" => null
+	]);
 	$eve->output_wysiwig_editor_code();
 
-	$data = array();
-	$validation_errors = array();
-		
-	if (empty($_POST))
-	{
-		//No POST data. Retrieving data from database.
-		//TODO use service!
-		$result = $eve->mysqli->query("SELECT * FROM `{$eve->DBPref}certification_model` WHERE `id`={$_GET['id']};");
-		$row = $result->fetch_assoc();
-		foreach ($row as $column => $value) 
-		{
-			$data[$column] = $value;
-		} 
-	}
-	else
-	{
-		// There is POST data. There is no need to retrieve data from database.
-		// POST data will be validadated. If valid, they will be saved on db.
-		foreach ($_POST as $column => $value) {$data[$column] = $value;}
-				
-		// Validation
-		if (!is_numeric($data['topmargin'])) $validation_errors[] = "Margem superior não é um número válido";
-		if (!is_numeric($data['leftmargin'])) $validation_errors[] = "Margem esquerda não é um número válido";
-		if (!is_numeric($data['rightmargin'])) $validation_errors[] = "Margem direita não é um número válido";
-
-		if (empty($validation_errors))
-		{
-			foreach ($data as $column => $value)
-			{
-				$value = $eve->mysqli->real_escape_string($value);
-				$eve->mysqli->query("UPDATE `{$eve->DBPref}certification_model` SET `$column` = '$value' WHERE `id` = {$_GET['id']};");
-			}
-			$eve->output_success_message("Dados salvos com sucesso.");
-		}
-		else
-		{
-			$eve->output_error_list_message($validation_errors);
-		}
-	}
+	if (isset($_GET['msg'])) $eve->output_service_message($_GET['msg']);
 
 	?>
-	<script>
-	function certification_help() {
-		window.alert(	'O conteúdo é codificado como um ARRAY JSON que recebe os seguintes objetos\n\n'+
-
-				'- text: mostra um texto fixo.\n'+
-				'Exemplo {"type": "text", "value": "TEXTO A SER INSERIDO"}\n\n'+
-
-				'- variable: recupera um valor de uma variável da submissão ou do usuário '+
-				'referente ao certificado. caso o certificado seja de usuário e for tentado '+
-				'mostrar uma variavel de submissão, retorna texto vazio.\n'+
-				'Ex: {"type": "variable", "entity": "user", "parameter" : "name", "uppercase" : "true"}\n'+
-				'Ex: {"type": "variable", "entity": "submission-content", "parameter" : "1"}\n'+
-				'Ex: {"type": "variable", "entity": "submission-content", "parameter" : "1-1"}\n'+
-				'Parâmetros para "user": admin, locked_form, name, address, city, state, country,\n'+
-				'postalcode, birthday, gender, phone1, phone2, instituition, \n'+
-				'customtext1, customtext2, customtext3, customtext4, customtext5, customflag1,\n'+
-				'customflag2, customflag3, customflag4, customflag5, note.\n'+
-				'Parâmetros para "submission-content": o número indicando a posição.\n'+
-				'Se for array, separa-se as dimensões com -\n'+
-				'Caso haja o parametro uppercase, coloca o texto da variável em maiúsculas.\n\n ' +
-
-				'- list: mostra uma lista de objetos dos tipos acima, separados '+
-				'por vírgula (se mais de um) e por "e" antes do último. Só são listados objetos '+
-				'não vazios\n'+
-				'Ex: {"type": "list", "content": [{"type": "variable", "entity":\n'+
-				'"submission-content", "parameter" : "1"},{"type": "variable", "entity":\n'+
-				'"submission-content", "parameter" : "2"}]}'
-				);
-	}
-	</script>
+	<!-- Help viewer -->
+	<div id="viewer" style="display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgb(0,0,0); background-color: rgba(0,0,0,0.4);">
+	<div style="background-color: white; margin: 15% auto; border: 2px solid #333; width: 80%;" >
+	<button type="button" style="background-color:#333; color: white; float: right; border-radius: 0;" onclick="document.getElementById('viewer').style.display = 'none';"> X </button>
+	<div id="viewer_content" style="padding: 20px; display: grid; grid-gap: 0.5em; grid-template-columns: 1fr;">
+	<?php echo $eve->_('certificationmodel.text.help'); ?>
+	</div></div></div>
 
 	<div class="section">
-	<button type="button" onclick="document.forms['cdef_form'].submit();"><?php echo $eve->_('common.action.save');?></button>
+	<?php echo $eve->_('certificationmodel')." ({$_GET['id']})";?>
+	<button type="button" onclick="document.forms['certification_model_form'].submit();"><?php echo $eve->_('common.action.save');?></button>
 	<button type="button" onclick="window.location.href = 'certification.php?templateid=<?php echo $_GET['id'];?>';"><?php echo $eve->_('common.action.test');?></button>
 	</div>
 
-	<form action="<?php echo basename(__FILE__)."?id={$_GET['id']}";?>" method="post" id="cdef_form">
+	<form action="<?php echo basename(__FILE__)."?id={$_GET['id']}";?>" method="post" id="certification_model_form">
 	<div class="section"><?php echo $eve->_('certificationmodel.section.general');?></div>
 	<div class="dialog_panel">
-	<label for="certificationtemplate_id_ipt"><?php echo $eve->_('certificationmodel.id');?></label>
-	<input id="certificationtemplate_id_ipt" type="text" value="<?php echo $_GET['id'];?>" disabled="disabled"/>
+	<input type="hidden" name="id" value="<?php echo $_GET['id'];?>"/>
 	
-	<label for="certificationtemplate_type_ipt"><?php echo $eve->_('certificationmodel.type');?></label>
-	<select id="certificationtemplate_type_ipt" name="type">
+	<label for="type"><?php echo $eve->_('certificationmodel.type');?></label>
+	<select id="type" name="type">
 	<?php 
 	foreach($eveCertificationService->certificationmodel_types() as $type)
 	{	
@@ -132,14 +77,14 @@ else
 	?>
 	</select>
 
-	<label for="certificationtemplate_name_ipt"><?php echo $eve->_('certificationmodel.name');?></label>
-	<input id="certificationtemplate_name_ipt" type="text" name="name" value="<?php echo $data['name'];?>"/>
+	<label for="name"><?php echo $eve->_('certificationmodel.name');?></label>
+	<input id="name" type="text" name="name" value="<?php echo $data['name'];?>"/>
 	</div>	
 
 	<div class="section"><?php echo $eve->_('certificationmodel.section.page');?></div>
 	<div class="dialog_panel">
-	<label for="certificationtemplate_pagesize_ipt"><?php echo $eve->_('certificationmodel.pagesize');?></label>
-	<select id="certificationtemplate_pagesize_ipt" name="pagesize">
+	<label for="pagesize"><?php echo $eve->_('certificationmodel.pagesize');?></label>
+	<select id="pagesize" name="pagesize">
 	<?php
 	foreach($eveCertificationService->certificationmodel_pagesizes() as $pagesize)
 	{
@@ -150,8 +95,8 @@ else
 	?>
 	</select>
 
-	<label for="certificationtemplate_pageorientation_ipt"><?php echo $eve->_('certificationmodel.pageorientation');?></label>
-	<select id="certificationtemplate_pageorientation_ipt" name="pageorientation">
+	<label for="pageorientation"><?php echo $eve->_('certificationmodel.pageorientation');?></label>
+	<select id="pageorientation" name="pageorientation">
 	<?php
 	foreach ($eveCertificationService->certificationmodel_pageorientations() as $pageorientation)
 	{
@@ -162,8 +107,8 @@ else
 	?>
 	</select>
 
-	<label for="certificationtemplate_backgroundimage_ipt"><?php echo $eve->_('certificationmodel.backgroundimage');?></label>
-	<select id="certificationtemplate_backgroundimage_ipt" name="backgroundimage">
+	<label for="backgroundimage"><?php echo $eve->_('certificationmodel.backgroundimage');?></label>
+	<select id="backgroundimage" name="backgroundimage">
 	<?php
 	echo "<option value=\"\">{$eve->_('common.select.null')}</option>";
 	$files = scandir('upload/certification/');
@@ -181,30 +126,42 @@ else
 
 	<div class="section"><?php echo $eve->_('certificationmodel.section.text');?></div>
 	<div class="dialog_panel">
-	<label for="certificationtemplate_text_ipt"><?php echo $eve->_('certificationmodel.text');?><img src="style/icons/help.png" type="button" onclick="certification_help()"/></label>
-	<textarea id="certificationtemplate_text_ipt" name="text" rows="7"><?php echo $data['text'];?></textarea>
+	<label for="text"><?php echo $eve->_('certificationmodel.text');?><img src="style/icons/help.png" type="button" onclick="document.getElementById('viewer').style.display = 'block'"/></label>
+	<textarea id="text" name="text" rows="7"><?php echo $data['text'];?></textarea>
 
-	<label for="certificationtemplate_topmargin_ipt"><?php echo $eve->_('certificationmodel.topmargin');?></label>
-	<input id="certificationtemplate_topmargin_ipt" type="number" min="0" step="0.1" name="topmargin" value="<?php echo $data['topmargin'];?>"/>
+	<label for="topmargin"><?php echo $eve->_('certificationmodel.topmargin');?></label>
+	<input id="topmargin" type="number" min="0" step="0.1" name="topmargin" value="<?php echo $data['topmargin'];?>"/>
 
-	<label for="certificationtemplate_leftmargin_ipt"><?php echo $eve->_('certificationmodel.leftmargin');?></label>
-	<input id="certificationtemplate_leftmargin_ipt" type="number" min="0" step="0.1" name="leftmargin" value="<?php echo $data['leftmargin'];?>"/>
+	<label for="leftmargin"><?php echo $eve->_('certificationmodel.leftmargin');?></label>
+	<input id="leftmargin" type="number" min="0" step="0.1" name="leftmargin" value="<?php echo $data['leftmargin'];?>"/>
 
-	<label for="certificationtemplate_rightmargin_ipt"><?php echo $eve->_('certificationmodel.rightmargin');?></label>
-	<input id="certificationtemplate_rightmargin_ipt" type="number" min="0" step="0.1" name="rightmargin" value="<?php echo $data['rightmargin'];?>"/>
+	<label for="rightmargin"><?php echo $eve->_('certificationmodel.rightmargin');?></label>
+	<input id="rightmargin" type="number" min="0" step="0.1" name="rightmargin" value="<?php echo $data['rightmargin'];?>"/>
 
-	<label for="certificationtemplate_text_lineheight_ipt"><?php echo $eve->_('certificationmodel.textlineheight');?></label>
-	<input id="certificationtemplate_text_lineheight_ipt" type="number" min="0" step="0.1" name="text_lineheight" value="<?php echo $data['text_lineheight'];?>"/>
+	<label for="text_lineheight"><?php echo $eve->_('certificationmodel.textlineheight');?></label>
+	<input id="text_lineheight" type="number" min="0" step="0.1" name="text_lineheight" value="<?php echo $data['text_lineheight'];?>"/>
 
-	<label for="certificationtemplate_text_fontsize_ipt"><?php echo $eve->_('certificationmodel.textfontsize');?></label>
-	<input id="certificationtemplate_text_fontsize_ipt" type="number" min="1" step="1" name="text_fontsize" value="<?php echo $data['text_fontsize'];?>"/>
+	<label for="text_fontsize"><?php echo $eve->_('certificationmodel.textfontsize');?></label>
+	<input id="text_fontsize" type="number" min="1" step="1" name="text_fontsize" value="<?php echo $data['text_fontsize'];?>"/>
+
+	<label for="text_alignment"><?php echo $eve->_('certificationmodel.text.alignment');?></label>
+	<select id="text_alignment" name="text_alignment">
+	<?php 
+	foreach($eveCertificationService->certificationmodel_textalignments() as $text_alignment)
+	{	
+		echo "<option value=\"$text_alignment\"";
+		if ($data['text_alignment'] == $text_alignment) echo " selected=\"selected\"";
+		echo ">".$eve->_('certificationmodel.text.alignment.'.$text_alignment)."</option>";
+	}
+	?>
+	</select>
 	</div>
 
 	<div class="section"><?php echo $eve->_('certificationmodel.section.openermsg');?></div>
 	<div class="dialog_panel">
-	<label for="certificationtemplate_hasopenermsg_ipt">
+	<label for="hasopenermsg">
 	<input type="hidden" name="hasopenermsg" value="0"/>
-	<input type="checkbox" name="hasopenermsg" id="certificationtemplate_hasopenermsg_ipt" value="1" <?php if ($data['hasopenermsg']) echo "checked=\"checked\"";?> />
+	<input type="checkbox" name="hasopenermsg" id="hasopenermsg" value="1" <?php if ($data['hasopenermsg']) echo "checked=\"checked\"";?> />
 	<?php echo $eve->_('certificationmodel.openermsg');?>
 	</label>
 	<textarea class="htmleditor" rows="6" cols="50" name="openermsg"><?php echo $data['openermsg'];?></textarea>

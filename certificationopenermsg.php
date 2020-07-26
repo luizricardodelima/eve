@@ -18,7 +18,7 @@ else if ($certification === null)
 	$eve->output_error_page('common.message.invalid.parameter');
 }
 // Checking if the current user has acces to this page.
-else if (!$eve->is_admin($_SESSION['screenname']) || $certification['screenname'] != $_SESSION['screenname'])
+else if (!$eve->is_admin($_SESSION['screenname']) && ($certification['screenname'] != $_SESSION['screenname']))
 {
 	$eve->output_error_page('common.message.no.permission');
 }

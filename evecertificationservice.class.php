@@ -590,6 +590,69 @@ class EveCertificationService
 		");
 	}
 
+	const CERTIFICATION_MODEL_SAVE_ERROR_SQL = 'certification.model.save.error.sql';
+	const CERTIFICATION_MODEL_SAVE_SUCCESS = 'certification.model.save.success';
+
+	function certificationmodel_save($certification_model)
+	{
+		$stmt1 = $this->eve->mysqli->prepare
+		("
+			update	`{$this->eve->DBPref}certification_model`
+			set		`{$this->eve->DBPref}certification_model`.`type` = ?,
+					`{$this->eve->DBPref}certification_model`.`name` = ?,
+					`{$this->eve->DBPref}certification_model`.`pagesize` = ?,
+					`{$this->eve->DBPref}certification_model`.`pageorientation` = ?,
+					`{$this->eve->DBPref}certification_model`.`backgroundimage` = ?,
+					`{$this->eve->DBPref}certification_model`.`text` = ?,
+					`{$this->eve->DBPref}certification_model`.`topmargin` = ?,
+					`{$this->eve->DBPref}certification_model`.`leftmargin` = ?,
+					`{$this->eve->DBPref}certification_model`.`rightmargin` = ?,
+					`{$this->eve->DBPref}certification_model`.`text_lineheight` = ?,
+					`{$this->eve->DBPref}certification_model`.`text_fontsize` = ?,
+					`{$this->eve->DBPref}certification_model`.`text_font` = ?,
+					`{$this->eve->DBPref}certification_model`.`text_alignment` = ?,
+					`{$this->eve->DBPref}certification_model`.`hasopenermsg` = ?,
+					`{$this->eve->DBPref}certification_model`.`openermsg` = ?
+			where	`{$this->eve->DBPref}certification_model`.`id` = ?
+		");
+		if ($stmt1 === false)
+		{
+			return self::CERTIFICATION_MODEL_SAVE_ERROR_SQL;
+		}
+		$stmt1->bind_param('ssssssiiiiissisi', 
+			$certification_model['type'], $certification_model['name'],
+			$certification_model['pagesize'], $certification_model['pageorientation'],
+			$certification_model['backgroundimage'], $certification_model['text'],
+			$certification_model['topmargin'], $certification_model['leftmargin'],
+			$certification_model['rightmargin'], $certification_model['text_lineheight'],
+			$certification_model['text_fontsize'], $certification_model['text_font'],
+			$certification_model['text_alignment'], $certification_model['hasopenermsg'],
+			$certification_model['openermsg'], $certification_model['id']
+			);
+		$stmt1->execute();
+		if (!empty($stmt1->error))
+		{
+			$stmt1->close();
+			return self::CERTIFICATION_MODEL_SAVE_ERROR_SQL;
+		}
+		else
+		{
+			$stmt1->close();
+			return self:: CERTIFICATION_MODEL_SAVE_SUCCESS;
+		}
+	}
+
+	/** Returns list of possible values for the field 'text_alignment' of a certification model */
+	function certificationmodel_textalignments()
+	{
+		$query = "SHOW COLUMNS FROM `{$this->eve->DBPref}certification_model` WHERE Field = 'text_alignment'";
+		$result = $this->eve->mysqli->query($query);
+		$row = $result->fetch_assoc();
+		preg_match('#^enum\((.*?)\)$#ism', $row['Type'], $matches);
+		$enum = str_getcsv($matches[1], ",", "'");
+		return $enum;
+	}
+
 	/** Returns list of possible values for the field 'pageorientation' of a certification model */
 	function certificationmodel_pageorientations()
 	{

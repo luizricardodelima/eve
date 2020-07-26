@@ -100,6 +100,17 @@ else
 		// Using FPDF's encoding...
 		$certificate_text = iconv('UTF-8', 'windows-1252', $certificate_text);
 		
+
+		$text_alignent = null;
+		switch($certification_model['text_alignment'])
+		{
+			case 'left': $text_alignent = 'L'; break;
+			case 'right': $text_alignent = 'R'; break;
+			case 'center': $text_alignent = 'C'; break;
+			case 'justified': $text_alignent = 'J'; break;
+			default: $text_alignent = 'L'; break;
+		}
+
 		// Setting margins and writing text
 		$pdf->SetLeftMargin($certification_model['leftmargin']);
 		$pdf->SetRightMargin($certification_model['rightmargin']);
@@ -110,7 +121,7 @@ else
 			$certification_model['text_lineheight'],
 			$certificate_text,
 			0,	// no border
-			'C'	// center alignment
+			$text_alignent
  		);
 	
 		// Before output, increasing view count if it's owner acess

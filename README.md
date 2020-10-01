@@ -11,7 +11,9 @@ _Event management system_
 ## Changelog
 - **(under development usability)** Change the flags for the flags from the project RegionFlags (https://github.com/google/region-flags)
 - **(under development usability)** Changed the deprecated phpExcel library to PHP_XLSXWriter (https://github.com/mk-j/PHP_XLSXWriter). Although PHPExcel (Now PHPSpreadsheet) is good, this application perform basic exports and a simpler library will consume less resources and new deploys will be faster (PHPExcel has too many files).
-- **(under development feature)** New Password Retrieval dynamics - An expirable acess is sent to users e-mail. After access this code, user is prompted to change his password.
+- **(under development feature)** New Password Retrieval dynamics - An expirable access is sent to users e-mail. After access this code, user is prompted to change his password.
+- 2020-10-04 **(feature)** Payment groups. Several different payments separated by groups.
+- 2020-09-30 **(usability)** Password change is now translatable 
 - 2020-07-15 **(feature)** New Payment model with configurable options and simplified payment plugins.
 - 2020-07-15 **(usability)** The entities Paymenttype and (user)category were removed. The removal of this rarely used elements will make room for more powerful relations between entities.
 - 2020-06-03 **(feature)** Masks can be applied to user custom text fields now 

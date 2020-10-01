@@ -138,7 +138,7 @@ else
 	}	
 	
 	// Basic user options
-	$eve->output_big_goto_button("userarea.option.passwordchange", "&#95;", "passwordchange.php"); // Password change button	
+	$eve->output_big_goto_button("user.passwordchange", "&#95;", "passwordchange.php"); // Password change button	
 	$eve->output_big_goto_button("userarea.option.logout", "&#87;", "logout.php");  // Logout button
 	echo "</div>";
 
@@ -180,6 +180,7 @@ else
 		$eve->output_big_goto_button('submission_definitions', "&#67;", "submission_definitions.php");
 		$eve->output_big_goto_button("userarea.option.admin.payments", "&#91;", "payments.php");
 		$eve->output_big_goto_button("payment_options", "&#91;", "payment_options.php");
+		$eve->output_big_goto_button("payment_groups", "&#91;", "payment_groups.php");
 		$eve->output_big_goto_button("userarea.option.admin.certifications", "&#34;", "certifications.php");
 		$eve->output_big_goto_button("userarea.option.admin.certificationtemplates", "&#34;", "certification_models.php");
 		$eve->output_big_goto_button("userarea.option.admin.pages", "&#108;", "pages.php");

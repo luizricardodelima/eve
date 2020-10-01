@@ -14,13 +14,20 @@ class EvePaymentService
 	const PAYMENT_SUCCESSFUL = "payment.successful";
 	const PAYMENT_SUCCESSFUL_WITH_EMAIL_ALERT = "payment.successful.with.email.alert";
 
+	const PAYMENT_GROUP_CREATE_ERROR_SQL = 'payment.group.create.error.sql';
+	const PAYMENT_GROUP_CREATE_SUCCESS = 'payment.group.create.success';
+	const PAYMENT_GROUP_DELETE_ERROR_SQL = 'payment.group.delete.error.sql';
+	const PAYMENT_GROUP_DELETE_SUCCESS = 'payment.group.delete.success';
+	const PAYMENT_GROUP_UPDATE_ERROR_SQL = 'payment.group.update.error.sql';
+	const PAYMENT_GROUP_UPDATE_SUCCESS = 'payment.group.update.success';
+
 	const PAYMENT_OPTION_CREATE_ERROR_SQL = 'payment.option.create.error.sql';
 	const PAYMENT_OPTION_CREATE_SUCCESS = 'payment.option.create.success';
 	const PAYMENT_OPTION_DELETE_ERROR_SQL = 'payment.option.delete.error.sql';
 	const PAYMENT_OPTION_DELETE_SUCCESS = 'payment.option.delete.success';
-	const PAYMENT_OPTION_UPDATE_SUCCESS = 'payment.option.update.success';
 	const PAYMENT_OPTION_UPDATE_ERROR_SQL = 'payment.option.update.error.sql';
-
+	const PAYMENT_OPTION_UPDATE_SUCCESS = 'payment.option.update.success';
+	
 	const PAYMENT_DELETE_ERROR_SQL = 'payment.delete.error.sql';
 	const PAYMENT_DELETE_SUCCESS = 'payment.delete.success';
 	
@@ -346,6 +353,172 @@ class EvePaymentService
 		");
 		while ($item = $resource->fetch_assoc()) $result[] = $item;
 		return $result;
+	}
+
+	/**
+	 */
+	function payment_group_list()
+	{	// TODO ERROR MESSAGES
+		$result = array();
+		$stmt1 = $this->eve->mysqli->prepare
+		("
+			select *
+			from		`{$this->eve->DBPref}payment_group`
+			order by	`{$this->eve->DBPref}payment_group`.`id`;
+		");
+		if ($stmt1 === false)
+		{
+			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
+			return null;
+		}		
+		$stmt1->execute();
+
+		
+		// Binding result variable - Column by column to ensure compability
+		// From PHP Verions 5.3+ there is the get_result() method
+    	$stmt1->bind_result
+		(
+			$id, $name, $unverified_payment_info, $verified_payment_info, $state
+		);
+		// Fetching values
+		while ($stmt1->fetch())
+		{
+			$payment_group = array(
+				'id' => $id, 'name' => $name, 'unverified_payment_info' => $unverified_payment_info,
+				'verified_payment_info' => $verified_payment_info, 'state' => $state
+			);
+			$result[] = $payment_group;
+		}
+		$stmt1->close();
+		return $result;
+	}
+
+	function payment_group_create($name = "")
+	{   
+		$stmt = $this->eve->mysqli->prepare
+		("
+			insert into `{$this->eve->DBPref}payment_group` (`name`) values (?)
+		");
+		if ($stmt === false)
+		{
+			return self::PAYMENT_GROUP_CREATE_ERROR_SQL;
+		}
+		$stmt->bind_param('s', $name);
+		$stmt->execute();
+		if (!empty($stmt->error))
+		{
+			$stmt->close();
+			return self::PAYMENT_GROUP_CREATE_ERROR_SQL;
+		}
+		else
+		{
+			$stmt->close();
+			return self::PAYMENT_GROUP_CREATE_SUCCESS;
+		}
+	}
+
+	function payment_group_delete($id)
+	{	
+		$stmt = $this->eve->mysqli->prepare
+		("
+			delete from
+					`{$this->eve->DBPref}payment_group`
+			where	`{$this->eve->DBPref}payment_group`.`id` = ?
+		");
+		if ($stmt === false)
+		{
+			return self::PAYMENT_GROUP_DELETE_ERROR_SQL;
+		}
+		$stmt->bind_param('i', $id);
+		$stmt->execute();
+		if (!empty($stmt->error))
+		{
+			$stmt->close();
+			return self::PAYMENT_GROUP_DELETE_ERROR_SQL;
+		}
+		else
+		{
+			$stmt->close();
+			return self::PAYMENT_GROUP_DELETE_SUCCESS;
+		}
+	}
+
+	function payment_group_get($id)
+	{	
+		$stmt1 = $this->eve->mysqli->prepare
+		("
+			select 	*
+			from	`{$this->eve->DBPref}payment_group`
+			where	`{$this->eve->DBPref}payment_group`.`id` = ?
+		");
+		if ($stmt1 === false)
+		{
+			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
+			return null;
+		}
+		$stmt1->bind_param('i', $id);		
+		$stmt1->execute();
+
+		// Binding result variable - Column by column to ensure compability
+		// From PHP Verions 5.3+ there is the get_result() method
+    	$stmt1->bind_result
+		(
+			$id, $name, $unverified_payment_info, $verified_payment_info, $state
+		);
+
+		// Fetching values
+		if ($stmt1->fetch())
+		{	
+			$stmt1->close();
+			return array(
+				'id' => $id, 'name' => $name, 'unverified_payment_info' => $unverified_payment_info,
+				'verified_payment_info' => $verified_payment_info, 'state' => $state
+			);
+		}
+		else
+		{
+			$stmt1->close();
+			return null;
+		}
+	}
+
+	function payment_group_states()
+	{
+		$query = "SHOW COLUMNS FROM `{$this->eve->DBPref}payment_group` WHERE Field = 'state'";
+		$result = $this->eve->mysqli->query($query);
+		$row = $result->fetch_assoc();
+		preg_match('#^enum\((.*?)\)$#ism', $row['Type'], $matches);
+		$enum = str_getcsv($matches[1], ",", "'");
+		return $enum;
+	}
+
+	function payment_group_update($payment_group)
+	{	
+		$stmt = $this->eve->mysqli->prepare
+		("
+			update	`{$this->eve->DBPref}payment_group`
+			set		`{$this->eve->DBPref}payment_group`.`name` = ?,
+					`{$this->eve->DBPref}payment_group`.`unverified_payment_info` = ?,
+					`{$this->eve->DBPref}payment_group`.`verified_payment_info` = ?,
+					`{$this->eve->DBPref}payment_group`.`state` = ?
+			where	`{$this->eve->DBPref}payment_group`.`id` = ?
+		");
+		if ($stmt === false)
+		{
+			return self::PAYMENT_GROUP_UPDATE_ERROR_SQL;
+		}
+		$stmt->bind_param('ssssi', $payment_group['name'], $payment_group['unverified_payment_info'], $payment_group['verified_payment_info'], $payment_group['state'], $payment_group['id']);
+		$stmt->execute();
+		if (!empty($stmt->error))
+		{
+			$stmt->close();
+			return self::PAYMENT_GROUP_UPDATE_ERROR_SQL;
+		}
+		else
+		{
+			$stmt->close();
+			return self::PAYMENT_GROUP_UPDATE_SUCCESS;
+		}
 	}
 
 	function payment_item_list($payment_id)

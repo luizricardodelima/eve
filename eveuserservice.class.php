@@ -40,11 +40,11 @@ class EveUserService
 	const USER_DELETE_ERROR_SQL = 'user.delete.error.sql';
 	const USER_DELETE_SUCCESS = 'user.delete.success';
 
-	const USER_CHANGE_PASSWORD_ERROR = 14;	
-	const USER_CHANGE_PASSWORD_ERROR_PASSWORD_TOO_SMALL = 15;	
-	const USER_CHANGE_PASSWORD_ERROR_PASSWORDS_DO_NOT_MATCH = 16;
-	const USER_CHANGE_PASSWORD_ERROR_INCORRECT_PASSWORD = 17;
-	const USER_CHANGE_PASSWORD_SUCCESS = 18;
+	const USER_PASSWORDCHANGE_ERROR = 'user.passwordchange.error';	
+	const USER_PASSWORDCHANGE_ERROR_PASSWORD_TOO_SMALL = 'user.passwordchange.error.password.too.small';	
+	const USER_PASSWORDCHANGE_ERROR_PASSWORDS_DO_NOT_MATCH = 'user.passwordchange.error.passwords.do.not.match';
+	const USER_PASSWORDCHANGE_ERROR_INCORRECT_PASSWORD = 'user.passwordchange.error.incorrect.password';
+	const USER_PASSWORDCHANGE_SUCCESS = 'user.passwordchange.success';
 
 	function admin_add($screenname)
 	{
@@ -367,15 +367,15 @@ class EveUserService
 
 		if ($this->user_login($email, $password) == self::LOGIN_ERROR)
 		{
-			return self::USER_CHANGE_PASSWORD_ERROR_INCORRECT_PASSWORD;
+			return self::USER_PASSWORDCHANGE_ERROR_INCORRECT_PASSWORD;
 		}
 		if (strcmp ($newpassword, $newpassword_repeat) != 0)
 		{
-			return self::USER_CHANGE_PASSWORD_ERROR_PASSWORDS_DO_NOT_MATCH;
+			return self::USER_PASSWORDCHANGE_ERROR_PASSWORDS_DO_NOT_MATCH;
 		}
 		else if (strlen ($newpassword) < 4)
 		{
-			return self::USER_CHANGE_PASSWORD_ERROR_PASSWORD_TOO_SMALL;
+			return self::USER_PASSWORDCHANGE_ERROR_PASSWORD_TOO_SMALL;
 		}
 		else
 		{
@@ -383,13 +383,13 @@ class EveUserService
 			$stmt1 = $this->eve->mysqli->prepare("UPDATE `{$this->eve->DBPref}user` SET `password`=? WHERE `email`=?;");
 			if ($stmt1 === false)
 			{
-				return self::USER_CHANGE_PASSWORD_ERROR; // Unexpected error!
+				return self::USER_PASSWORDCHANGE_ERROR; // Unexpected error!
 			}
 			$stmt1->bind_param('ss', $encrypted_newpassword, $email);
 			$stmt1->execute();
 			$stmt1->store_result();
 			$stmt1->close();
-			return self::USER_CHANGE_PASSWORD_SUCCESS;
+			return self::USER_PASSWORDCHANGE_SUCCESS;
 		}
 	}
 

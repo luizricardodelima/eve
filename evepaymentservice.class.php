@@ -31,12 +31,52 @@ class EvePaymentService
 	const PAYMENT_DELETE_ERROR_SQL = 'payment.delete.error.sql';
 	const PAYMENT_DELETE_SUCCESS = 'payment.delete.success';
 	
-	// TODO Maybe payment does not need this restriction of one payment per user.
+
+	/**
+	 * Returns true if the user represented by $screenname is allowed to make a main payment
+	 * in the payment group represented by $payment_group_id. If there is a main payment
+	 * registered in the $screennames's name with one main payment option, then a
+	 * second main payment is not allowed for the group.
+	 */
+	function payment_is_main_payment_allowed($screenname, $payment_group_id)
+	{
+		$result = true;
+		$payment_group_id = is_numeric($payment_group_id) ? intval($payment_group_id) : null;
+		$stmt = $this->eve->mysqli->prepare
+		("
+			select		`{$this->eve->DBPref}payment_option`.`type`
+			from		`{$this->eve->DBPref}payment`
+			inner join	`{$this->eve->DBPref}payment_item`
+			on			`{$this->eve->DBPref}payment`.`id = `{$this->eve->DBPref}payment_item`.`payment_id`
+			inner join	`{$this->eve->DBPref}payment_option`
+			on			`{$this->eve->DBPref}payment_item`.`payment_option_id = `{$this->eve->DBPref}payment_option`.`id`
+			left join	`{$this->eve->DBPref}payment_group`
+			on			`{$this->eve->DBPref}payment_option`.`payment_group_id = `{$this->eve->DBPref}payment_group`.`id`
+			where		`{$this->eve->DBPref}payment`.`user_email` = ?
+			and			`{$this->eve->DBPref}payment_group`.`id` = ?
+		");
+		if ($stmt === false)
+		{
+			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
+			return null;
+		}	
+		$stmt->bind_param('si', $screenname, $payment_group_id);
+		$stmt->execute();
+		$stmt->bind_result($type);
+		while ($stmt->fetch())
+		{
+			// Found one main option. User cannot make another main payment.
+			if($type == 'main') $result = false;
+		}
+		return $result;
+	}
 
 	/** 
 	 * Returns the Payment id associated to the $screenname. If $create_new_if_not_found
 	 * is true and no payment is found, the function creates a payment object associated
 	 * to the $screenname and then returns the id. The function retuns null otherwise.
+	 * 
+	 * TODO Deprecated
 	 */
 	function payment_get_id($screenname, $create_new_if_not_found = false)
 	{
@@ -357,7 +397,7 @@ class EvePaymentService
 
 	/**
 	 */
-	function payment_group_list()
+	function payment_group_list($id_as_array_key = false)
 	{	// TODO ERROR MESSAGES
 		$result = array();
 		$stmt1 = $this->eve->mysqli->prepare
@@ -387,7 +427,46 @@ class EvePaymentService
 				'id' => $id, 'name' => $name, 'unverified_payment_info' => $unverified_payment_info,
 				'verified_payment_info' => $verified_payment_info, 'state' => $state
 			);
-			$result[] = $payment_group;
+			if ($id_as_array_key)
+				$result[$id] = $payment_group;
+			else
+				$result[] = $payment_group;
+		}
+		$stmt1->close();
+		return $result;
+	}
+
+	/**
+	 * Returns an array of payment group ids that indicates groups for user.
+	 * In there are payment options that are not associated with a group, the
+	 * array will contain a null element.
+	 */
+	function payment_group_list_for_user()
+	{
+		$result = array();
+
+		$stmt1 = $this->eve->mysqli->prepare
+		("
+			select distinct 
+						`{$this->eve->DBPref}payment_option`.`payment_group_id`
+			from		`{$this->eve->DBPref}payment_option`
+			where		`{$this->eve->DBPref}payment_option`.`active` = 1
+			order by	`{$this->eve->DBPref}payment_option`.`payment_group_id`;
+		");
+		if ($stmt1 === false)
+		{
+			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
+			return null;
+		}		
+		$stmt1->execute();
+
+		// Binding result variable - Column by column to ensure compability
+		// From PHP Verions 5.3+ there is the get_result() method
+    	$stmt1->bind_result ($id);
+		// Fetching values
+		while ($stmt1->fetch())
+		{
+			$result[] = $id;
 		}
 		$stmt1->close();
 		return $result;
@@ -638,7 +717,7 @@ class EvePaymentService
     	$stmt1->bind_result
 		(
 			$id, $type, $name, $description, $value, $available_from,
-			$available_to, $admin_only, $active
+			$available_to, $payment_group_id, $admin_only, $active
 		);
 
 		// Fetching values
@@ -648,7 +727,7 @@ class EvePaymentService
 			return array(
 				'id' => $id, 'type' =>$type, 'name' => $name, 'description' => $description,
 				'value' => $value, 'available_from' => $available_from, 'available_to' => $available_to,
-				'admin_only' => $admin_only, 'active' => $active
+				'payment_group_id' => $payment_group_id, 'admin_only' => $admin_only, 'active' => $active
 			);
 		}
 		else
@@ -685,7 +764,7 @@ class EvePaymentService
     	$stmt1->bind_result
 		(
 			$id, $type, $name, $description, $value, $available_from,
-			$available_to, $admin_only, $active
+			$available_to, $payment_group_id, $admin_only, $active
 		);
 		// Fetching values
 		while ($stmt1->fetch())
@@ -707,7 +786,7 @@ class EvePaymentService
 			$payment_option = array(
 				'id' => $id, 'type' =>$type, 'name' => $name, 'description' => $description,
 				'value' => $value, 'available_from' => $available_from, 'available_to' => $available_to,
-				'admin_only' => $admin_only, 'active' => $active
+				'payment_group_id' => $payment_group_id, 'admin_only' => $admin_only, 'active' => $active
 			);
 			if ($id_as_array_key)
 				$result[$id] = $payment_option;
@@ -736,7 +815,8 @@ class EvePaymentService
 		$payment_option['value'] = floatval($payment_option['value']);
 		$payment_option['available_from'] = strtotime($payment_option['available_from']) ? $payment_option['available_from'] : null;
 		$payment_option['available_to'] = strtotime($payment_option['available_to']) ? $payment_option['available_to'] : null;
-		
+		$payment_option['payment_group_id'] = is_numeric($payment_option['payment_group_id']) ? intval($payment_option['payment_group_id']) : null;
+
 		$stmt = $this->eve->mysqli->prepare
 		("
 			update	`{$this->eve->DBPref}payment_option`
@@ -746,6 +826,7 @@ class EvePaymentService
 					`{$this->eve->DBPref}payment_option`.`value` = ?,
 					`{$this->eve->DBPref}payment_option`.`available_from` = ?,
 					`{$this->eve->DBPref}payment_option`.`available_to` = ?,
+					`{$this->eve->DBPref}payment_option`.`payment_group_id` = ?,
 					`{$this->eve->DBPref}payment_option`.`admin_only` = ?
 			where	`{$this->eve->DBPref}payment_option`.`id` = ?
 		");
@@ -753,7 +834,7 @@ class EvePaymentService
 		{
 			return self::PAYMENT_OPTION_UPDATE_ERROR_SQL;
 		}
-		$stmt->bind_param('sssdssii', $payment_option['type'], $payment_option['name'], $payment_option['description'], $payment_option['value'], $payment_option['available_from'], $payment_option['available_to'], $payment_option['admin_only'], $payment_option['id']);
+		$stmt->bind_param('sssdssiii', $payment_option['type'], $payment_option['name'], $payment_option['description'], $payment_option['value'], $payment_option['available_from'], $payment_option['available_to'], $payment_option['payment_group_id'], $payment_option['admin_only'], $payment_option['id']);
 		$stmt->execute();
 		if (!empty($stmt->error))
 		{

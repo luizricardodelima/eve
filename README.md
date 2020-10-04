@@ -27,7 +27,7 @@ _Event management system_
 - 2020-05-23 **(usability)** Removed alternate e-mail text (as an alternative of html e-mails) for all e-mails. Some settings screens are now simpler because of this.
 - 2020-05-13 **(usability)** `readme.txt` was renamed to `README.md` and its contents were formatted to Markdown format
 - 2020-05-13 **(feature)** Now this project is on github! https://github.com/luizricardodelima/eve/
-- 2020-05-12 **(feature)** The custom field code used in submissions was refactored and now it's a standalone project. Lots of the bugs were fixed and id handles much better with validation. The project has his own page on GitHub https://github.com/luizricardodelima/dynamicform/
+- 2020-05-12 **(feature)** The custom field code used in submissions was refactored and now it's a standalone project. Lots of the bugs were fixed and it handles much better with validation. The project has his own page on GitHub https://github.com/luizricardodelima/dynamicform/
 - 2020-04-30 **(feature)** Removed "Alternative email" from user data for being too specific. Now userdata has 5 custom text fields.
 - 2020-04-28 **(feature)** Included a third gender: "Rather not say"
 - 2020-04-27 **(usability)** Minor code fixes that remove warnings on PHP 7 when system tries to read an unset variable

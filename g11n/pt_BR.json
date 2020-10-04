@@ -59,6 +59,7 @@
 	"common.message.invalid.parameter": "Parâmetro inválido.",
 	"common.message.no.permission": "Você não tem permissão para acessar esta página.",
 	"common.message.page.not.found": "Página não encontrada",
+	"common.select.none": "Nenhum",
 	"common.select.null": "&gt;&gt; Selecione",
 	"common.table.header.options": "Opções",
 	"login.email": "E-mail",

@@ -76,6 +76,18 @@ else
 	<input 	id="available_from" type="datetime-local" name="available_from" value="<?php if($payment_option['available_from']) echo date('Y-m-d\TH:i:s', strtotime($payment_option['available_from']));?>"/>
 	<label for="available_to"><?php echo $eve->_('payment.option.available.to');?></label>
 	<input 	id="available_to" type="datetime-local" name="available_to" value="<?php if($payment_option['available_to']) echo date('Y-m-d\TH:i:s', strtotime($payment_option['available_to']));?>"/>
+	<label for="payment_group_id"><?php echo $eve->_('payment.group');?></label>
+	<select id="payment_group_id" name="payment_group_id">
+	<option value=""><?php echo $eve->_('common.select.none');?></option>
+	<?php 
+	foreach($evePaymentService->payment_group_list(true) as $payment_group)
+	{	
+		echo "<option value=\"{$payment_group['id']}\"";
+		if ($payment_option['payment_group_id'] == $payment_group['id']) echo " selected=\"selected\"";
+		echo ">".$payment_group['name']."</option>";
+	}
+	?>
+	</select>
 	<label for="admin_only">
 	<input type="hidden" name="admin_only" value="0"/>
 	<input type="checkbox" name="admin_only" id="admin_only" value="1" <?php if ($payment_option['admin_only']) echo "checked=\"checked\"";?> />

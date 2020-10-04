@@ -118,13 +118,21 @@ else
 		$eve->output_big_goto_button($submission_definition['description'], "&#67;", "submission.php?id={$submission_definition['id']}");
 
 	// Payment
-	if (!$eve->getSetting('payment_closed'))
-		$eve->output_big_goto_button("userarea.option.payment", "&#91;", "payment.php");
-
+	foreach ($evePaymentService->payment_group_list_for_user() as $payment_group_id)
+		if ($payment_group_id === null)
+			$eve->output_big_goto_button("userarea.option.payment", "&#91;", "payment.php");
+		else 
+		{
+			$payment_group = $evePaymentService->payment_group_get($payment_group_id);
+			$eve->output_big_goto_button("{$eve->_('userarea.option.payment')} - {$payment_group['name']}", "&#91;", "payment.php?group={$payment_group_id}");
+		}
+	
+	/* TODO. There can be multiple payments now. How this works with the system?
 	// Submissions with payment requirement
 	if (!$eve->getSetting('payment_closed') && $evePaymentService->payment_get_id($_SESSION['screenname']))
 	foreach ($eveSubmissionService->submission_definition_list_for_user($_SESSION['screenname'], 'after_payment') as $submission_definition)
 		$eve->output_big_goto_button($submission_definition['description'], "&#67;", "submission.php?id={$submission_definition['id']}");
+	*/
 
 	// Certifications
 	$eveCertificationService = new EveCertificationService($eve);

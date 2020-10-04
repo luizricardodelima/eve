@@ -239,6 +239,7 @@ function create_database($dbpassword, $screenname, $password)
 		  `value` double NOT NULL DEFAULT '0',
 		  `available_from` datetime,
 		  `available_to` datetime,
+		  `payment_group_id` int(11) DEFAULT NULL,
 		  `admin_only` tinyint(11) NOT NULL DEFAULT '0',
 		  `active` tinyint(11) NOT NULL DEFAULT '1'
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -335,7 +336,7 @@ function create_database($dbpassword, $screenname, $password)
 	$mysqli->query("ALTER TABLE `{$pref}payment_group` ADD PRIMARY KEY (`id`);");
 	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys payment_group - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
-	$mysqli->query("ALTER TABLE `{$pref}payment_option` ADD PRIMARY KEY (`id`);");
+	$mysqli->query("ALTER TABLE `{$pref}payment_option` ADD PRIMARY KEY (`id`), ADD KEY `payment_group_id` (`payment_group_id`);");
 	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys payment_option - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
 	$mysqli->query("ALTER TABLE `{$pref}settings` ADD PRIMARY KEY (`key`);");
@@ -436,12 +437,20 @@ function create_database($dbpassword, $screenname, $password)
 
 	$mysqli->query
 	("
+		ALTER TABLE `{$pref}payment_option`
+		  ADD CONSTRAINT `{$pref}payment_option_ibfk_1` FOREIGN KEY (`payment_group_id`) REFERENCES `{$pref}payment_group` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;"
+	);
+	if ($mysqli->error) {$log[] = "ERROR - Foreign keys payment_option - ".$mysqli->error; delete_database($dbpassword); return $log;}
+
+	$mysqli->query
+	("
 		ALTER TABLE `{$pref}payment_item`
 		  ADD CONSTRAINT `{$pref}payment_item_ibfk_1` FOREIGN KEY (`payment_id`) REFERENCES `{$pref}payment` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
 		  ADD CONSTRAINT `{$pref}payment_item_ibfk_2` FOREIGN KEY (`payment_option_id`) REFERENCES `{$pref}payment_option` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;"
 	);
 	if ($mysqli->error) {$log[] = "ERROR - Foreign keys payment_item - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
+	
 	$mysqli->query
 	("
 		ALTER TABLE `{$pref}userdata`

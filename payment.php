@@ -10,22 +10,25 @@ if (!isset($_SESSION['screenname']))
 {	
 	$eve->output_redirect_page("userarea.php?sessionexpired=1");
 }
-else if($eve->getSetting('payment_closed'))
-{
-	$eve->output_error_page('common.message.no.permission');
-}
 else
 {
 	$evePaymentService = new EvePaymentService($eve);
+	$payment_group = isset($_GET['group']) ? $evePaymentService->payment_group_get($_GET['group']) : null;
+	$navigation_string = ($payment_group === null) ? $eve->_('userarea.option.payment') : $eve->_('userarea.option.payment') . ' - ' . $payment_group['name'];
 	$eve->output_html_header();
 	$eve->output_navigation([
 		$eve->getSetting('userarea_label') => "userarea.php",
-		$eve->_('userarea.option.payment') => null
+		$navigation_string => null
 	]);
 
 	// Retrieving payment info from user
 	$paymentId = $evePaymentService->payment_get_id($_SESSION['screenname']);
 	$payment = $evePaymentService->payment_get($paymentId);
+	// TODO>>> PAREI AQUI. Criei a função payment_is_main_payment_allowed no service mas acho 
+	// que não serve. Melhor puxar todos os pagamentos que o user fez em dado grupo e ver
+	// 1 a 1 se ele fez algum pagamento "main". E se ele fez algum pagamento "accessory", tirar
+	// da lista também. Talvez seja melhor carregar a lista de payment options a priori e ir 
+	// retirando um a um.
 
 	if ($payment === null)
 	{

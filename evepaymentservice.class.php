@@ -9,7 +9,6 @@ class EvePaymentService
 	private $evemail;
 
 	const PAYMENT_ERROR = "payment.error";	
-	const PAYMENT_ERROR_ID_NOT_RETRIEVED = "payment.error.id.not.retrieved";
 	const PAYMENT_ERROR_SQL = "payment.error.sql";
 	const PAYMENT_SUCCESSFUL = "payment.successful";
 	const PAYMENT_SUCCESSFUL_WITH_EMAIL_ALERT = "payment.successful.with.email.alert";
@@ -33,40 +32,61 @@ class EvePaymentService
 	
 
 	/**
-	 * Returns true if the user represented by $screenname is allowed to make a main payment
-	 * in the payment group represented by $payment_group_id. If there is a main payment
-	 * registered in the $screennames's name with one main payment option, then a
-	 * second main payment is not allowed for the group.
+	 * Returns a list of payments made for user (represented by $screenname) for 
+	 * a certain payment group (represented by $payment_group_id)
 	 */
-	function payment_is_main_payment_allowed($screenname, $payment_group_id)
+	function payment_list_for_user($screenname, $payment_group_id)
 	{
-		$result = true;
+		$result = array();
 		$payment_group_id = is_numeric($payment_group_id) ? intval($payment_group_id) : null;
+		$payment_group_id_query = ($payment_group_id === null) ? "`{$this->eve->DBPref}payment_group`.`id` is null" : "`{$this->eve->DBPref}payment_group`.`id` = ?";
 		$stmt = $this->eve->mysqli->prepare
 		("
-			select		`{$this->eve->DBPref}payment_option`.`type`
+			select distinct `{$this->eve->DBPref}payment`.*
 			from		`{$this->eve->DBPref}payment`
 			inner join	`{$this->eve->DBPref}payment_item`
-			on			`{$this->eve->DBPref}payment`.`id = `{$this->eve->DBPref}payment_item`.`payment_id`
+			on			`{$this->eve->DBPref}payment`.`id` = `{$this->eve->DBPref}payment_item`.`payment_id`
 			inner join	`{$this->eve->DBPref}payment_option`
-			on			`{$this->eve->DBPref}payment_item`.`payment_option_id = `{$this->eve->DBPref}payment_option`.`id`
+			on			`{$this->eve->DBPref}payment_item`.`payment_option_id` = `{$this->eve->DBPref}payment_option`.`id`
 			left join	`{$this->eve->DBPref}payment_group`
-			on			`{$this->eve->DBPref}payment_option`.`payment_group_id = `{$this->eve->DBPref}payment_group`.`id`
+			on			`{$this->eve->DBPref}payment_option`.`payment_group_id` = `{$this->eve->DBPref}payment_group`.`id`
 			where		`{$this->eve->DBPref}payment`.`user_email` = ?
-			and			`{$this->eve->DBPref}payment_group`.`id` = ?
+			and			$payment_group_id_query
 		");
 		if ($stmt === false)
 		{
 			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
 			return null;
-		}	
-		$stmt->bind_param('si', $screenname, $payment_group_id);
+		}
+		if ($payment_group_id === null)
+			$stmt->bind_param('s', $screenname);
+		else
+			$stmt->bind_param('si', $screenname, $payment_group_id);
 		$stmt->execute();
-		$stmt->bind_result($type);
+		//$payment = array();
+		// Binding result variable - Column by column to ensure compability
+		// From PHP Verions 5.3+ there is the get_result() method
+		$stmt->bind_result
+		(
+			$id, $user_email, $date, $payment_method, $value_paid, $value_received, $note, $file
+			/*$payment['id'],
+			$payment['user_email'],
+			$payment['date'],
+			$payment['payment_method'],
+			$payment['value_paid'],
+			$payment['value_received'],
+			$payment['note'],
+			$payment['file']*/
+		);
 		while ($stmt->fetch())
 		{
-			// Found one main option. User cannot make another main payment.
-			if($type == 'main') $result = false;
+			$result[] = array
+			(
+				'id' => $id, 'user_email' => $user_email, 'date' => $date,
+				'payment_method' => $payment_method, 'value_paid' => $value_paid,
+				'value_received' => $value_received, 'note' => $note, 'file' => $file
+			);
+			//$payment;
 		}
 		return $result;
 	}
@@ -131,36 +151,25 @@ class EvePaymentService
 
 	function payment_register($screenname, $payment_method, $date, $note, $value_paid, $value_received, $items = null)
 	{
-		// Default case, to be changed if a successful payment occurs
-		$result = self::PAYMENT_ERROR;
-
-		// Getting or creating payment id
-		$id = $this->payment_get_id($screenname, true);
-		if ($id === null) return self::PAYMENT_ERROR_ID_NOT_RETRIEVED;
-
-		//Populating payment with data
+		// TODO ROLLBACK IF SOMETHING WRONG HAPPENS IN THE FURTHER QUERIES
 		$stmt1 = $this->eve->mysqli->prepare
 		("
-			update 
-				`{$this->eve->DBPref}payment`
-			set
-				`payment_method` = ?,
-				`value_paid` = ?,
-				`value_received` = ?,
-				`date` = ?,
-				`note` = ?
-			where
-				`id` = ?;
+			insert into	`{$this->eve->DBPref}payment`
+						(`user_email`, `payment_method`, `value_paid`, `value_received`, `date`, `note`)
+			values		(?, ?, ?, ?, ?, ?)
 		");
 		if ($stmt1 === false)
 		{
-			return self::PAYMENT_ERROR_SQL;
+			return self::PAYMENT_ERROR;
 		}
-		$stmt1->bind_param('sddssi', $payment_method, $value_paid, $value_received, $date, $note, $id);
-		if ($stmt1->execute())
-			$result = self::PAYMENT_SUCCESSFUL;
-		else
-			$result = self::PAYMENT_ERROR_SQL;
+		$stmt1->bind_param('ssddss', $screenname, $payment_method, $value_paid, $value_received, $date, $note);
+		$stmt1->execute();
+		if (!empty($stmt1->error))
+		{
+			$stmt1->close();
+			return self::PAYMENT_ERROR;
+		}
+		$id = $stmt1->insert_id;
 		$stmt1->close();
 
 		// Inserting payment items
@@ -179,7 +188,7 @@ class EvePaymentService
 			$stmt2->execute();
 			if (!empty($stmt2->error))
 			{
-				$stmt2->close();
+				$stmt2->close(); // TODO Rollback creation of payment...
 				return self::PAYMENT_ERROR_SQL;
 			}
 		}
@@ -199,7 +208,7 @@ class EvePaymentService
 			$stmt3->close();
 		}
 
-		if ($result == self::PAYMENT_SUCCESSFUL && $this->eve->getSetting('email_snd_payment_update'))
+		if ($this->eve->getSetting('email_snd_payment_update'))
 		{
 			$date_formatter = new IntlDateFormatter($this->eve->getSetting('system_locale'), IntlDateFormatter::SHORT, IntlDateFormatter::NONE);
 			$money_formatter = new NumberFormatter($this->eve->getSetting('system_locale'), NumberFormatter::CURRENCY);
@@ -215,9 +224,13 @@ class EvePaymentService
 				'$payment_value_paid' => $money_formatter->format($value_paid)
 			);
 			$send_successful = $this->evemail->send_mail($screenname, $placeholders, $this->eve->getSetting('email_sbj_payment_update'), $this->eve->getSetting('email_msg_payment_update'));
-			if ($send_successful) $result = self::PAYMENT_SUCCESSFUL_WITH_EMAIL_ALERT;
+			if ($send_successful) return self::PAYMENT_SUCCESSFUL_WITH_EMAIL_ALERT;
+			else return self::PAYMENT_SUCCESSFUL;
 		}
-		return $result;
+		else
+		{
+			return self::PAYMENT_SUCCESSFUL;
+		}
 	}
 
 	function payment_delete($id, $send_email = 'true')
@@ -418,13 +431,14 @@ class EvePaymentService
 		// From PHP Verions 5.3+ there is the get_result() method
     	$stmt1->bind_result
 		(
-			$id, $name, $unverified_payment_info, $verified_payment_info, $state
+			$id, $name, $payment_info, $unverified_payment_info, $verified_payment_info, $state
 		);
 		// Fetching values
 		while ($stmt1->fetch())
 		{
 			$payment_group = array(
-				'id' => $id, 'name' => $name, 'unverified_payment_info' => $unverified_payment_info,
+				'id' => $id, 'name' => $name, 'payment_info' => $payment_info, 
+				'unverified_payment_info' => $unverified_payment_info,
 				'verified_payment_info' => $verified_payment_info, 'state' => $state
 			);
 			if ($id_as_array_key)
@@ -542,7 +556,7 @@ class EvePaymentService
 		// From PHP Verions 5.3+ there is the get_result() method
     	$stmt1->bind_result
 		(
-			$id, $name, $unverified_payment_info, $verified_payment_info, $state
+			$id, $name, $payment_info, $unverified_payment_info, $verified_payment_info, $state
 		);
 
 		// Fetching values
@@ -550,7 +564,8 @@ class EvePaymentService
 		{	
 			$stmt1->close();
 			return array(
-				'id' => $id, 'name' => $name, 'unverified_payment_info' => $unverified_payment_info,
+				'id' => $id, 'name' => $name, 'payment_info' => $payment_info, 
+				'unverified_payment_info' => $unverified_payment_info,
 				'verified_payment_info' => $verified_payment_info, 'state' => $state
 			);
 		}
@@ -577,6 +592,7 @@ class EvePaymentService
 		("
 			update	`{$this->eve->DBPref}payment_group`
 			set		`{$this->eve->DBPref}payment_group`.`name` = ?,
+					`{$this->eve->DBPref}payment_group`.`payment_info` = ?,
 					`{$this->eve->DBPref}payment_group`.`unverified_payment_info` = ?,
 					`{$this->eve->DBPref}payment_group`.`verified_payment_info` = ?,
 					`{$this->eve->DBPref}payment_group`.`state` = ?
@@ -586,7 +602,7 @@ class EvePaymentService
 		{
 			return self::PAYMENT_GROUP_UPDATE_ERROR_SQL;
 		}
-		$stmt->bind_param('ssssi', $payment_group['name'], $payment_group['unverified_payment_info'], $payment_group['verified_payment_info'], $payment_group['state'], $payment_group['id']);
+		$stmt->bind_param('sssssi', $payment_group['name'], $payment_group['payment_info'], $payment_group['unverified_payment_info'], $payment_group['verified_payment_info'], $payment_group['state'], $payment_group['id']);
 		$stmt->execute();
 		if (!empty($stmt->error))
 		{

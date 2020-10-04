@@ -4,7 +4,9 @@ require_once '../../evepaymentservice.class.php';
 require_once 'lib/PagSeguroLibrary.php';
 
 error_reporting(E_ERROR | E_PARSE);
+header("access-control-allow-origin: https://sandbox.pagseguro.uol.com.br");
 header("Content-Type: text/plain");
+
 
 function log_message($message)
 {

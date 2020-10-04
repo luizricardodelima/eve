@@ -53,12 +53,14 @@ else
 	<table class="data_table">
 	<tr>
 	<th style="width:05%"><?php echo $eve->_('payment.option.id'); ?></th>
-	<th style="width:30%"><?php echo $eve->_('payment.option.name'); ?></th>
-	<th style="width:30%"><?php echo $eve->_('payment.option.type'); ?></th>
+	<th style="width:20%"><?php echo $eve->_('payment.option.name'); ?></th>
+	<th style="width:20%"><?php echo $eve->_('payment.option.type'); ?></th>
+	<th style="width:20%"><?php echo $eve->_('payment.group'); ?></th>
 	<th style="width:20%"><?php echo $eve->_('payment.option.value'); ?></th>
 	<th style="width:15%" colspan="2"><?php echo $eve->_('common.table.header.options');?></th>		
 	</tr>
 	<?php
+	$payment_groups = $evePaymentService->payment_group_list(true);
 	foreach ($evePaymentService->payment_option_list(false, false) as $payment_option)
 	{	
 		?>
@@ -66,7 +68,8 @@ else
 		<td style="text-align:center"><?php echo $payment_option['id'];?></td>
 		<td style="text-align:left"><?php echo $payment_option['name'];?></td>
 		<td style="text-align:left"><?php echo $eve->_('payment.option.type.'.$payment_option['type']);?></td>
-		<td style="text-align:right"><?php echo $payment_option['value'];?></td>		
+		<td style="text-align:left"><?php echo ($payment_option['payment_group_id'] === null)  ? $eve->_('common.select.none') : $payment_groups[$payment_option['payment_group_id']]['name'];?></td>
+		<td style="text-align:right"><?php echo $payment_option['value'];?></td>	
 		<td><button type="button" onclick="window.location.href='payment_option.php?id=<?php echo $payment_option['id'];?>'"><img src="style/icons/edit.png"></button></td>
 		<td><button type="button" onclick="payment_option_delete(<?php echo $payment_option['id'];?>)"><img src="style/icons/delete.png"></button></td>
 		</tr>

@@ -221,6 +221,7 @@ function create_database($dbpassword, $screenname, $password)
 		CREATE TABLE `{$pref}payment_group` (
 		  `id` int(11) NOT NULL,
 		  `name` text COLLATE utf8_unicode_ci,
+		  `payment_info` text COLLATE utf8_unicode_ci,
 		  `unverified_payment_info` text COLLATE utf8_unicode_ci,
 		  `verified_payment_info` text COLLATE utf8_unicode_ci,
 		  `state` enum('active','inactive','invisible') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'active'
@@ -327,7 +328,7 @@ function create_database($dbpassword, $screenname, $password)
 	$mysqli->query("ALTER TABLE `{$pref}page` ADD PRIMARY KEY (`id`);");
 	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys pages - ".$mysqli->error; delete_database($dbpassword); return $log;}
 	
-	$mysqli->query("ALTER TABLE `{$pref}payment` ADD PRIMARY KEY (`id`), ADD UNIQUE KEY `user_email` (`user_email`);");
+	$mysqli->query("ALTER TABLE `{$pref}payment` ADD PRIMARY KEY (`id`), ADD KEY `user_email` (`user_email`);");
 	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys payment - ".$mysqli->error; delete_database($dbpassword); return $log;}
 	
 	$mysqli->query("ALTER TABLE `{$pref}payment_item` ADD PRIMARY KEY (`id`), ADD KEY `payment_id` (`payment_id`), ADD KEY `payment_option_id` (`payment_option_id`);");

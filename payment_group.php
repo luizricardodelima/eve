@@ -59,6 +59,10 @@ else
 	<label for="name"><?php echo $eve->_('payment.group.name');?></label>
 	<input 	id="name" type="text" name="name" value="<?php echo $payment_group['name'];?>"/>
 
+	<label for="payment_info"><?php echo $eve->_('payment.group.payment.info');?></label>
+	<textarea id="payment_info" class="htmleditor" name="payment_info">
+	<?php echo $payment_group['payment_info'];?>
+	</textarea>
 	<label for="unverified_payment_info"><?php echo $eve->_('payment.group.unverified.payment.info');?></label>
 	<textarea id="unverified_payment_info" class="htmleditor" name="unverified_payment_info">
 	<?php echo $payment_group['unverified_payment_info'];?>

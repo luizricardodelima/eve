@@ -82,6 +82,7 @@
 	"payment.group": "Payment group",
 	"payment.group.id": "Id",
 	"payment.group.name": "Name",
+	"payment.group.payment.info": "Payment information",
 	"payment.group.unverified.payment.info": "Unverified payment information",
 	"payment.group.verified.payment.info": "Verified payment information",
 	"payment.group.state": "State",

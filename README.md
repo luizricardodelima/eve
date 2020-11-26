@@ -1,7 +1,7 @@
 # EVE
 _Event management system_
 
-## Installing
+## How to install
 1. Upload all the files to the server. Set 777 permission to ./upload folder and its subfolders.
 1. Find `evedbconfig.php` file (located on the base folder) and fill it in with correponding database information.
 1. Access `[aplication_url]/setup` to test the database connection and to create the database structure.

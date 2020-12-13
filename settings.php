@@ -2,7 +2,6 @@
 session_start();
 require_once 'eve.class.php';
 
-
 $eve = new Eve();
 
 // Session verification.
@@ -26,31 +25,55 @@ else
 	?>
 	<div class="section"><?php echo $eve->_('userarea.option.admin.settings');?></div>
 	<div class="dialog_panel_thin">
-	<div class="dialog_section">Geral</div>
-		<button type="button" class="submit" onclick="window.location.href='settingsgeneralinfo.php'">Informações gerais</button>
-		<button type="button" class="submit" onclick="window.location.href='settingsadmins.php'">Administradores do sistema</button>
-		<button type="button" class="submit" onclick="window.location.href='settingsphpmailer.php'">Envio de e-mail</button>
-		<button type="button" class="submit" onclick="window.location.href='settingsappearance.php'">Aparência</button>
+	<div class="dialog_section"><?php echo $eve->_('settings.section.general');?></div>
+		<button type="button" class="submit" onclick="window.location.href='settingsgeneralinfo.php'">
+		<?php echo $eve->_('settings.general.settings');?>
+		</button>
+		<button type="button" class="submit" onclick="window.location.href='settingsadmins.php'">
+		<?php echo $eve->_('settings.system.admins');?>
+		</button>
+		<button type="button" class="submit" onclick="window.location.href='settingsphpmailer.php'">
+		<?php echo $eve->_('settings.mail.configuration');?>
+		</button>
+		<button type="button" class="submit" onclick="window.location.href='settingsappearance.php'">
+		<?php echo $eve->_('settings.appearance');?>
+		</button>
 	</div>
 
 	<div class="dialog_panel_thin">
-	<div class="dialog_section">Inscrições, usuários e pagamentos</div>
-	<button type="button" class="submit" onclick="window.location.href='settingsusersignup.php'">Inscrições</button>
-	<button type="button" class="submit" onclick="window.location.href='settingsuserdata.php'">Dados do usuário</button>
-	<button type="button" class="submit" onclick="window.location.href='settingscredential.php'">Credenciais</button>
-	<button type="button" class="submit" onclick="window.location.href='settingspayments.php'">Pagamentos</button>
-	<button type="button" class="submit" onclick="window.location.href='settingspaymentslisting.php'">Listagem dos Pagamentos</button>
+	<div class="dialog_section"><?php echo $eve->_('settings.section.users.and.payments');?></div>
+	<button type="button" class="submit" onclick="window.location.href='settingsusersignup.php'">
+	<?php echo $eve->_('settings.user.signup');?>
+	</button>
+	<button type="button" class="submit" onclick="window.location.href='settingsuserdata.php'">
+	<?php echo $eve->_('settings.user.data');?>
+	</button>
+	<button type="button" class="submit" onclick="window.location.href='settingscredential.php'">
+	<?php echo $eve->_('settings.user.credentials');?>
+	</button>
+	<button type="button" class="submit" onclick="window.location.href='settingspayments.php'">
+	<?php echo $eve->_('settings.payments');?>
+	</button>
+	<button type="button" class="submit" onclick="window.location.href='settingspaymentslisting.php'">
+	<?php echo $eve->_('settings.payments.listing');?>
+	</button>
 	</div>
 
 	<div class="dialog_panel_thin">
-	<div class="dialog_section">Submissões e certificados</div>
-	<button type="button" class="submit" onclick="window.location.href='settingssubmissions.php'">Submissões</button>
-	<button type="button" class="submit" onclick="window.location.href='settingsreviewers.php'">Revisores e revisões</button>
-	<button type="button" class="submit" onclick="window.location.href='settingscertification.php'">Certificados</button>
+	<div class="dialog_section"><div class="dialog_section"><?php echo $eve->_('settings.section.submissions.and.certifications');?></div></div>
+	<button type="button" class="submit" onclick="window.location.href='settingssubmissions.php'">
+	<?php echo $eve->_('settings.submissions');?>
+	</button>
+	<button type="button" class="submit" onclick="window.location.href='settingsreviewers.php'">
+	<?php echo $eve->_('settings.reviewers.and.revisions');?>
+	</button>
+	<button type="button" class="submit" onclick="window.location.href='settingscertification.php'">
+	<?php echo $eve->_('settings.certifications');?>
+	</button>
 	</div>
 
 	<div class="dialog_panel_thin">
-	<div class="dialog_section"><?php echo $eve->_('userarea.option.admin.settings.plugins');?></div>
+	<div class="dialog_section"><?php echo $eve->_('settings.section.plugins');?></div>
 	<?php
 	// Showing plugins configs
 	$plugins = glob('plugins/*' , GLOB_ONLYDIR);
@@ -69,4 +92,3 @@ else
 	$eve->output_html_footer();
 }
 ?>
-

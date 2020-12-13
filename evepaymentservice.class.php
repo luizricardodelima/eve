@@ -40,6 +40,11 @@ class EvePaymentService
 		$result = array();
 		$payment_group_id = is_numeric($payment_group_id) ? intval($payment_group_id) : null;
 		$payment_group_id_query = ($payment_group_id === null) ? "`{$this->eve->DBPref}payment_group`.`id` is null" : "`{$this->eve->DBPref}payment_group`.`id` = ?";
+		
+		// TODO ****************
+		// TODO Now that payment knows its payment group, this big chunk wont be necessary
+		// TODO ****************
+		
 		$stmt = $this->eve->mysqli->prepare
 		("
 			select distinct `{$this->eve->DBPref}payment`.*
@@ -63,40 +68,37 @@ class EvePaymentService
 		else
 			$stmt->bind_param('si', $screenname, $payment_group_id);
 		$stmt->execute();
-		//$payment = array();
+
 		// Binding result variable - Column by column to ensure compability
 		// From PHP Verions 5.3+ there is the get_result() method
 		$stmt->bind_result
 		(
-			$id, $user_email, $date, $payment_method, $value_paid, $value_received, $note, $file
-			/*$payment['id'],
-			$payment['user_email'],
-			$payment['date'],
-			$payment['payment_method'],
-			$payment['value_paid'],
-			$payment['value_received'],
-			$payment['note'],
-			$payment['file']*/
+			$id, $payment_group_id, $user_email, $date, $payment_method, $value_paid, $value_received, $note, $file, $active
 		);
 		while ($stmt->fetch())
 		{
 			$result[] = array
 			(
-				'id' => $id, 'user_email' => $user_email, 'date' => $date,
-				'payment_method' => $payment_method, 'value_paid' => $value_paid,
-				'value_received' => $value_received, 'note' => $note, 'file' => $file
+				'id' => $id, 'payment_group_id' => $payment_group_id,
+				'user_email' => $user_email, 'date' => $date, 'payment_method' => $payment_method,
+				'value_paid' => $value_paid, 'value_received' => $value_received, 'note' => $note,
+				'file' => $file, 'active' => $active
 			);
-			//$payment;
 		}
 		return $result;
 	}
 
+	// 
+	// TODO
+	// DEPRECATED!!!!
+	// Now a user has 0-many payments associated to him
+	//
 	/** 
 	 * Returns the Payment id associated to the $screenname. If $create_new_if_not_found
 	 * is true and no payment is found, the function creates a payment object associated
 	 * to the $screenname and then returns the id. The function retuns null otherwise.
 	 * 
-	 * TODO Deprecated
+	 * 
 	 */
 	function payment_get_id($screenname, $create_new_if_not_found = false)
 	{
@@ -149,20 +151,28 @@ class EvePaymentService
 		}
 	}
 
-	function payment_register($screenname, $payment_method, $date, $note, $value_paid, $value_received, $items = null)
+	function payment_register($screenname, $payment_method, $date, $note, $value_paid, $value_received, $payment_options = null)
 	{
+		// Detecting which Payment Group this payment refers to according to its payment_options
+		// TODO If this function receives options of two different groups, it should return an error.
+		$payment_group_id = null;
+		foreach ($payment_options as $payment_option_id)
+		{
+			$payment_group_id = $this->payment_option_get($payment_option_id)['payment_group_id'];
+		}
+
 		// TODO ROLLBACK IF SOMETHING WRONG HAPPENS IN THE FURTHER QUERIES
 		$stmt1 = $this->eve->mysqli->prepare
 		("
 			insert into	`{$this->eve->DBPref}payment`
-						(`user_email`, `payment_method`, `value_paid`, `value_received`, `date`, `note`)
-			values		(?, ?, ?, ?, ?, ?)
+						(`payment_group_id`, `user_email`, `payment_method`, `value_paid`, `value_received`, `date`, `note`)
+			values		(?, ?, ?, ?, ?, ?, ?)
 		");
 		if ($stmt1 === false)
 		{
 			return self::PAYMENT_ERROR;
 		}
-		$stmt1->bind_param('ssddss', $screenname, $payment_method, $value_paid, $value_received, $date, $note);
+		$stmt1->bind_param('issddss', $payment_group_id, $screenname, $payment_method, $value_paid, $value_received, $date, $note);
 		$stmt1->execute();
 		if (!empty($stmt1->error))
 		{
@@ -182,9 +192,9 @@ class EvePaymentService
 		{
 			return self::PAYMENT_ERROR_SQL;
 		}
-		foreach ($items as $item)
+		foreach ($payment_options as $payment_option_id)
 		{
-			$stmt2->bind_param('ii', $id, $item);
+			$stmt2->bind_param('ii', $id,  $payment_option_id);
 			$stmt2->execute();
 			if (!empty($stmt2->error))
 			{
@@ -237,13 +247,13 @@ class EvePaymentService
 	{
 		$payment = $this->payment_get($id);
 		$agent = (isset($_SESSION['screenname'])) ? $_SESSION['screenname'] : "unknown user";
-		$new_note = "Payment deleted at " . date("c") . " by $agent. This payment belonged to {$payment['user_email']}\n";
+		$new_note = "Payment deleted at " . date("c") . " by $agent.\n";
 
 		$stmt1 = $this->eve->mysqli->prepare
 		("
 			update 	`{$this->eve->DBPref}payment`
 			set 	`{$this->eve->DBPref}payment`.`note` = CONCAT(?, `{$this->eve->DBPref}payment`.`note`),
-					`{$this->eve->DBPref}payment`.`user_email` = NULL
+					`{$this->eve->DBPref}payment`.`active` = 0
 			where 	`{$this->eve->DBPref}payment`.`id` = ?;
 		");
 		if ($stmt1 === false)
@@ -309,13 +319,15 @@ class EvePaymentService
     	$stmt1->bind_result
 		(
 			$payment['id'],
+			$payment['payment_group_id'],
 			$payment['user_email'],
 			$payment['date'],
 			$payment['payment_method'],
 			$payment['value_paid'],
 			$payment['value_received'],
 			$payment['note'],
-			$payment['file']
+			$payment['file'],
+			$payment['active']
 		);
 		// Fetching values		
 		if ($stmt1->fetch())
@@ -330,24 +342,16 @@ class EvePaymentService
 		}
 	}
 
-	function payment_list($order_by = 'name', $specific_emails = null)
+	function payment_list($order_by = 'name')
 	{
 		$result = array();
-
-		// If $specific_emails is set as an array, code will sanitize input and
-		// generate sql where clause
-		$where_sql_clause = '';
-		if (is_array($specific_emails))
-		{
-			foreach($specific_emails as $i => $specific_email)
-				if (!filter_var($specific_email, FILTER_VALIDATE_EMAIL))
-					unset($specific_emails[$i]);
-			$where_sql_clause = "where `{$this->eve->DBPref}userdata`.`email` in ('" . implode("','",$specific_emails). "')";
-		}
 
 		$ordering = '';
 		switch ($order_by)
 		{
+			case 'id':
+				$ordering = "`{$this->eve->DBPref}payment`.`id`";
+				break;
 			case 'email':
 				$ordering = "`{$this->eve->DBPref}userdata`.`email`";
 				break;
@@ -368,18 +372,27 @@ class EvePaymentService
 				break;
 			case 'name':
 			default:
-				$ordering = "`{$this->eve->DBPref}userdata`.`name`";
+				$ordering = "`{$this->eve->DBPref}payment`.`id`";
 			break;
 		}
 		$resource = $this->eve->mysqli->query
 		("	
 			select 
-				*
+				`{$this->eve->DBPref}payment`.`id`,
+				`{$this->eve->DBPref}payment`.`payment_group_id`,
+				`{$this->eve->DBPref}payment`.`user_email`,
+				`{$this->eve->DBPref}payment`.`date`,
+				`{$this->eve->DBPref}payment`.`payment_method`,
+				`{$this->eve->DBPref}payment`.`value_paid`,
+				`{$this->eve->DBPref}payment`.`value_received`,
+				`{$this->eve->DBPref}payment`.`note` as `payment_note`,
+				`{$this->eve->DBPref}userdata`.*
 			from
-				`{$this->eve->DBPref}userdata`
-			left outer join
-				`{$this->eve->DBPref}payment` on (`{$this->eve->DBPref}userdata`.`email` = `{$this->eve->DBPref}payment`.`user_email`)
-			$where_sql_clause
+				`{$this->eve->DBPref}payment`
+			inner join
+				`{$this->eve->DBPref}userdata` on (`{$this->eve->DBPref}userdata`.`email` = `{$this->eve->DBPref}payment`.`user_email`)
+			where
+				`{$this->eve->DBPref}payment`.`active` = 1
 			order by
 				$ordering;
 		");

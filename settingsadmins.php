@@ -26,11 +26,11 @@ else if (isset($_POST['action']) && isset($_POST['screenname']))
 	{
 		case "add_admin":
 			$message = $eveUserService->admin_add($_POST['screenname']);
-			$eve->output_redirect_page(basename(__FILE__)."?message=$message");
+			$eve->output_redirect_page(basename(__FILE__)."?msg=$message");
 		break;
 		case "remove_admin":
 			$message = $eveUserService->admin_remove($_POST['screenname'], $_SESSION['screenname']);
-			$eve->output_redirect_page(basename(__FILE__)."?message=$message");
+			$eve->output_redirect_page(basename(__FILE__)."?msg=$message");
 		break;
 	}
 }
@@ -39,17 +39,21 @@ else if (isset($_POST['action']) && isset($_POST['screenname']))
 else
 {
 	$eve->output_html_header();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('userarea.option.admin.settings'), "settings.php", "Administradores do sistema", null);
+	$eve->output_navigation([
+		$eve->getSetting('userarea_label') => "userarea.php",
+		$eve->_('userarea.option.admin.settings') => "settings.php",
+		$eve->_('settings.system.admins') => null,
+	]);
 
 	?>
-	<div class="section">Administradores do sistema 
-	<button type="button" onclick="add_admin();">Adicionar</button>	
+	<div class="section"><?php echo $eve->_('settings.system.admins');?>
+	<button type="button" onclick="add_admin();"><?php echo $eve->_('settings.system.admins.add');?></button>	
 	</div>
-	<?php if (isset($_GET['message'])) $eve->output_service_message($_GET['message']);?>
+	<?php if (isset($_GET['msg'])) $eve->output_service_message($_GET['msg']);?>
 	<table class="data_table">
 	<tr>
-	<th style="width:45%">Email</th>
-	<th style="width:45%">Nome</th>
+	<th style="width:45%"><?php echo $eve->_('user.data.email');?></th>
+	<th style="width:45%"><?php echo $eve->_('user.data.name');?></th>
 	<th style="width:10%" colspan="1"><?php echo $eve->_('common.table.header.options');?></th>		
 	</tr>
 	<?php
@@ -67,32 +71,50 @@ else
 	<script>
 	function remove_admin(screenname)
 	{
-		if (confirm("Confirma a exclusão dos privilégios de administrador para " + screenname + "?"))
+		var raw_message = '<?php echo $eve->_('settings.system.admins.message.remove')?>';
+		var message = raw_message.replace("<EMAIL>", screenname);
+		if (confirm(message))
 		{
-			document.getElementById('remove_admin_hidden_value').value=screenname;
-			document.getElementById('remove_admin_form').submit();
+			form = document.createElement('form');
+        	form.setAttribute('method', 'POST');
+        	var1 = document.createElement('input');
+        	var1.setAttribute('type', 'hidden');
+			var1.setAttribute('name', 'action');
+        	var1.setAttribute('value', 'remove_admin');
+        	form.appendChild(var1);
+			var2 = document.createElement('input');
+        	var2.setAttribute('type', 'hidden');
+			var2.setAttribute('name', 'screenname');
+        	var2.setAttribute('value', screenname);
+        	form.appendChild(var2);
+        	document.body.appendChild(form);
+			form.submit();
 		}
 		return false;
 	}
 	function add_admin()
 	{
-		var screenname = prompt("Insira o e-mail do novo administrador. Ele deve estar previamente cadastrado neste sistema.");
+		var screenname = prompt('<?php echo $eve->_('settings.system.admins.message.add');?>');
 		if (screenname != null)
 		{
-			document.getElementById('add_admin_hidden_value').value=screenname;
-			document.getElementById('add_admin_form').submit();
+			form = document.createElement('form');
+        	form.setAttribute('method', 'POST');
+        	var1 = document.createElement('input');
+        	var1.setAttribute('type', 'hidden');
+			var1.setAttribute('name', 'action');
+        	var1.setAttribute('value', 'add_admin');
+        	form.appendChild(var1);
+			var2 = document.createElement('input');
+        	var2.setAttribute('type', 'hidden');
+			var2.setAttribute('name', 'screenname');
+        	var2.setAttribute('value', screenname);
+        	form.appendChild(var2);
+        	document.body.appendChild(form);
+			form.submit();
 		}
 		return false;
 	}
 	</script>
-	<form method="post" id="remove_admin_form">
-		<input type="hidden" name="action" value="remove_admin"/>
-		<input type="hidden" name="screenname" id="remove_admin_hidden_value"/>
-	</form>
-	<form method="post" id="add_admin_form">
-		<input type="hidden" name="action" value="add_admin"/>
-		<input type="hidden" name="screenname" id="add_admin_hidden_value"/>
-	</form>
 
 	<?php
 	$eve->output_html_footer();

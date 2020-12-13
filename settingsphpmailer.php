@@ -4,6 +4,7 @@ require_once 'eve.class.php';
 require_once 'evemail.class.php';
 require_once 'evesettingsservice.class.php';
 
+// TODO G11N this page
 $eve = new Eve();
 $eveSettingsService = new EveSettingsService($eve);
 
@@ -26,8 +27,7 @@ else
 	{
 		case 'save':
 			unset($_POST['action']);
-			$eveSettingsService->settings_update($_POST);
-			$saved = 1;
+			$msg = $eveSettingsService->settings_update($_POST);
 			break;
 		case 'mailtest':
 			$output  = "";
@@ -42,8 +42,11 @@ else
 	}
 
 	$eve->output_html_header();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('userarea.option.admin.settings'), "settings.php", "Envio de e-mail", null);
-	$eve->output_wysiwig_editor_code();
+	$eve->output_navigation([
+		$eve->getSetting('userarea_label') => "userarea.php",
+		$eve->_('userarea.option.admin.settings') => "settings.php",
+		$eve->_('settings.mail.configuration') => null,
+	]);
 
 	$settings = $eveSettingsService->settings_get
 	(
@@ -52,14 +55,13 @@ else
 	);
 	
 	?>
-	<div class="section">Envio de e-mail
+	<div class="section"><?php echo $eve->_('settings.mail.configuration');?>
 	<button type="button" onclick="document.forms['settings_form'].submit()"><?php echo $eve->_('common.action.save');?></button>
 	<button type="button" onclick="mailtest()"><?php echo $eve->_('common.action.test');?></button><br/>
 	</div>
 	<?php
 
-	if ($saved)
-		$eve->output_success_message("Ajustes salvos com sucesso.");
+	if (isset($msg)) $eve->output_service_message($msg);
 	if ($output)
 	{
 		?>

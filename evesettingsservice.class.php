@@ -5,6 +5,8 @@ require_once 'eve.class.php';
 class EveSettingsService
 {
     private $eve;
+
+    const SETTINGS_UPDATE_SUCCESS = "settings.update.success";	
     
     function settings_get()
 	{	
@@ -54,6 +56,7 @@ class EveSettingsService
             $stmt->execute();
         }
         $stmt->close();
+        return self::SETTINGS_UPDATE_SUCCESS;
     }
     
     function __construct(Eve $eve)

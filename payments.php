@@ -33,155 +33,160 @@ else if (isset($_POST['action']))
 else
 {
 	$evePaymentService = new EvePaymentService($eve);
-	$formatter = new NumberFormatter($eve->getSetting('system_locale'), NumberFormatter::CURRENCY);
+	$curr_formatter = new NumberFormatter($eve->getSetting('system_locale'), NumberFormatter::CURRENCY);
+	$date_formatter = new IntlDateFormatter($eve->getSetting('system_locale'), IntlDateFormatter::SHORT, IntlDateFormatter::NONE);
 
 	$eve->output_html_header();
 	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('userarea.option.admin.payments'), null);
 
 	?>
 	<script>
-	function toggle(source, elementname)
-	{
-		checkboxes = document.getElementsByName(elementname);
-		for(var i=0, n=checkboxes.length;i<n;i++)
-		{
-			checkboxes[i].checked = source.checked;
-			toggleRow(checkboxes[i]);
-		}
-	}
-
-	function toggleRow(source)
-	{
-		if (source.checked)
-			source.parentNode.parentNode.classList.add('selected');
-		else
-			source.parentNode.parentNode.classList.remove('selected');
-	}
-
-	function credentials() {
-		var container = document.getElementById("credentials_form");
-		checkboxes = document.getElementsByName("screenname[]");
-		for(var i=0; i < checkboxes.length; i++)
-		{
-			if (checkboxes[i].checked == true)
-			{
-				var input = document.createElement("input");
-			        input.type = "hidden";
-			        input.name = "screenname[" + i + "]";
-				input.value = checkboxes[i].value;
-				container.appendChild(input);
-			}
-		}
-		document.forms['credentials_form'].submit();
-	}
-
-	function export_selected() {
-		var container = document.getElementById("export_form");
-		checkboxes = document.getElementsByName("screenname[]");
-		for(var i=0; i < checkboxes.length; i++)
-		{
-			if (checkboxes[i].checked == true)
-			{
-				var input = document.createElement("input");
-			        input.type = "hidden";
-			        input.name = "screenname[" + i + "]";
-				input.value = checkboxes[i].value;
-				container.appendChild(input);
-			}
-		}
-		document.forms['export_form'].submit();
-	}
-
 	function change_view()
 	{
 		switch (document.querySelector('input[name="view"]:checked').value)
 		{
-			case 'complete':
-				document.getElementById('complete_view_table').style.display = 'table';
-				document.getElementById('short_view_table').style.display = 'none';
+			case 'payment_view':
+				document.getElementById('payment_view_table').style.display = 'table';
+				document.getElementById('paymentitem_view_table').style.display = 'none';
+				document.getElementById('summary_view_table').style.display = 'none';
+				var elements = document.getElementsByClassName('payment_view_button');
+				for (var i = 0; i < elements.length; i++) elements[i].style.display = "inline";
 				break;
-			case 'short':
-				document.getElementById('short_view_table').style.display = 'table';
-				document.getElementById('complete_view_table').style.display = 'none';
+			case 'paymentitem_view':
+				document.getElementById('payment_view_table').style.display = 'none';
+				document.getElementById('paymentitem_view_table').style.display = 'table';
+				document.getElementById('summary_view_table').style.display = 'none';
+				var elements = document.getElementsByClassName('payment_view_button');
+				for (var i = 0; i < elements.length; i++) elements[i].style.display = "none";
 				break;
+			case 'summary_view':
+				document.getElementById('payment_view_table').style.display = 'none';
+				document.getElementById('paymentitem_view_table').style.display = 'none';
+				document.getElementById('summary_view_table').style.display = 'table';
+				var elements = document.getElementsByClassName('payment_view_button');
+				for (var i = 0; i < elements.length; i++) elements[i].style.display = "none";
+				break;
+		}
+	}
+
+	function payment_create()
+	{
+		var message = '<?php echo $eve->_("payments.message.create")?>';
+		var payment_group_name = prompt(message);
+		if (payment_group_name != null)
+		{
+			alert('Implement create');
+			/*
+			paymentverification.php?screenname={$payment['email']}
+
+			form = document.createElement('form');
+        	form.setAttribute('method', 'POST');
+        	var1 = document.createElement('input');
+        	var1.setAttribute('type', 'hidden');
+			var1.setAttribute('name', 'action');
+        	var1.setAttribute('value', 'create');
+        	form.appendChild(var1);
+			var2 = document.createElement('input');
+        	var2.setAttribute('type', 'hidden');
+			var2.setAttribute('name', 'payment_group_name');
+        	var2.setAttribute('value', payment_group_name);
+        	form.appendChild(var2);
+        	document.body.appendChild(form);
+			form.submit();
+			*/
+		}
+	}
+	function payment_delete(payment_id)
+	{
+		var raw_message = '<?php echo $eve->_("payments.message.delete")?>';
+		var message = raw_message.replace("<ID>", payment_id)	
+		if (confirm(message))
+		{
+			form = document.createElement('form');
+        	form.setAttribute('method', 'POST');
+        	var1 = document.createElement('input');
+        	var1.setAttribute('type', 'hidden');
+			var1.setAttribute('name', 'action');
+        	var1.setAttribute('value', 'delete');
+        	form.appendChild(var1);
+			var2 = document.createElement('input');
+        	var2.setAttribute('type', 'hidden');
+			var2.setAttribute('name', 'pmt_id');
+        	var2.setAttribute('value', payment_id);
+        	form.appendChild(var2);
+        	document.body.appendChild(form);
+        	form.submit();
 		}
 	}
 	</script>	
 
-	<form id="credentials_form" method="post" action="credential.php"></form>
-	<form id="export_form" method="post" action="paymentsexport.php"></form>
-
 	<div class="section">		
-	<button type="button" onclick="window.location='paymentsexport.php';">Exportar tudo</button>
-	<button type="button" onclick="export_selected()">Exportar</button>
-	<button type="button" onclick="credentials()">Credencial</button>
-	<button type="button" onclick="window.location='settingspaymentslisting.php';">Configurar</button>
-	
-	<span style="float: right;">
-	<input type="radio" name="view" id="complete_view_option" value="complete" checked="checked" onchange="change_view();"><label for="complete_view_option">Completo</label>
-	<input type="radio" name="view" id="short_view_option" value="short" onchange="change_view();"><label for="short_view_option">Resumido</label>
-	</span>
-	
+	<input type="radio" name="view" id="payment_view_option" value="payment_view" checked="checked" onchange="change_view();">
+	<label for="payment_view_option"><?php echo $eve->_('payments.option.paymentview');?></label>
+	<input type="radio" name="view" id="paymentitem_view_option" value="paymentitem_view" onchange="change_view();">
+	<label for="paymentitem_view_option"><?php echo $eve->_('payments.option.paymentitemview');?></label>
+	<input type="radio" name="view" id="summary_view_option" value="summary_view" onchange="change_view();">
+	<label for="summary_view_option"><?php echo $eve->_('payments.option.summaryview');?></label>
+	<button type="button" class="payment_view_button" onclick="payment_create()">
+	Criar pagamento</button>
+	<button type="button" class="payment_view_button" onclick="window.location='paymentsexport.php';">
+	Exportar</button>
+	<button type="button" class="payment_view_button" onclick="window.location='settingspaymentslisting.php';">
+	Configurar</button>
 	</div>
-	<table class="data_table" id="complete_view_table">
+
+	<!-- Payment view start ------------------------------------------------------------------->
+	<table class="data_table" id="payment_view_table">
 	<tr>
-	<th style="width: 5%"><input type="checkbox" onClick="toggle(this, 'screenname[]')"/></th>
-	<th style="width: 20%"><a href="<?php echo basename(__FILE__);?>">Nome</a></th>
+	<th style="width: 04%"><a href="<?php echo basename(__FILE__);?>?order-by=id">Id</a></th>
+	<th style="width: 09%"><a href="<?php echo basename(__FILE__);?>?order-by=group">Grupo</a></th>
+	<th style="width: 20%"><a href="<?php echo basename(__FILE__);?>?order-by=name">Nome</a></th>
 	<th style="width: 15%"><a href="<?php echo basename(__FILE__);?>?order-by=email">E-mail</a></th>
 	<th style="width: 10%"><a href="<?php echo basename(__FILE__);?>?order-by=payment-method">Tipo pgt.</a></th>
-	<th style="width: 10%"><a href="<?php echo basename(__FILE__);?>?order-by=value-paid">Valor pago</a></th>
-	<th style="width: 10%"><a href="<?php echo basename(__FILE__);?>?order-by=value-received">Valor receb.</a></th>
-	<th style="width: 10%"><a href="<?php echo basename(__FILE__);?>?order-by=date">Data</a></th>
-	<th style="width: 15%"><a href="<?php echo basename(__FILE__);?>?order-by=note">Observação</a></th>
+	<th style="width: 9%"><a href="<?php echo basename(__FILE__);?>?order-by=value-paid">Valor pago</a></th>
+	<th style="width: 9%"><a href="<?php echo basename(__FILE__);?>?order-by=value-received">Valor receb.</a></th>
+	<th style="width: 9%"><a href="<?php echo basename(__FILE__);?>?order-by=date">Data</a></th>
 	<th style="width: 05%" colspan="3"><?php echo $eve->_('common.table.header.options');?></th>		
 	</tr>
 	<?php
+	$payment_groups = $evePaymentService->payment_group_list(true);
 	foreach ($evePaymentService->payment_list() as $payment)
 	{
 		echo "<tr>";
-		echo "<td><input type=\"checkbox\" name=\"screenname[]\" value=\"{$payment['email']}\" onclick=\"toggleRow(this)\"/></td>";
+		echo "<td>{$payment['id']}</td>";
+		echo "<td>";
+		echo $payment['payment_group_id'] === null ? $eve->_('common.select.none') : $payment_groups[$payment['payment_group_id']]['name'];
+		echo "</td>";
 		echo "<td>{$payment['name']}</td>";
 		echo "<td>{$payment['email']}</td>";
 		echo "<td>{$payment['payment_method']}</td>";
-		echo "<td>".$formatter->format($payment['value_paid'])."</td>";
-		echo "<td>".$formatter->format($payment['value_received'])."</td>";
-		echo "<td>{$payment['date']}</td>";
-		echo "<td>{$payment['note']}</td>";
-		if (!is_null($payment['id']))
-		{
-			echo "<td><button type=\"button\" onclick=\"window.location='paymentverification.php?screenname={$payment['email']}'\"><img src=\"style/icons/payment_edit.png\"></button></td>";
-			echo "<td><button type=\"button\" onclick=\"window.location='user.php?user={$payment['email']}'\"><img src=\"style/icons/user_edit.png\"></button></td>";
-			echo "<td><button type=\"button\" onclick=\"delete_row({$payment['id']},'{$payment['email']}')\"><img src=\"style/icons/delete.png\"></button></td>";
-		}
-		else
-		{
-			echo "<td></td>";
-			echo "<td><button type=\"button\" onclick=\"window.location='user.php?user={$payment['email']}'\"><img src=\"style/icons/user_edit.png\"></button></td>";
-			echo "<td><button type=\"button\" onclick=\"window.location='paymentverification.php?screenname={$payment['email']}'\"><img src=\"style/icons/payment_verification.png\"></button></td>";
-		}
+		echo "<td>".$curr_formatter->format($payment['value_paid'])."</td>";
+		echo "<td>".$curr_formatter->format($payment['value_received'])."</td>";
+		echo "<td>".$date_formatter->format(strtotime($payment['date']))."</td>";
+		echo "<td><button type=\"button\" onclick=\"window.location='paymentverification.php?screenname={$payment['email']}'\"><img src=\"style/icons/payment_edit.png\"></button></td>";
+		echo "<td><button type=\"button\" onclick=\"window.location='user.php?user={$payment['email']}'\"><img src=\"style/icons/user_edit.png\"></button></td>";
+		echo "<td><button type=\"button\" onclick=\"payment_delete({$payment['id']})\"><img src=\"style/icons/delete.png\"></button></td>";
 		echo "</tr>";
 	}
 	?>
 	</table>
-	<form method="post" id="delete_form">
-		<input type="hidden" name="action" value="delete"/>
-		<input type="hidden" name="pmt_id" id="pmt_id_hidden_value"/>
-		<input type="hidden" name="pmt_email" id="pmt_email_hidden_value"/>
-	</form>
-	<script>
-	function delete_row(pmt_id, pmt_email)
-	{
-		if (confirm("Confirma a exclusão do pagamento de " + pmt_email + "?"))
-		{
-			document.getElementById('pmt_id_hidden_value').value=pmt_id;
-			document.getElementById('pmt_email_hidden_value').value=pmt_email;
-			document.forms['delete_form'].submit();
-		}
-		return false;
-	}
-	</script>
-	
-	<table class="data_table" id="short_view_table" style="display:none;">
+	<!-- Payment view end --------------------------------------------------------------------->
+
+	<!-- Payment item view start -------------------------------------------------------------->
+	<table class="data_table" id="paymentitem_view_table" style="display:none;">
+	<thead>	
+	<th style="width: 40%">A</th>
+	<th style="width: 20%">B</th>
+	<th style="width: 20%">C</th>
+	<th style="width: 20%">D</th>
+	</thead>
+	<tbody>
+	</tbody>
+	</table>
+	<!-- Payment item view end ---------------------------------------------------------------->
+
+	<!-- Summary view start ------------------------------------------------------------------->
+	<table class="data_table" id="summary_view_table" style="display:none;">
 	<thead>	
 	<th style="width: 40%">Tipo de pagamento</th>
 	<th style="width: 20%">Quantidade</th>
@@ -198,8 +203,8 @@ else
 		echo "<tr>";
 		echo ($summary_item['payment_method'] === null) ? "<td>{$eve->_('payment.null')}</td>" : "<td>{$summary_item['payment_method']}</td>";
 		echo "<td>{$summary_item['user_count']}</td>";
-		echo "<td>{$formatter->format($summary_item['value_paid_sum'])}</td>";
-		echo "<td>{$formatter->format($summary_item['value_received_sum'])}</td>";
+		echo "<td>{$curr_formatter->format($summary_item['value_paid_sum'])}</td>";
+		echo "<td>{$curr_formatter->format($summary_item['value_received_sum'])}</td>";
 		echo "</tr>";
 		$total_user_count += $summary_item['user_count'];
 		$total_value_paid_sum += $summary_item['value_paid_sum'];
@@ -209,11 +214,12 @@ else
 	<tr>
 	<td><strong>Total</strong></td><!-- TODO G11N -->
 	<td><strong><?php echo $total_user_count;?></strong></td>
-	<td><strong><?php echo $formatter->format($total_value_paid_sum);?></strong></td>
-	<td><strong><?php echo $formatter->format($total_value_received_sum);?></strong></td>
+	<td><strong><?php echo $curr_formatter->format($total_value_paid_sum);?></strong></td>
+	<td><strong><?php echo $curr_formatter->format($total_value_received_sum);?></strong></td>
 	</tr>
 	</tbody>
 	</table>
+	<!-- Summary view end -------------------------------------------------------------------->
 	
 	<?php
 	$eve->output_html_footer();

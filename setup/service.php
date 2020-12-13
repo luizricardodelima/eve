@@ -193,13 +193,15 @@ function create_database($dbpassword, $screenname, $password)
 	("
 		CREATE TABLE `{$pref}payment` (
 		  `id` int(11) NOT NULL,
+		  `payment_group_id` int(11) DEFAULT NULL,
 		  `user_email` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
 		  `date` date,
 		  `payment_method` text COLLATE utf8_unicode_ci,
 		  `value_paid` double NOT NULL DEFAULT '0',
 		  `value_received` double NOT NULL DEFAULT '0',
 		  `note` text COLLATE utf8_unicode_ci,
-		  `file` text COLLATE utf8_unicode_ci
+		  `file` text COLLATE utf8_unicode_ci,
+		  `active` tinyint(11) NOT NULL DEFAULT '1'
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 	");
 	if ($mysqli->error) {$log[] = "ERROR - Create table payment - ".$mysqli->error; delete_database($dbpassword); return $log;}
@@ -328,7 +330,7 @@ function create_database($dbpassword, $screenname, $password)
 	$mysqli->query("ALTER TABLE `{$pref}page` ADD PRIMARY KEY (`id`);");
 	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys pages - ".$mysqli->error; delete_database($dbpassword); return $log;}
 	
-	$mysqli->query("ALTER TABLE `{$pref}payment` ADD PRIMARY KEY (`id`), ADD KEY `user_email` (`user_email`);");
+	$mysqli->query("ALTER TABLE `{$pref}payment` ADD PRIMARY KEY (`id`), ADD KEY `payment_group_id` (`payment_group_id`), ADD KEY `user_email` (`user_email`);");
 	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys payment - ".$mysqli->error; delete_database($dbpassword); return $log;}
 	
 	$mysqli->query("ALTER TABLE `{$pref}payment_item` ADD PRIMARY KEY (`id`), ADD KEY `payment_id` (`payment_id`), ADD KEY `payment_option_id` (`payment_option_id`);");
@@ -432,7 +434,8 @@ function create_database($dbpassword, $screenname, $password)
 	$mysqli->query
 	("
 		ALTER TABLE `{$pref}payment`
-		  ADD CONSTRAINT `{$pref}payment_ibfk_1` FOREIGN KEY (`user_email`) REFERENCES `{$pref}user` (`email`) ON DELETE SET NULL ON UPDATE CASCADE;"
+		  ADD CONSTRAINT `{$pref}payment_ibfk_1` FOREIGN KEY (`user_email`) REFERENCES `{$pref}user` (`email`) ON DELETE SET NULL ON UPDATE CASCADE,
+		  ADD CONSTRAINT `{$pref}payment_ibfk_2` FOREIGN KEY (`payment_group_id`) REFERENCES `{$pref}payment_group` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;"
 	);
 	if ($mysqli->error) {$log[] = "ERROR - Foreign keys payment - ".$mysqli->error; delete_database($dbpassword); return $log;}
 

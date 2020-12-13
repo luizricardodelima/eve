@@ -3,6 +3,7 @@ session_start();
 require_once 'eve.class.php';
 require_once 'evesettingsservice.class.php';
 
+// TODO G11N
 $eve = new Eve();
 $eveSettingsService = new EveSettingsService($eve);
 
@@ -19,17 +20,19 @@ else if (!$eve->is_admin($_SESSION['screenname']))
 else if (!empty($_POST))
 {
 	// There are settings as POST variables to be saved.
-	$eveSettingsService->settings_update($_POST);
-	$eve->output_redirect_page(basename(__FILE__)."?saved=1");
+	$msg = $eveSettingsService->settings_update($_POST);
+	$eve->output_redirect_page(basename(__FILE__)."?msg=$msg");
 }
 else
 {
 	$eve->output_html_header();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('userarea.option.admin.settings'), "settings.php", "Dados do usuário", null);	
 	$eve->output_wysiwig_editor_code();
-
-	if (isset($_GET['saved']))
-		$eve->output_success_message("Ajustes salvos com sucesso.");
+	$eve->output_navigation([
+		$eve->getSetting('userarea_label') => "userarea.php",
+		$eve->_('userarea.option.admin.settings') => "settings.php",
+		$eve->_('settings.user.data') => null,
+	]);		
+	if (isset($_GET['msg'])) $eve->output_service_message($_GET['msg']);
 
 	$settings = $eveSettingsService->settings_get
 	(
@@ -54,7 +57,7 @@ else
 	);
 
 	?>
-	<div class="section">Dados do usuário
+	<div class="section"><?php echo $eve->_('settings.user.data');?> 
 	<button type="button" onclick="document.forms['settings_form'].submit();"><?php echo $eve->_('common.action.save');?></button>
 	</div>
 
@@ -177,7 +180,6 @@ else
 	<td><?php echo $eve->_('user.data.customflag5');?> <input type="text" name="user_customflag5_label" value="<?php echo $settings['user_customflag5_label'];?>"/></td></tr>
 	</table>
 
-	
 	</form>
 	<?php
 

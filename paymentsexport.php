@@ -21,35 +21,42 @@ else if (!$eve->is_admin($_SESSION['screenname']))
 }
 else
 {
-	// Create new PHPExcel object
+	// Creating new PHPExcel object
 	$objPHPExcel = new PHPExcel();
 	$row = 1; $col = -1; // Columns start from zero!
 
 	// TODO G11N
-	if ($eve->getSetting('payments_export_email'))
-		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "E-mail");
+	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "ID");
+	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Grupo");
+	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "E-mail");
+	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Data Pgt.");
+	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Tipo Pgt.");
+	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Valor Pago");
+	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Valor Recebido");
+	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Observação");
+
 	if ($eve->getSetting('payments_export_name'))
-		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Nome");
+		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $eve->_('user.data.name'));
 	if ($eve->getSetting('payments_export_address'))
-		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Endereço");
+		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $eve->_('user.data.address'));
 	if ($eve->getSetting('payments_export_city'))
-		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Cidade");
+		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $eve->_('user.data.city'));
 	if ($eve->getSetting('payments_export_state'))
-		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Estado");
+		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $eve->_('user.data.state'));
 	if ($eve->getSetting('payments_export_country'))
-		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "País");
+		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $eve->_('user.data.country'));
 	if ($eve->getSetting('payments_export_postalcode'))
-		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Cód. postal");
+		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $eve->_('user.data.postalcode'));
 	if ($eve->getSetting('payments_export_birthday'))
-		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Data nasc.");
+		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $eve->_('user.data.birthday'));
 	if ($eve->getSetting('payments_export_gender'))
-		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Gênero");
+		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $eve->_('user.data.gender'));
 	if ($eve->getSetting('payments_export_phone1'))
-		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Telefone");
+		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $eve->_('user.data.phone1'));
 	if ($eve->getSetting('payments_export_phone2'))
-		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Telefone 2");
+		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $eve->_('user.data.phone2'));
 	if ($eve->getSetting('payments_export_institution'))
-		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Instituição");
+		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $eve->_('user.data.institution'));
 	if ($eve->getSetting('payments_export_customtext1'))
 		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $eve->getSetting("user_customtext1_label"));
 	if ($eve->getSetting('payments_export_customtext2'))
@@ -70,25 +77,24 @@ else
 		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $eve->getSetting("user_customflag4_label"));
 	if ($eve->getSetting('payments_export_customflag5'))
 		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $eve->getSetting("user_customflag5_label"));
-	if ($eve->getSetting('payments_export_pmtid'))
-		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Id. Pgt.");
-	if ($eve->getSetting('payments_export_pmtmethod'))
-		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Tipo Pgt.");
-	if ($eve->getSetting('payments_export_pmtvaluepaid'))
-		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Valor Pago");
-	if ($eve->getSetting('payments_export_pmtvaluereceived'))
-		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Valor Recebido");
-	if ($eve->getSetting('payments_export_pmtdate'))
-		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Data Pgt.");
-	if ($eve->getSetting('payments_export_pmtnote'))
-		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Observação");
+	
+	$payment_groups = $evePaymentService->payment_group_list(true);
+	$curr_formatter = new NumberFormatter($eve->getSetting('system_locale'), NumberFormatter::CURRENCY);
+	$date_formatter = new IntlDateFormatter($eve->getSetting('system_locale'), IntlDateFormatter::SHORT, IntlDateFormatter::NONE);
 
-	foreach ($evePaymentService->payment_list('name', isset($_POST['screenname']) ? $_POST['screenname'] : null) as $line)
+	foreach ($evePaymentService->payment_list() as $line)
 	{
 		++$row;
 		$col = -1; // Columns start from zero!
-		if ($eve->getSetting('payments_export_email'))
-			$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $line['email']);
+		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $line['id']);
+		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $line['payment_group_id'] === null ? $eve->_('common.select.none') : $payment_groups[$line['payment_group_id']]['name']);
+		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $line['email']);
+		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $date_formatter->format(strtotime($line['date'])));
+		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $line['payment_method']);
+		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $curr_formatter->format($line['value_paid']));
+		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $curr_formatter->format($line['value_received']));
+		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $line['payment_note']);
+
 		if ($eve->getSetting('payments_export_name'))
 			$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $line['name']);
 		if ($eve->getSetting('payments_export_address'))
@@ -104,7 +110,7 @@ else
 		if ($eve->getSetting('payments_export_birthday'))
 			$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $line['birthday']);
 		if ($eve->getSetting('payments_export_gender'))
-			$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $eve->_('user.gender.'.$line['gender']));
+			$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $line['gender'] ? $eve->_('user.gender.'.$line['gender']) : '');
 		if ($eve->getSetting('payments_export_phone1'))
 			$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $line['phone1']);
 		if ($eve->getSetting('payments_export_phone2'))
@@ -130,19 +136,7 @@ else
 		if ($eve->getSetting('payments_export_customflag4'))
 			$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $line['customflag4'] ? $eve->_('common.label.yes') : "");
 		if ($eve->getSetting('payments_export_customflag5'))
-			$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $line['customflag5'] ? $eve->_('common.label.yes') : "");	
-		if ($eve->getSetting('payments_export_pmtid'))
-			$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $line['id']);
-		if ($eve->getSetting('payments_export_pmtmethod'))
-			$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $line['payment_method']);
-		if ($eve->getSetting('payments_export_pmtvaluepaid'))
-			$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $line['value_paid']);
-		if ($eve->getSetting('payments_export_pmtvaluereceived'))
-			$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $line['value_received']);
-		if ($eve->getSetting('payments_export_pmtdate'))
-			$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $line['date']);
-		if ($eve->getSetting('payments_export_pmtnote'))
-			$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $line['note']);
+			$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $line['customflag5'] ? $eve->_('common.label.yes') : "");
 	}
 
 	// Resizing columns

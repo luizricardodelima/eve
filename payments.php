@@ -72,28 +72,10 @@ else
 	function payment_create()
 	{
 		var message = '<?php echo $eve->_("payments.message.create")?>';
-		var payment_group_name = prompt(message);
-		if (payment_group_name != null)
+		var payment_screenname = prompt(message);
+		if (payment_screenname != null)
 		{
-			alert('Implement create');
-			/*
-			paymentverification.php?screenname={$payment['email']}
-
-			form = document.createElement('form');
-        	form.setAttribute('method', 'POST');
-        	var1 = document.createElement('input');
-        	var1.setAttribute('type', 'hidden');
-			var1.setAttribute('name', 'action');
-        	var1.setAttribute('value', 'create');
-        	form.appendChild(var1);
-			var2 = document.createElement('input');
-        	var2.setAttribute('type', 'hidden');
-			var2.setAttribute('name', 'payment_group_name');
-        	var2.setAttribute('value', payment_group_name);
-        	form.appendChild(var2);
-        	document.body.appendChild(form);
-			form.submit();
-			*/
+			window.location='paymentedit.php?screenname=' + payment_screenname;
 		}
 	}
 	function payment_delete(payment_id)
@@ -163,7 +145,7 @@ else
 		echo "<td>".$curr_formatter->format($payment['value_paid'])."</td>";
 		echo "<td>".$curr_formatter->format($payment['value_received'])."</td>";
 		echo "<td>".$date_formatter->format(strtotime($payment['date']))."</td>";
-		echo "<td><button type=\"button\" onclick=\"window.location='paymentverification.php?screenname={$payment['email']}'\"><img src=\"style/icons/payment_edit.png\"></button></td>";
+		echo "<td><button type=\"button\" onclick=\"window.location='paymentedit.php?id={$payment['id']}'\"><img src=\"style/icons/payment_edit.png\"></button></td>";
 		echo "<td><button type=\"button\" onclick=\"window.location='user.php?user={$payment['email']}'\"><img src=\"style/icons/user_edit.png\"></button></td>";
 		echo "<td><button type=\"button\" onclick=\"payment_delete({$payment['id']})\"><img src=\"style/icons/delete.png\"></button></td>";
 		echo "</tr>";

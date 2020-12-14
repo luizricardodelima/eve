@@ -38,35 +38,20 @@ class EvePaymentService
 	function payment_list_for_user($screenname, $payment_group_id)
 	{
 		$result = array();
-		$payment_group_id = is_numeric($payment_group_id) ? intval($payment_group_id) : null;
-		$payment_group_id_query = ($payment_group_id === null) ? "`{$this->eve->DBPref}payment_group`.`id` is null" : "`{$this->eve->DBPref}payment_group`.`id` = ?";
-		
-		// TODO ****************
-		// TODO Now that payment knows its payment group, this big chunk wont be necessary
-		// TODO ****************
-		
+	
 		$stmt = $this->eve->mysqli->prepare
 		("
-			select distinct `{$this->eve->DBPref}payment`.*
-			from		`{$this->eve->DBPref}payment`
-			inner join	`{$this->eve->DBPref}payment_item`
-			on			`{$this->eve->DBPref}payment`.`id` = `{$this->eve->DBPref}payment_item`.`payment_id`
-			inner join	`{$this->eve->DBPref}payment_option`
-			on			`{$this->eve->DBPref}payment_item`.`payment_option_id` = `{$this->eve->DBPref}payment_option`.`id`
-			left join	`{$this->eve->DBPref}payment_group`
-			on			`{$this->eve->DBPref}payment_option`.`payment_group_id` = `{$this->eve->DBPref}payment_group`.`id`
-			where		`{$this->eve->DBPref}payment`.`user_email` = ?
-			and			$payment_group_id_query
+			select 	*
+			from	`{$this->eve->DBPref}payment`
+			where	`{$this->eve->DBPref}payment`.`user_email` = ?
+			and		`{$this->eve->DBPref}payment`.`payment_group_id` <=> ?			
 		");
 		if ($stmt === false)
 		{
 			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
 			return null;
 		}
-		if ($payment_group_id === null)
-			$stmt->bind_param('s', $screenname);
-		else
-			$stmt->bind_param('si', $screenname, $payment_group_id);
+		$stmt->bind_param('si', $screenname, $payment_group_id);
 		$stmt->execute();
 
 		// Binding result variable - Column by column to ensure compability

@@ -113,7 +113,7 @@ else
 	// Displaying user form
 	$eve->output_big_goto_button("userarea.option.userdata", "&#80;", "user.php");
 
-	// Submissions without requirement
+	// Submissions with requirement == 'none'
 	foreach ($eveSubmissionService->submission_definition_list_for_user($_SESSION['screenname'], 'none') as $submission_definition)
 		$eve->output_big_goto_button($submission_definition['description'], "&#67;", "submission.php?id={$submission_definition['id']}");
 
@@ -127,8 +127,6 @@ else
 			$eve->output_big_goto_button("{$eve->_('userarea.option.payment')} - {$payment_group['name']}", "&#91;", "payment.php?group={$payment_group_id}");
 		}
 	
-	// TODO Reimplement Submissions with payment requirement
-
 	// Certifications
 	$eveCertificationService = new EveCertificationService($eve);
 	$certifications = $eveCertificationService->get_certifications_for_user($_SESSION['screenname']);

@@ -25,8 +25,7 @@ else if (!empty($_POST))
 }
 else
 {
-	$eve->output_html_header();
-	$eve->output_wysiwig_editor_code();
+	$eve->output_html_header(['wysiwyg-editor']);
 	$eve->output_navigation([
 		$eve->getSetting('userarea_label') => "userarea.php",
 		$eve->_('userarea.option.admin.settings') => "settings.php",
@@ -68,7 +67,6 @@ else
 	<select id="block_user_form" name="block_user_form">
 		<option value="never" <?php if ($settings['block_user_form'] == 'never') echo "selected=\"selected\"";?>>Nunca</option>
 		<option value="after_sending" <?php if ($settings['block_user_form'] == 'after_sending') echo "selected=\"selected\"";?>>Depois do envio</option>
-		<option value="after_payment" <?php if ($settings['block_user_form'] == 'after_payment') echo "selected=\"selected\"";?>>Depois do pagamento</option>
 	</select>
 	
 	<label for="user_display_custom_message_on_unlocked_form"><input type="hidden" name="user_display_custom_message_on_unlocked_form" value="0"/>

@@ -37,7 +37,7 @@ else if (isset($_POST['action']))
 }
 else
 {
-	$eve->output_html_header();
+	$eve->output_html_header(['sort-table']);
 	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php",  "Certificados", null);
 
 	if (isset($_GET['success'])) switch ($_GET['success'])
@@ -133,13 +133,13 @@ else
 		}
 	}
 	</script>
-	<table class="data_table">
+	<table class="data_table" id="certifications_table">
 	<tr>
 	<th><input type="checkbox" onClick="toggle(this, 'certification[]')"/></th>
-	<th><a href="<?php echo basename(__FILE__);?>?order-by=name">Nome</a></th>
-	<th><a href="<?php echo basename(__FILE__);?>?order-by=certificationname">Certificado</a></th>
-	<th><a href="<?php echo basename(__FILE__);?>?order-by=locked">Bloqueado</a></th>
-	<th><a href="<?php echo basename(__FILE__);?>?order-by=views">Visualizações</a></th>	
+	<th onclick="sortColumn('certifications_table',1,false)">Nome</th>
+	<th onclick="sortColumn('certifications_table',2,false)">Certificado</th>
+	<th onclick="sortColumn('certifications_table',3,false)">Bloqueado</th>
+	<th onclick="sortColumn('certifications_table',4,true )">Visualizações</th>	
 	<th><?php echo $eve->_('common.table.header.options');?></th>
 	</tr>
 	<?php

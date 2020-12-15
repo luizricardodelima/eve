@@ -40,7 +40,7 @@ else if (isset($_POST['action']))
 // action, display the regular listing page.
 else
 {
-	$eve->output_html_header();
+	$eve->output_html_header(['sort-table']);
 	//TODO g11n
 	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Modelos de certificado", null);
 
@@ -76,19 +76,18 @@ else
 	<button type="button" onclick="window.location='certificationimages.php';">Gerenciar imagens de fundo</button>
 	</div>
 	
-	<table class="data_table">
+	<table class="data_table" id="certification_models_table">
 	<tr>
-	<th><a href="<?php echo basename(__FILE__);?>?order-by=id"><?php echo $eve->_('certificationmodel.id');?></a></th>
-	<th><a href="<?php echo basename(__FILE__);?>?order-by=type"><?php echo $eve->_('certificationmodel.type');?></a></th>
-	<th><a href="<?php echo basename(__FILE__);?>?order-by=name"><?php echo $eve->_('certificationmodel.name');?></a></th>
-	<th><a href="<?php echo basename(__FILE__);?>?order-by=text"><?php echo $eve->_('certificationmodel.text');?></a></th>
+	<th onclick="sortColumn('certification_models_table',0,true)"><?php echo $eve->_('certificationmodel.id');?></th>
+	<th onclick="sortColumn('certification_models_table',1,false)"><?php echo $eve->_('certificationmodel.type');?></th>
+	<th onclick="sortColumn('certification_models_table',2,false)"><?php echo $eve->_('certificationmodel.name');?></th>
+	<th onclick="sortColumn('certification_models_table',3,false)"><?php echo $eve->_('certificationmodel.text');?></th>
 	<th colspan="4"><?php echo $eve->_('common.table.header.options');?></th>
 	</tr>
 	<?php
 
 	$eveCertificationService = new EveCertificationService($eve);
-	$ordenation = (isset($_GET["order-by"])) ? $_GET["order-by"] : '';
-	$certificationmodels = $eveCertificationService->certificationmodel_list($ordenation);
+	$certificationmodels = $eveCertificationService->certificationmodel_list();
 
 	while ($certificationmodel = $certificationmodels->fetch_assoc())
 	{	

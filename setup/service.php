@@ -48,7 +48,7 @@ function create_database($dbpassword, $screenname, $password)
 		  `id` int(11) NOT NULL,
 		  `description` text COLLATE utf8_unicode_ci,
 		  `information` text COLLATE utf8_unicode_ci,
-		  `requirement` enum('none','after_payment') COLLATE utf8_unicode_ci DEFAULT 'none',
+		  `requirement` enum('none') COLLATE utf8_unicode_ci DEFAULT 'none',
 		  `allow_multiple_submissions` tinyint(4) NOT NULL DEFAULT '0',
 		  `deadline` datetime,
 		  `submission_structure` text COLLATE utf8_unicode_ci,

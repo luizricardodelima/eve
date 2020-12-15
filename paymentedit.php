@@ -30,71 +30,47 @@ else if
 // Perform action if there is postdata
 else if (!empty($_POST))
 {	
-	// Converting empty select values to null
-	if ($_POST['payment_group_id'] === '') $_POST['payment_group_id'] = null;
+	// Converting empty/unset values to default values
+	if (!isset($_POST['id'])) $_POST['id'] = null;
+	if ($_POST['payment_group_id'] === '')$_POST['payment_group_id'] = null;
+	if (!isset($_POST['options'])) $_POST['options'] = array();
 
-	var_dump($_POST);
-	/* TODO -------------- MOST OF THIS CHUNK GOES TO SERVICE -------------------------------------
+	$msg = $evePaymentService->payment_save
+	(
+		$_POST['id'], $_POST['payment_group_id'], $_POST['user_email'], $_POST['date'],
+		$_POST['payment_method'], $_POST['note'], $_POST['value_paid'], $_POST['value_received'],
+		$_POST['options']
+	);
 
-	// Validating input // TODO Validation should go to evepaymentservice
-	$validation_errors = array();
-	// Checking payment type
-	if ($_POST['paymenttype_id'] == "null") $validation_errors[] = $eve->_('payment.validationerror.missing.paymenttype');
-	// Checking value paid
-	if (!is_numeric($_POST['value_paid'])) $validation_errors[] = $eve->_('payment.validationerror.invalid.valuepaid');
-	// Checking value received is not valid
-	if (!is_numeric($_POST['value_received'])) $validation_errors[] = $eve->_('payment.validationerror.invalid.valuereceived');
-	// Checking date
-	list($year, $month, $day) = explode('-', $_POST['date']);
-	if ((false === strtotime($_POST['date'])) || (false === checkdate($month, $day, $year)))
-		$validation_errors[] = $eve->_('payment.validationerror.invalid.date');
-		
-	if (count($validation_errors))
+	if (is_numeric($msg)) // Create or update successful
 	{
-		// There are validation errors
-		$eve->output_error_list_message($validation_errors);
+		unset($_GET['screenname']);
+		$_GET['id'] = $msg;
+		$msg = 'payment.save.success';
 	}
-	else 
-	{
-		// No errors on validation. Performing payment and displaying outcome
-		$pmt = $evePaymentService->payment_register($_GET['screenname'], $_POST['paymenttype_id'], $_POST['date'], $_POST['note'], $_POST['value_paid'], $_POST['value_received']);
-		switch ($pmt)
-		{
-			case EvePaymentService::PAYMENT_ERROR:
-				$eve->output_error_message("Erro ao salvar o pagamento.");
-				break;
-			case EvePaymentService::PAYMENT_SUCCESSFUL :
-				$eve->output_success_message("Pagamento salvo com sucesso.");
-				break;
-			case EvePaymentService::PAYMENT_SUCCESSFUL_WITH_EMAIL_ALERT :
-				$eve->output_success_message("Pagamento salvo com sucesso. E-mail de aviso enviado.");
-				break;
-		}
-	}
-	*/
+	$eve->output_redirect_page(basename(__FILE__).'?'.http_build_query($_GET)."&msg=$msg");
 }
 // If there's a valid session, and the current user is administrator, there is
 // valid screenname or a valid payment id and there is no postdata, display the regular page 
 else
 {
+	$payment = isset($_GET['id']) ? $evePaymentService->payment_get($_GET['id']) : null;
+	$page_title = ($payment === null) ? $eve->_('paymentedit.title.newpayment') : $eve->_('paymentedit.title', ['<ID>' => $_GET['id']]);
+
 	$eve->output_html_header();
 	$eve->output_navigation([
 		$eve->getSetting('userarea_label') => "userarea.php",
 		$eve->_('userarea.option.admin.payments') => "payments.php",
-		"Editar pagamento" => null,
+		$page_title => null,
 	]);		
 	
 	?>
-	<!-- TODO Melhorar esse título-->
-	<div class="section">Editar Pagamento</div>
+	<div class="section"><?php echo $page_title;?></div>
 	<?php
 	if (isset($_GET['msg'])) $eve->output_service_message($_GET['msg']);
 
-
-	$payment = isset($_GET['id']) ? $evePaymentService->payment_get($_GET['id']) : null;
-	if ($payment === null) 
+	if ($payment === null) // Creating new payment obect
 	{
-		// Creating new payment obect
 		$new_date = date('Y-m-d');
 		$payment = array
 		(
@@ -117,10 +93,10 @@ else
 	<?php } ?>
 	<input type="hidden" name="user_email" value="<?php echo $payment['user_email'];?>"/>
 
-	<label for="user_email">Usuário</label>
+	<label for="user_email"><?php echo $eve->_('paymentedit.user');?></label>
 	<input 	id="user_email" type="text" disabled="disabled" value="<?php echo $payment['user_email'];?>"/>
 
-	<label for="payment_group_id">Grupo de pagamento</label>
+	<label for="payment_group_id"><?php echo $eve->_('paymentedit.payment.group');?></label>
 	<select id="payment_group_id" name="payment_group_id">
 	<?php
 		echo "<option value=\"\">".$eve->_('common.select.none')."</option>";
@@ -133,8 +109,8 @@ else
 	?>
 	</select>
 
-	<label for="items">Itens adquiridos <button type="button" onclick="alert('Implement')">Adicionar</button></label>
-	<table 	id="items" class="data_table">
+	<label for="items"><?php echo $eve->_('paymentedit.items');?><button type="button" onclick="show_selector()"><?php echo $eve->_('common.action.add');?></button></label>
+	<table 	id="items" class="data_table"><tbody>
 	<?php
 	$curr_formatter = new NumberFormatter($eve->getSetting('system_locale'), NumberFormatter::CURRENCY);
 	if (isset($payment['id'])) foreach ($evePaymentService->payment_item_list($payment['id']) as $item)
@@ -142,26 +118,109 @@ else
 		echo "<tr>";
 		echo "<td>{$item['name']}</td>";
 		echo "<td>".$curr_formatter->format($item['value'])."</td>";
-		echo "<td><button type=\"button\" onclick=\"alert('Implement')\"><img src=\"style/icons/delete.png\"></td>";
-		echo "<input type=\"hidden\" name=\"options[]\" value=\"{$item['payment_option_id']}\"/>";
+		echo "<td><input type=\"hidden\" name=\"options[]\" value=\"{$item['payment_option_id']}\"/><button type=\"button\" onclick=\"item_remove(this)\"><img src=\"style/icons/delete.png\"></td>";
 		echo "</tr>";
 	}
 	?>
-	</table>
+	</tbody></table>
+	<!-- Items selector -->
+	<div id="selector" style="display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgb(0,0,0); background-color: rgba(0,0,0,0.4);">
+	<div style="background-color: white; margin: 15% auto; border: 2px solid #333; width: 80%;" >
+	<button type="button" style="background-color:#333; color: white; float: right; border-radius: 0;" onclick="document.getElementById('selector').style.display = 'none';"> X </button>
+	<div id="selector_content" style="padding: 20px; display: grid; grid-gap: 0.5em; grid-template-columns: 1fr;"></div>
+	</div></div>
+	<script>
+	var payment_options = [];
+	function show_selector() {
+		var payment_group_id = document.getElementById('payment_group_id').value;
+		var content = document.getElementById('selector_content');
+		while (content.firstChild) content.removeChild(content.firstChild);
+		var xhr = new XMLHttpRequest();
+		xhr.open('GET', 'service/payment_option_list.php?payment_group_id=' + payment_group_id);
+		xhr.onload = function() {
+		    if (xhr.status === 200) {
+				var select = document.createElement('select');
+				select.id = 'payment_option_select';
+				select.onchange = function(){item_add();};
+				content.appendChild(select);
+				// Adding null select
+				var option = document.createElement('option');
+				option.value = '';
+				option.innerHTML = '<?php echo $eve->_("common.select.null")?>';
+				option.selected = true;
+				select.appendChild(option);
+				// Cleaning previously loaded payment options in the global variable payment_options
+				while (payment_options.length) { payment_options.pop(); } 
+				var data = JSON.parse(xhr.responseText);
+				for (var i = 0; i < data.length; ++i) 
+				{
+					payment_options.push(data[i]);
+					var option = document.createElement('option');
+					option.value = i;
+					option.innerHTML = data[i].name;
+					select.appendChild(option);
+				}
+		    }
+		    else {
+				// HTTP Error message
+				var paragraph = document.createElement('p'); 
+				paragraph.textContent = '<?php echo $eve->_('common.message.error.http.request');?>' + xhr.status;
+				document.getElementById('selector_content').appendChild(paragraph);
+		    }
+		};
+		xhr.send();
+		document.getElementById('selector').style.display = 'block';
+	}
 
-	<label for="date">Data</label>
+	function item_add()
+	{
+		var selected = document.getElementById("payment_option_select").value;
+		var tbodyRef = document.getElementById('items').getElementsByTagName('tbody')[0];
+		var row = document.createElement('tr');
+		var col1 = document.createElement('td');
+		col1.textContent = payment_options[selected].name;
+		row.appendChild(col1);
+		var col2 = document.createElement('td');
+		col2.textContent = payment_options[selected].formatted_value;
+		row.appendChild(col2);
+		var col3 = document.createElement('td');
+		var input = document.createElement('input');
+		input.type = 'hidden';
+		input.name = 'options[]';
+		input.value = payment_options[selected].id;
+		col3.appendChild(input);
+		var delete_button = document.createElement('button');
+		delete_button.type = 'button';
+		var delete_img = document.createElement('img');
+		delete_img.src = 'style/icons/delete.png';
+		delete_button.appendChild(delete_img);
+		delete_button.onclick = function(){item_remove(delete_button);};
+		col3.appendChild(delete_button);
+		row.appendChild(col3);
+		tbodyRef.appendChild(row);
+		document.getElementById('selector').style.display = 'none';
+	}
+
+	function item_remove(action_source)
+	{
+		var tbodyRef = document.getElementById('items').getElementsByTagName('tbody')[0];
+		tbodyRef.removeChild(action_source.parentNode.parentNode);
+	}
+	</script>
+
+	<label for="date"><?php echo $eve->_('paymentedit.date');?></label>
 	<input 	id="date" type="date" name="date" value="<?php echo $payment['date'];?>"/>
 
-	<label for="payment_method">Método de pagamento</label>
+	<label for="payment_method"><?php echo $eve->_('paymentedit.payment.method');?></label>
 	<input 	id="payment_method" type="text" name="payment_method" value="<?php echo $payment['payment_method'];?>"/>
 
-	<label for="value_paid">Valor pago</label>
+	<label for="value_paid"><?php echo $eve->_('paymentedit.value.paid');?></label>
 	<input 	id="value_paid" name="value_paid" type="number" min="0" step="0.01" value="<?php echo $payment['value_paid'];?>"/>
 
-	<label for="value_received">Valor recebido</label>
+	<label for="value_received"><?php echo $eve->_('paymentedit.value.received');?></label>
 	<input 	id="value_received" name="value_received" type="number" min="0" step="0.01" value="<?php echo $payment['value_received'];?>"/>
 
-	<label for="note">Observação</label>
+	<label for="note"><?php echo $eve->_('paymentedit.note');?></label>
 	<textarea id="note" name="note" rows="5"><?php echo $payment['note'];?></textarea>
 
 	<button type="submit" class="submit"><?php echo $eve->_('common.action.save');?></button>

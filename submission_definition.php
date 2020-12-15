@@ -36,7 +36,7 @@ else
 {
 	$submission_definition = $eveSubmissionService->submission_definition_get($_GET['id']);
 
-	$eve->output_html_header();
+	$eve->output_html_header(['wysiwyg-editor']);
 	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('submission_definitions'), "submission_definitions.php", $submission_definition['description'], null);
 	?>
 	<div class="section">
@@ -46,7 +46,6 @@ else
 	</div>
 	<?php
 
-	$eve->output_wysiwig_editor_code();
 	if (isset ($_GET['msg'])) $eve->output_service_message($_GET['msg']);
 
 	?>

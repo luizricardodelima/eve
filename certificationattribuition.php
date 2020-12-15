@@ -98,7 +98,8 @@ else
 			}
 		    }
 		    else {
-		        alert('<p>Erro na requisição: Erro HTTP ' + xhr.status + '</p>');
+				// HTTP Error message
+		        alert('<?php echo $eve->_('common.message.error.http.request');?>' + xhr.status);
 		    }
 		};
 		xhr.send();

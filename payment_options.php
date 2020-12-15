@@ -34,7 +34,7 @@ else if (isset($_POST['action'])) switch ($_POST['action'])
 // action, display the regular listing page.
 else
 {
-	$eve->output_html_header();
+	$eve->output_html_header(['sort-table']);
 	$eve->output_navigation([
 		$eve->getSetting('userarea_label') => "userarea.php",
 		$eve->_("payment_options") => null
@@ -50,13 +50,13 @@ else
 		$eve->output_service_message($_GET['message']);
 	
 	?>
-	<table class="data_table">
+	<table class="data_table" id="payment_options_table">
 	<tr>
-	<th style="width:05%"><?php echo $eve->_('payment.option.id'); ?></th>
-	<th style="width:20%"><?php echo $eve->_('payment.option.name'); ?></th>
-	<th style="width:20%"><?php echo $eve->_('payment.option.type'); ?></th>
-	<th style="width:20%"><?php echo $eve->_('payment.group'); ?></th>
-	<th style="width:20%"><?php echo $eve->_('payment.option.value'); ?></th>
+	<th style="width:05%" onclick="sortColumn('payment_options_table',0,false)"><?php echo $eve->_('payment.option.id'); ?></th>
+	<th style="width:20%" onclick="sortColumn('payment_options_table',1,false)"><?php echo $eve->_('payment.option.name'); ?></th>
+	<th style="width:20%" onclick="sortColumn('payment_options_table',2,false)"><?php echo $eve->_('payment.option.type'); ?></th>
+	<th style="width:20%" onclick="sortColumn('payment_options_table',3,false)"><?php echo $eve->_('payment.group'); ?></th>
+	<th style="width:20%" onclick="sortColumn('payment_options_table',4,true)"><?php echo $eve->_('payment.option.value'); ?></th>
 	<th style="width:15%" colspan="2"><?php echo $eve->_('common.table.header.options');?></th>		
 	</tr>
 	<?php

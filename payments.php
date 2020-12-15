@@ -36,7 +36,7 @@ else
 	$curr_formatter = new NumberFormatter($eve->getSetting('system_locale'), NumberFormatter::CURRENCY);
 	$date_formatter = new IntlDateFormatter($eve->getSetting('system_locale'), IntlDateFormatter::SHORT, IntlDateFormatter::NONE);
 
-	$eve->output_html_header();
+	$eve->output_html_header(['sort-table']);
 	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('userarea.option.admin.payments'), null);
 
 	?>
@@ -46,23 +46,14 @@ else
 		switch (document.querySelector('input[name="view"]:checked').value)
 		{
 			case 'payment_view':
-				document.getElementById('payment_view_table').style.display = 'table';
-				document.getElementById('paymentitem_view_table').style.display = 'none';
-				document.getElementById('summary_view_table').style.display = 'none';
+				document.getElementById('payment_table').style.display = 'table';
+				document.getElementById('paymentitem_table').style.display = 'none';
 				var elements = document.getElementsByClassName('payment_view_button');
 				for (var i = 0; i < elements.length; i++) elements[i].style.display = "inline";
 				break;
 			case 'paymentitem_view':
-				document.getElementById('payment_view_table').style.display = 'none';
-				document.getElementById('paymentitem_view_table').style.display = 'table';
-				document.getElementById('summary_view_table').style.display = 'none';
-				var elements = document.getElementsByClassName('payment_view_button');
-				for (var i = 0; i < elements.length; i++) elements[i].style.display = "none";
-				break;
-			case 'summary_view':
-				document.getElementById('payment_view_table').style.display = 'none';
-				document.getElementById('paymentitem_view_table').style.display = 'none';
-				document.getElementById('summary_view_table').style.display = 'table';
+				document.getElementById('payment_table').style.display = 'none';
+				document.getElementById('paymentitem_table').style.display = 'table';
 				var elements = document.getElementsByClassName('payment_view_button');
 				for (var i = 0; i < elements.length; i++) elements[i].style.display = "none";
 				break;
@@ -105,29 +96,29 @@ else
 	<div class="section">		
 	<input type="radio" name="view" id="payment_view_option" value="payment_view" checked="checked" onchange="change_view();">
 	<label for="payment_view_option"><?php echo $eve->_('payments.option.paymentview');?></label>
+	<!-- TODO Future feature
 	<input type="radio" name="view" id="paymentitem_view_option" value="paymentitem_view" onchange="change_view();">
 	<label for="paymentitem_view_option"><?php echo $eve->_('payments.option.paymentitemview');?></label>
-	<input type="radio" name="view" id="summary_view_option" value="summary_view" onchange="change_view();">
-	<label for="summary_view_option"><?php echo $eve->_('payments.option.summaryview');?></label>
+	-->
 	<button type="button" class="payment_view_button" onclick="payment_create()">
-	Criar pagamento</button>
+	<?php echo $eve->_('payments.button.create');?></button>
 	<button type="button" class="payment_view_button" onclick="window.location='paymentsexport.php';">
-	Exportar</button>
+	<?php echo $eve->_('payments.button.export');?></button>
 	<button type="button" class="payment_view_button" onclick="window.location='settingspaymentslisting.php';">
-	Configurar</button>
+	<?php echo $eve->_('payments.button.export.settings');?></button>
 	</div>
 
 	<!-- Payment view start ------------------------------------------------------------------->
-	<table class="data_table" id="payment_view_table">
+	<table class="data_table" id="payment_table">
 	<tr>
-	<th style="width: 04%"><a href="<?php echo basename(__FILE__);?>?order-by=id">Id</a></th>
-	<th style="width: 09%"><a href="<?php echo basename(__FILE__);?>?order-by=group">Grupo</a></th>
-	<th style="width: 20%"><a href="<?php echo basename(__FILE__);?>?order-by=name">Nome</a></th>
-	<th style="width: 15%"><a href="<?php echo basename(__FILE__);?>?order-by=email">E-mail</a></th>
-	<th style="width: 10%"><a href="<?php echo basename(__FILE__);?>?order-by=payment-method">Tipo pgt.</a></th>
-	<th style="width: 9%"><a href="<?php echo basename(__FILE__);?>?order-by=value-paid">Valor pago</a></th>
-	<th style="width: 9%"><a href="<?php echo basename(__FILE__);?>?order-by=value-received">Valor receb.</a></th>
-	<th style="width: 9%"><a href="<?php echo basename(__FILE__);?>?order-by=date">Data</a></th>
+	<th style="width: 04%" onclick="sortColumn('payment_table',0,false)"><?php echo $eve->_('payments.header.id');?></th>
+	<th style="width: 09%" onclick="sortColumn('payment_table',1,false)"><?php echo $eve->_('payments.header.payment.group');?></th>
+	<th style="width: 20%" onclick="sortColumn('payment_table',2,false)"><?php echo $eve->_('payments.header.name');?></th>
+	<th style="width: 15%" onclick="sortColumn('payment_table',3,false)"><?php echo $eve->_('payments.header.screenname');?></th>
+	<th style="width: 10%" onclick="sortColumn('payment_table',4,false)"><?php echo $eve->_('payments.header.payment.method');?></th>
+	<th style="width: 09%"><?php echo $eve->_('payments.header.value.paid');?></th>
+	<th style="width: 09%"><?php echo $eve->_('payments.header.value.received');?></th>
+	<th style="width: 09%" onclick="sortColumn('payment_table',7,false)"><?php echo $eve->_('payments.header.date');?></th>
 	<th style="width: 05%" colspan="3"><?php echo $eve->_('common.table.header.options');?></th>		
 	</tr>
 	<?php
@@ -155,55 +146,21 @@ else
 	<!-- Payment view end --------------------------------------------------------------------->
 
 	<!-- Payment item view start -------------------------------------------------------------->
-	<table class="data_table" id="paymentitem_view_table" style="display:none;">
-	<thead>	
+	<table class="data_table" id="paymentitem_table" style="display:none;">
+	<thead>
+	<!--
 	<th style="width: 40%">A</th>
 	<th style="width: 20%">B</th>
 	<th style="width: 20%">C</th>
 	<th style="width: 20%">D</th>
+	-->
 	</thead>
 	<tbody>
 	</tbody>
 	</table>
 	<!-- Payment item view end ---------------------------------------------------------------->
+	<?php
 
-	<!-- Summary view start ------------------------------------------------------------------->
-	<table class="data_table" id="summary_view_table" style="display:none;">
-	<thead>	
-	<th style="width: 40%">Tipo de pagamento</th>
-	<th style="width: 20%">Quantidade</th>
-	<th style="width: 20%">Valor pago</th>
-	<th style="width: 20%">Valor recebido</th>
-	</thead>
-	<tbody>
-	<?php
-	$total_user_count = 0;
-	$total_value_paid_sum = 0;
-	$total_value_received_sum = 0;	
-	foreach ($evePaymentService->payment_list_summary() as $summary_item)
-	{
-		echo "<tr>";
-		echo ($summary_item['payment_method'] === null) ? "<td>{$eve->_('payment.null')}</td>" : "<td>{$summary_item['payment_method']}</td>";
-		echo "<td>{$summary_item['user_count']}</td>";
-		echo "<td>{$curr_formatter->format($summary_item['value_paid_sum'])}</td>";
-		echo "<td>{$curr_formatter->format($summary_item['value_received_sum'])}</td>";
-		echo "</tr>";
-		$total_user_count += $summary_item['user_count'];
-		$total_value_paid_sum += $summary_item['value_paid_sum'];
-		$total_value_received_sum += $summary_item['value_received_sum'];	
-	}
-	?>
-	<tr>
-	<td><strong>Total</strong></td><!-- TODO G11N -->
-	<td><strong><?php echo $total_user_count;?></strong></td>
-	<td><strong><?php echo $curr_formatter->format($total_value_paid_sum);?></strong></td>
-	<td><strong><?php echo $curr_formatter->format($total_value_received_sum);?></strong></td>
-	</tr>
-	</tbody>
-	</table>
-	<!-- Summary view end -------------------------------------------------------------------->
-	
-	<?php
 	$eve->output_html_footer();
 }
 ?>

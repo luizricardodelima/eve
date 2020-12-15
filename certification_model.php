@@ -34,14 +34,13 @@ if (!empty($_POST))
 // If there is no post variables, display the regular page.
 else
 {
-	$eve->output_html_header();
+	$eve->output_html_header(['wysiwyg-editor']);
 	$eve->output_navigation
 	([
 		$eve->getSetting('userarea_label') => "userarea.php", 
 		$eve->_('userarea.option.admin.certificationtemplates') => "certification_models.php",
 		$eve->_('certificationmodel')." ({$_GET['id']})" => null
 	]);
-	$eve->output_wysiwig_editor_code();
 
 	if (isset($_GET['msg'])) $eve->output_service_message($_GET['msg']);
 

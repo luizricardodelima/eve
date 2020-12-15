@@ -25,16 +25,14 @@ else
 	$objPHPExcel = new PHPExcel();
 	$row = 1; $col = -1; // Columns start from zero!
 
-	// TODO G11N
-	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "ID");
-	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Grupo");
-	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "E-mail");
-	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Data Pgt.");
-	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Tipo Pgt.");
-	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Valor Pago");
-	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Valor Recebido");
-	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, "Observação");
-
+	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $eve->_('payments.header.id'));
+	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $eve->_('payments.header.payment.group'));
+	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $eve->_('payments.header.screenname'));
+	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $eve->_('payments.header.date'));
+	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $eve->_('payments.header.payment.method'));
+	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $eve->_('payments.header.value.paid'));
+	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $eve->_('payments.header.value.received'));
+	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $eve->_('payments.header.note'));
 	if ($eve->getSetting('payments_export_name'))
 		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $eve->_('user.data.name'));
 	if ($eve->getSetting('payments_export_address'))
@@ -94,7 +92,6 @@ else
 		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $curr_formatter->format($line['value_paid']));
 		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $curr_formatter->format($line['value_received']));
 		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $line['payment_note']);
-
 		if ($eve->getSetting('payments_export_name'))
 			$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(++$col, $row, $line['name']);
 		if ($eve->getSetting('payments_export_address'))
@@ -143,7 +140,6 @@ else
 	foreach ($objPHPExcel->getWorksheetIterator() as $worksheet) {
 
 	    $objPHPExcel->setActiveSheetIndex($objPHPExcel->getIndex($worksheet));
-
 	    $sheet = $objPHPExcel->getActiveSheet();
 	    $cellIterator = $sheet->getRowIterator()->current()->getCellIterator();
 	    $cellIterator->setIterateOnlyExistingCells(true);

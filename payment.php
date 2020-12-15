@@ -24,13 +24,9 @@ else
 	]);
 
 	$payments = $evePaymentService->payment_list_for_user($_SESSION['screenname'], $payment_group_id);
-	$paymentOptions = $evePaymentService->payment_option_list(true, true);
-	// TODO: payment_option_list return all the options of all the groups. The filtering of the options for
-	// this group is being done in the front_end code, but it should be better handled in the service
-	foreach ($paymentOptions as $i => $payment_option)
-		if ($payment_option['payment_group_id'] != $payment_group_id) unset($paymentOptions[$i]);
+	$paymentOptions = $evePaymentService->payment_option_list(true, true, true, $payment_group_id);
 
-	// Filtering the payment options that were already purchased in previous payments. They are not available
+	// Filtering the payment options that were already purchased in previous payments. They cannot be available
 	// for a second payment.
 	$main_options_available = true;
 	foreach ($payments as $payment)

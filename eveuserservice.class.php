@@ -405,13 +405,9 @@ class EveUserService
 	}
 
 	/** Retrieves a list of users with general data: email, name, note and locked_form */
-	function user_general_list($orderby = "email")
+	function user_general_list()
 	{
 		$result = array();
-		// Sanitizing input
-		if (!in_array ($orderby, ['email','name','note','locked_form']))
-			$orderby = "email";
-				
 		$user_res = $this->eve->mysqli->query
 		("
 			select 
@@ -421,11 +417,9 @@ class EveUserService
 				`{$this->eve->DBPref}userdata`.`locked_form`
 			from
 				`{$this->eve->DBPref}userdata`
-			order by
-				`$orderby`;
 		");
 		while ($user = $user_res->fetch_assoc())
-			$result[] = $user;
+		$result[] = $user;
 		return $result;
 	}
 

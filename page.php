@@ -75,9 +75,8 @@ else
 		
 	}
 	
-	$eve->output_html_header();
+	$eve->output_html_header(['wysiwyg-editor']);
 	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Páginas", "pages.php", "Página (ID: {$_GET['id']})", null);
-	$eve->output_wysiwig_editor_code();
 	
 	?>
 	<div class="section">

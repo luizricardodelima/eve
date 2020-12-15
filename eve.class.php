@@ -32,10 +32,13 @@ class Eve
 	}
 
 	// translate key - dictionary
-	function _($key)
+	function _($key, $placeholders = null)
 	{
 		if ($this->dictionary === null) $this->load_dictionary();
-		return (isset($this->dictionary[$key])) ? $this->dictionary[$key] : $key;
+		$translation = isset($this->dictionary[$key]) ? $this->dictionary[$key] : $key;
+		if (is_array($placeholders)) foreach($placeholders as $key => $value)
+            $translation = str_replace($key, $value, $translation);
+		return $translation;
 	}
 
 	function load_dictionary()
@@ -66,7 +69,17 @@ class Eve
 		}
 	}
 
-	function output_html_header() 
+	/**
+	 * $features is an array with additional features for page rendering. Since they usually require
+	 * lots of javascript code, they don't need to be loaded for a faster, simpler code. The features
+	 * supported are: 
+	 * 'sort-table'; in the code, th headers need to have the property 
+	 *  onclick="sortColumn(tableid,int,boolean)", where tableid is the id of the bable which will
+	 *  be sorted, int is the column position (0 .. n-1) and boolean indicates whether it is numeric
+	 *  or not
+	 * 'wysiwyg-editor': in the code, textarea inputs need to have the property class="htmleditor"
+	 */
+	function output_html_header($features = []) 
 	{
 		?>
 		<!DOCTYPE html>
@@ -169,6 +182,38 @@ class Eve
 		</nav>
 		<?php
 		}
+
+		if (in_array('sort-table', $features))
+		{
+			?>
+			<script src="lib/sorttable/sorttable.js"></script>
+			<?php
+		}
+
+		if (in_array('wysiwyg-editor', $features))
+		{
+			?>
+			<script src="lib/tinymce/tinymce.min.js"></script>
+			<script>
+			tinymce.init({
+				selector: 'textarea.htmleditor',
+				height: 350,
+				menubar: false,
+				statusbar: false,
+				plugins: [
+				'advlist autolink lists link image charmap print preview hr anchor pagebreak',
+				'searchreplace wordcount visualblocks visualchars code fullscreen',
+				'insertdatetime media nonbreaking save table contextmenu directionality',
+				'emoticons template paste textcolor colorpicker textpattern'
+				],
+				toolbar: 'undo redo | styleselect | bold italic underline superscript subscript | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image table | preview media | forecolor backcolor emoticons | code fullscreen',
+				image_advtab: true,
+				valid_elements: '*[*]'
+			});
+			</script>
+			<?php
+		}
+
 		echo "<div id=\"main_content\">";
 	}
 
@@ -295,30 +340,6 @@ class Eve
 		</head>
 		<body></body>
 		</html>
-		<?php
-	}
-
-	function output_wysiwig_editor_code()
-	{
-		?>
-		<script src="lib/tinymce/tinymce.min.js"></script>
-		<script>
-		tinymce.init({
-			selector: 'textarea.htmleditor',
-			height: 350,
-			menubar: false,
-			statusbar: false,
-			plugins: [
-			'advlist autolink lists link image charmap print preview hr anchor pagebreak',
-			'searchreplace wordcount visualblocks visualchars code fullscreen',
-			'insertdatetime media nonbreaking save table contextmenu directionality',
-			'emoticons template paste textcolor colorpicker textpattern'
-			],
-			toolbar: 'undo redo | styleselect | bold italic underline superscript subscript | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image table | preview media | forecolor backcolor emoticons | code fullscreen',
-			image_advtab: true,
-			valid_elements: '*[*]'
-		});
-		</script>
 		<?php
 	}
 

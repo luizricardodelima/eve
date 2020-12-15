@@ -291,7 +291,10 @@ else
 					document.getElementById('viewer_content').innerHTML = data['formatted_content'];
 			    }
 			    else {
-					document.getElementById('viewer_content').innerHTML = '<p>Erro na requisição: Erro HTTP ' + xhr.status + '</p>';
+					// HTTP Error message
+					var paragraph = document.createElement('p'); 
+					paragraph.textContent = '<?php echo $eve->_('common.message.error.http.request');?>' + xhr.status;
+					document.getElementById('viewer_content').appendChild(paragraph);
 			    }
 			};
 			xhr.send();
@@ -308,7 +311,10 @@ else
 			document.getElementById('submission_review_container').innerHTML = xhr.responseText;
 		    }
 		    else {
-		        document.getElementById('submission_review_container').innerHTML = '<p>Erro na requisição: Erro HTTP ' + xhr.status + '</p>';
+				// HTTP Error message
+				var paragraph = document.createElement('p'); 
+				paragraph.textContent = '<?php echo $eve->_('common.message.error.http.request');?>' + xhr.status;
+				document.getElementById('submission_review_container').appendChild(paragraph);
 		    }
 		};
 		xhr.send();

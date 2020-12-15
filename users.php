@@ -34,7 +34,7 @@ else if (isset($_POST['action']))
 // Regular view
 else
 {
-	$eve->output_html_header();
+	$eve->output_html_header(['sort-table']);
 	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Usuários", null);	
 	if (isset ($_GET['msg'])) $eve->output_service_message($_GET['msg']);
 
@@ -82,19 +82,18 @@ else
 	</div>
 
 	<form method="post" action="credential.php" id="users_form">
-	<table class="data_table">
+	<table class="data_table" id="users_table">
 	<tr>
 	<th><input type="checkbox" onClick="toggle(this, 'screenname[]')"/></th>
-	<th><a href="<?php echo basename(__FILE__);?>?order-by=name">Nome</a></th>
-	<th><a href="<?php echo basename(__FILE__);?>?order-by=email">E-mail</a></th>
-	<th><a href="<?php echo basename(__FILE__);?>?order-by=note">Obs</a></th>
-	<th><a href="<?php echo basename(__FILE__);?>?order-by=locked_form">Bloq.</a></th>
+	<th onclick="sortColumn('users_table',1,false)">Nome</th>
+	<th onclick="sortColumn('users_table',2,false)">E-mail</th>
+	<th onclick="sortColumn('users_table',3,false)">Obs</th>
+	<th onclick="sortColumn('users_table',4,false)">Bloq.</th>
 	<th colspan="3"><?php echo $eve->_('common.table.header.options');?></th>		
 	</tr>
 	<?php
 
-	$orderby = isset($_GET["order-by"]) ? $_GET["order-by"] : '';
-	foreach($eveUserService->user_general_list($orderby) as $user)
+	foreach($eveUserService->user_general_list() as $user)
 	{	
 		$locked_form = ($user['locked_form']) ? "&#8226;" : "";
 		echo "<tr>";

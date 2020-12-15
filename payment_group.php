@@ -26,8 +26,7 @@ else if ($payment_group == null)
 // action, display the regular page.
 else
 {
-	$eve->output_html_header();
-	$eve->output_wysiwig_editor_code();
+	$eve->output_html_header(['wysiwyg-editor']);
 	$eve->output_navigation([
 		$eve->getSetting('userarea_label') => "userarea.php",
 		$eve->_("payment_groups") => 'payment_groups.php',

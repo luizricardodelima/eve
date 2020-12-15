@@ -285,27 +285,8 @@ class EveCertificationService
 		$stmt2->close();
 	}
 
-	function certification_list($ordernation)
+	function certification_list()
 	{
-		$ordering = 0;
-		switch($ordernation)
-		{
-			case 'name':
-				$ordering = "`{$this->eve->DBPref}userdata`.`name`";
-				break;
-			case 'certificationname':
-				$ordering = "`{$this->eve->DBPref}certification_model`.`name`";
-				break;
-			case 'locked':
-				$ordering = "`{$this->eve->DBPref}certification`.`locked` desc";
-				break;
-			case 'views':
-				$ordering = "`{$this->eve->DBPref}certification`.`views` desc";
-				break;
-			default:
-				$ordering = "`{$this->eve->DBPref}userdata`.`name`";
-				break;
-		}
 		$certification_res = $this->eve->mysqli->query
 		("
 			SELECT
@@ -320,10 +301,8 @@ class EveCertificationService
 				`{$this->eve->DBPref}userdata`
 			WHERE
 				`{$this->eve->DBPref}certification`.`screenname` = `{$this->eve->DBPref}userdata`.`email`
-				AND
+			AND
 				`{$this->eve->DBPref}certification_model`.`id` = `{$this->eve->DBPref}certification`.`certification_model_id`
-			ORDER BY
-				$ordering;
 		");
 		$result = array();
 		while ($certification_row = $certification_res->fetch_row())
@@ -577,16 +556,12 @@ class EveCertificationService
 		}
 	}
 
-	function certificationmodel_list($orderby = 'id')
+	function certificationmodel_list()
 	{
-		// Checking if $orderby is one of the accepted values.
-		// If not, changing it for the default value
-		$orderby = (in_array($orderby, array('id', 'type', 'name', 'text'))) ? $orderby : 'id';
 		return $this->eve->mysqli->query
 		("	
 			select *
-			from `{$this->eve->DBPref}certification_model`
-			order by `{$this->eve->DBPref}certification_model`.`$orderby` ;
+			from `{$this->eve->DBPref}certification_model`;
 		");
 	}
 

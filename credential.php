@@ -1,9 +1,11 @@
 <?php
 session_start();
 require_once 'eve.class.php';
+require_once 'eveuserservice.class.php';
 require_once 'lib/fpdf/fpdf.php';
 
 $eve = new Eve();
+$eveUserService = new EveUserService($eve);
 
 // Session verification.
 if (!isset($_SESSION['screenname']))
@@ -77,15 +79,14 @@ else
 			);
 		}
 
-		//TODO SERVICE
-		$user = $eve->mysqli->query("SELECT * FROM `{$eve->DBPref}userdata` WHERE `email`='$sname';")->fetch_assoc();
+		$user = $eveUserService->user_get($sname);
 
 		// Drawing country flag		
 		if ($countryflag && $user['country'])
 		{
 			$pdf->Image
 			(
-				"lib/countries/flags_iso/128/{$user['country']}.png",
+				"lib/countries/png/".strtoupper ($user['country']).".png",
 				($page_left_margin + ($col * $cell_width)) + $countryflag_x,
 				($page_top_margin + ($row * $cell_height)) + $countryflag_y,
 				$countryflag_w,

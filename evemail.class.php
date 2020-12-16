@@ -1,6 +1,10 @@
 <?php
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
-require 'lib/phpmailer/PHPMailerAutoload.php';
+require 'lib/phpmailer/src/Exception.php';
+require 'lib/phpmailer/src/PHPMailer.php';
+require 'lib/phpmailer/src/SMTP.php';
 require_once 'eve.class.php';
 
 class EveMail
@@ -14,22 +18,21 @@ class EveMail
 	function send_mail($emailaddress, $placeholders_map, $subject, $message_html, $message_plain = null)
 	{
 		$mail = new PHPMailer();
-		$mail->CharSet = 'UTF-8';
-		$mail->IsSMTP();
-		$mail->SMTPAuth = 	$this->mail_settings['smtpauth'];
+		$mail->isSMTP();
+		$mail->CharSet = 	PHPMailer::CHARSET_UTF8;
+		$mail->SMTPAuth = 	(boolean) $this->mail_settings['smtpauth'];
 		$mail->SMTPSecure = $this->mail_settings['smtpsecure'];
 		$mail->Port = 		$this->mail_settings['port'];
 		$mail->SMTPDebug  = $this->mail_settings['smtpdebug'];
 		$mail->Host = 		$this->mail_settings['host'];
 		$mail->Username = 	$this->mail_settings['username'];
 		$mail->Password = 	$this->mail_settings['password'];
-		$mail->FromName = 	$this->mail_settings['fromname'];
 		$mail->Debugoutput = function($str, $level) {
 			$this->log .= "$level: $str\n";
 		};
-		$mail->setFrom($mail->Username, $mail->FromName);
-		$mail->AddAddress($emailaddress); 
-		$mail->IsHTML(true);
+		$mail->setFrom($this->mail_settings['senderemail'], $this->mail_settings['sendername']);
+		$mail->addAddress($emailaddress); 
+		$mail->isHTML(true);
 		if ($placeholders_map != null)
 		{
 			$mail->Subject = str_replace(array_keys($placeholders_map), array_values($placeholders_map), $subject);
@@ -59,14 +62,15 @@ class EveMail
 		$this->eve = $eve;		
 		$this->mail_settings = array
 		(
-			'host' => 		$this->eve->getSetting('phpmailer_host'),
-			'username' => 	$this->eve->getSetting('phpmailer_username'),
-			'password' => 	$this->eve->getSetting('phpmailer_password'),
-			'fromname' => 	$this->eve->getSetting('phpmailer_fromname'),
-			'smtpauth' => 	$this->eve->getSetting('phpmailer_smtpauth'),
-			'smtpsecure' => $this->eve->getSetting('phpmailer_smtpsecure'),
-			'port' => 		$this->eve->getSetting('phpmailer_port'),
-			'smtpdebug' => 	$this->eve->getSetting('phpmailer_smtpdebug')
+			'host'=> 		$this->eve->getSetting('phpmailer_host'),
+			'username'=> 	$this->eve->getSetting('phpmailer_username'),
+			'password'=> 	$this->eve->getSetting('phpmailer_password'),
+			'sendername'=>	$this->eve->getSetting('phpmailer_sendername'),
+			'senderemail'=>	$this->eve->getSetting('phpmailer_senderemail'),
+			'smtpauth'=> 	$this->eve->getSetting('phpmailer_smtpauth'),
+			'smtpsecure'=>	$this->eve->getSetting('phpmailer_smtpsecure'),
+			'port'=> 		$this->eve->getSetting('phpmailer_port'),
+			'smtpdebug'=> 	$this->eve->getSetting('phpmailer_smtpdebug')
 		);
 		$this->log = "";
 	}

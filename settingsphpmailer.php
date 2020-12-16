@@ -50,8 +50,9 @@ else
 
 	$settings = $eveSettingsService->settings_get
 	(
-		'phpmailer_host', 'phpmailer_username', 'phpmailer_password', 'phpmailer_fromname',
-		'phpmailer_smtpauth', 'phpmailer_smtpsecure', 'phpmailer_port', 'phpmailer_smtpdebug'
+		'phpmailer_host', 'phpmailer_username', 'phpmailer_password',
+		'phpmailer_sendername', 'phpmailer_senderemail', 'phpmailer_smtpauth',
+		'phpmailer_smtpsecure', 'phpmailer_port', 'phpmailer_smtpdebug'
 	);
 	
 	?>
@@ -81,15 +82,17 @@ else
 	<input  id="phpmailer_username" name="phpmailer_username" type="text" value="<?php echo $settings['phpmailer_username'];?>"/>
 	<label for="phpmailer_password">Senha (password)</label>
 	<input  id="phpmailer_password" name="phpmailer_password" type="text" value="<?php echo $settings['phpmailer_password'];?>"/>
-	<label for="phpmailer_fromname">Nome do remetente (fromname)</label>
-	<input  id="phpmailer_fromname" name="phpmailer_fromname" type="text" value="<?php echo $settings['phpmailer_fromname'];?>"/>
-	<label for="phpmailer_smtpauth">Autenticação SMTP (smtpauth)</label>
+	<label for="phpmailer_sendername">Nome do remetente</label>
+	<input  id="phpmailer_sendername" name="phpmailer_sendername" type="text" value="<?php echo $settings['phpmailer_sendername'];?>"/>
+	<label for="phpmailer_senderemail">E-mail do remetente<br/><small>Geralmente é igual a username, caso este tenha formato de e-mail (usuário@servidor.com)</small></label>
+	<input  id="phpmailer_senderemail" name="phpmailer_senderemail" type="text" value="<?php echo $settings['phpmailer_senderemail'];?>"/>
+	<label for="phpmailer_smtpauth">Autenticação SMTP (smtpauth)<br/><small>Valores aceitos: 0 e 1</small></label>
 	<input  id="phpmailer_smtpauth" name="phpmailer_smtpauth" type="text" value="<?php echo $settings['phpmailer_smtpauth'];?>"/>
-	<label for="phpmailer_smtpsecure">SMTP Seguro (smtpsecure)</label>
+	<label for="phpmailer_smtpsecure">SMTP Seguro (smtpsecure)<br/><small>Valores aceitos: ssl e tls</small></label>
 	<input  id="phpmailer_smtpsecure" name="phpmailer_smtpsecure" type="text" value="<?php echo $settings['phpmailer_smtpsecure'];?>"/>
 	<label for="phpmailer_port">Porta (port)</label>
 	<input  id="phpmailer_port" name="phpmailer_port" type="text" value="<?php echo $settings['phpmailer_port'];?>"/>
-	<label for="phpmailer_smtpdebug">Debug (smtpdebug)<br/><small>Aceita números de 0 a 4, onde 4 significa informaões mais detalhadas de debug. As mensagens são capturadas pela classe EveMail e somente mostradas aqui no teste. Para produção, utilize 0.</small></label>
+	<label for="phpmailer_smtpdebug">Debug (smtpdebug)<br/><small>Valores aceitos: Número de 0 a 4, representando o quão detalhadas são as informações de debug. As mensagens são somente mostradas aqui no teste. Para produção, utilize 0.</small></label>
 	<input  id="phpmailer_smtpdebug" name="phpmailer_smtpdebug" type="text" value="<?php echo $settings['phpmailer_smtpdebug'];?>"/>
 	</form>
 

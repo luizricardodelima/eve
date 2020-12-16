@@ -1,5 +1,5 @@
 <?php
-
+// TODO G11N
 $countries = array(
 "af" => "Afeganistão",
 "za" => "África do Sul",

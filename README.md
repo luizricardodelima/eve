@@ -9,9 +9,10 @@ _Event management system_
 1. When using this application in production, delete `/setup` folder for security reasons.
 
 ## Changelog
-- **(under development usability)** Change the flags for the flags from the project RegionFlags (https://github.com/google/region-flags)
+
 - **(under development usability)** Changed the deprecated phpExcel library to PHP_XLSXWriter (https://github.com/mk-j/PHP_XLSXWriter). Although PHPExcel (Now PHPSpreadsheet) is good, this application perform basic exports and a simpler library will consume less resources and new deploys will be faster (PHPExcel has too many files).
 - **(under development feature)** New Password Retrieval dynamics - An expirable access is sent to users e-mail. After access this code, user is prompted to change his password.
+- 2020-12-16 **(usability)** Now using the flags from the project RegionFlags (https://github.com/google/region-flags)
 - 2020-12-16 **(bug fix)** Now the sender email is not automatically copied from "username" from e-mail configuration, since it is explicity defined (see below).
 - 2020-12-16 **(feature)** "fromname" e-mail configuration was replaced by "sendername" and "senderemail". PHPMAiler was updated to the newest version so far (6.2.0)
 - 2020-10-04 **(feature)** Payment groups. Several different payments separated by groups.

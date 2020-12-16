@@ -3,7 +3,7 @@ session_start();
 require_once '../eve.class.php';
 require_once '../evesubmissionservice.class.php';
 
-$eve = new Eve("../");
+$eve = new Eve();
 $eveSubmissionService = new EveSubmissionService($eve);
 $submission = $eveSubmissionService->submission_definition_get($_GET['id']);
 

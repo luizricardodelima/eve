@@ -6,7 +6,7 @@ require_once '../../eveuserservice.class.php';
 require_once '../../evepaymentservice.class.php';
 require_once 'lib/PagSeguroLibrary.php';
 
-$eve = new Eve("../../");
+$eve = new Eve();
 
 // TODO G11N
 // Session verification.

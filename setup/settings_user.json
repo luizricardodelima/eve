@@ -1,11 +1,11 @@
 {
-	"phpmailer_host":"smtpout.secureserver.net",
-	"phpmailer_password":"rubber999@",
-	"phpmailer_port":"465",
+	"phpmailer_host":"smtp.mailtrap.io",
+	"phpmailer_password":"a9a97275df23a3",
+	"phpmailer_port":"2525",
 	"phpmailer_smtpauth":"true",
 	"phpmailer_smtpdebug":"0",
-	"phpmailer_smtpsecure":"ssl",
-    "phpmailer_username":"leatherlivre@leatherlivre.org",
+	"phpmailer_smtpsecure":"tls",
+    "phpmailer_username":"53362fca99c18a",
     "support_email_address":"",
     "system_name":"EVE - Gerenciador de eventos"
 }

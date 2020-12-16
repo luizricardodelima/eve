@@ -5,15 +5,15 @@ class Eve
 {
 	public $DBPref;
 	public $mysqli;
-	public $basepath;
 	private $settings = array();
 	private $dictionary = null;
 	
-	// TODO REMOVE BASE PATH
-	// TODO Documentation of $setupmode
-	// $basepath is optional and is used if there are php codes in other folders (such as plugins), in that case $path needs to receive an argument
-	// such as "../../"
-	function __construct($basepath="", $setupmode = false)
+	/**
+	 * $setupmode = true prevents this object to redirect to the setup screen when the
+	 * database connection fails. It's used in setup to load all the other capabilities
+	 * of Eve object even when the database connection fails.
+	 */
+	function __construct($setupmode = false)
 	{
 		if ($setupmode) error_reporting(0);
 
@@ -27,7 +27,6 @@ class Eve
 		{
 			$this->mysqli->set_charset("utf8");
 			$this->DBPref = EveDBConfig::$prefix;
-			$this->basepath = $basepath;
 		}
 	}
 
@@ -43,11 +42,11 @@ class Eve
 
 	function load_dictionary()
 	{
-		$lang_file = $this->basepath . 'g11n/' . $this->getSetting('system_locale') . '.json';
+		$lang_file = __DIR__ . '/g11n/' . $this->getSetting('system_locale') . '.json';
 		// Default english dictionary
 		if (!file_exists($lang_file))
 		{
-      			$lang_file = $this->basepath . 'g11n/' . 'en.json';
+      			$lang_file = __DIR__ . '/g11n/' . 'en.json';
     		}
 		$lang_file_content = file_get_contents($lang_file);
 		// Load the language file as a JSON object and transform it into an associative array
@@ -100,8 +99,8 @@ class Eve
 		<head>
 		<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<script src="<?php echo $this->basepath;?>lib/jquery/jquery-3.5.0.min.js"></script>
-		<link rel="stylesheet" type="text/css" href="<?php echo $this->basepath;?>style/style.css"/>
+		<script src="<?php echo $this->find_relative_path();?>lib/jquery/jquery-3.5.0.min.js"></script>
+		<link rel="stylesheet" type="text/css" href="<?php echo $this->find_relative_path();?>style/style.css"/>
 		
 		<?php
 		// Displaying overriding styles for custom colors
@@ -175,8 +174,8 @@ class Eve
 			<ul>
 			<?php
 			$evePageService = new EvePageService($this);
-			foreach ($evePageService->page_list(false) as $page) echo "<li><a href=\"{$this->basepath}index.php?p={$page['id']}\">{$page['title']}</a></li>";
-			echo "<li><a href=\"{$this->basepath}userarea.php\">{$this->getSetting('userarea_label')}</a></li>";
+			foreach ($evePageService->page_list(false) as $page) echo "<li><a href=\"{$this->find_relative_path()}index.php?p={$page['id']}\">{$page['title']}</a></li>";
+			echo "<li><a href=\"{$this->find_relative_path()}userarea.php\">{$this->getSetting('userarea_label')}</a></li>";
 			?>
 			</ul>
 		</nav>
@@ -206,7 +205,7 @@ class Eve
 				'insertdatetime media nonbreaking save table contextmenu directionality',
 				'emoticons template paste textcolor colorpicker textpattern'
 				],
-				toolbar: 'undo redo | styleselect | bold italic underline superscript subscript | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image table | preview media | forecolor backcolor emoticons | code fullscreen',
+				toolbar: 'undo redo | styleselect | bold italic underline fontsizeselect superscript subscript | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image table | preview media | forecolor backcolor emoticons | code fullscreen',
 				image_advtab: true,
 				valid_elements: '*[*]'
 			});
@@ -300,10 +299,8 @@ class Eve
 		$items = array();		
 		if (is_array($navigation_array)) foreach($navigation_array as $description => $link)
 		{
-			if ($link === null)
-				$items[] = $description;
-			else
-				$items[] = "<a href=\"$link\">$description</a>";
+			if ($link === null) $items[] = $description;
+			else $items[] = "<a href=\"$link\">$description</a>";
 		}
 		echo '<div id="navigation_bar">'.implode(' &rarr; ', $items).'</div>';
 	}
@@ -377,6 +374,45 @@ class Eve
 		$path = substr(dirname(__FILE__), strlen($_SERVER['DOCUMENT_ROOT']));
 		return sprintf("%s://%s/%s", isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ? 'https' : 'http', $server_name, $path);
 	}
+
+	/**
+     * https://gist.github.com/ohaal/2936041
+     * Find the relative file system path between two file system paths
+     *
+     * @param  string  $frompath  Path to start from
+     * @param  string  $topath    Path we want to end up in
+     *
+     * @return string             Path leading from $frompath to $topath
+     */
+    private function find_relative_path()
+    {
+		$frompath = dirname($_SERVER['SCRIPT_FILENAME']);
+		$topath = dirname(__FILE__);
+        $from = explode( DIRECTORY_SEPARATOR, $frompath ); // Folders/File
+        $to = explode( DIRECTORY_SEPARATOR, $topath ); // Folders/File
+        $relpath = '';
+
+        $i = 0;
+        // Find how far the path is the same
+        while ( isset($from[$i]) && isset($to[$i]) ) {
+            if ( $from[$i] != $to[$i] ) break;
+            $i++;
+        }
+        $j = count( $from ) - 1;
+        // Add '..' until the path is the same
+        while ( $i <= $j ) {
+            if ( !empty($from[$j]) ) $relpath .= '..'.DIRECTORY_SEPARATOR;
+            $j--;
+        }
+        // Go to folder from where it starts differing
+        while ( isset($to[$i]) ) {
+            if ( !empty($to[$i]) ) $relpath .= $to[$i].DIRECTORY_SEPARATOR;
+            $i++;
+        }
+        return $relpath;
+        // Strip last separator
+        // return substr($relpath, 0, -1);
+    }
 
 	// https://stackoverflow.com/questions/3512311/how-to-generate-lighter-darker-color-with-php	
 	function adjustBrightness($hex, $steps) {

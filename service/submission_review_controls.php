@@ -8,7 +8,7 @@ require_once '../eve.class.php';
 
 // TODO SESSION VERIFICATION and ID verification
 
-$eve = new Eve("../"); // TODO !!!!
+$eve = new Eve();
 $eveSubmissionService = new EveSubmissionService($eve);
 DynamicFormHelper::$locale = $eve->getSetting('system_locale');
 

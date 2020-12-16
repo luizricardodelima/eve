@@ -10,7 +10,7 @@ require_once '../lib/dynamicform/dynamicformhelper.class.php';
 // - they are an reviewer for it (it wont show the protected fields)
 // - they are the system administrator
 
-$eve = new Eve("../");
+$eve = new Eve();
 $eveSubmissionService = new EveSubmissionService($eve);
 $submission = (isset($_GET['id'])) ? $eveSubmissionService->submission_get($_GET['id']) : null;
 

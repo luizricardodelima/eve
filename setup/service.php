@@ -533,9 +533,9 @@ function delete_database($dbpassword)
 	if ($mysqli->error) $log[] = $mysqli->error;
 	$mysqli->query("DROP TABLE if exists `{$pref}payment_option`;");
 	if ($mysqli->error) $log[] = $mysqli->error;
-	$mysqli->query("DROP TABLE if exists `{$pref}payment_group`;");
-	if ($mysqli->error) $log[] = $mysqli->error;
 	$mysqli->query("DROP TABLE if exists `{$pref}payment`;");
+	if ($mysqli->error) $log[] = $mysqli->error;
+	$mysqli->query("DROP TABLE if exists `{$pref}payment_group`;");
 	if ($mysqli->error) $log[] = $mysqli->error;
 
 	// Deleting certification tables
@@ -568,7 +568,7 @@ function delete_database($dbpassword)
 
 function check_database()
 {
-	$eve = new Eve("", true);
+	$eve = new Eve(true);
 	$messages = array();
 
 	// Connecting to database //TODO: Eve already tried to connect. use eves values.

@@ -418,19 +418,19 @@ class EvePaymentService
 
 		$stmt1 = $this->eve->mysqli->prepare
 		("
-		select distinct `dev_payment_group`.`id` as `id`
-		from			`dev_payment_group`
-		join			`dev_payment_option`
-		on 				`dev_payment_option`.`payment_group_id` = `dev_payment_group`.`id`
-		where			`dev_payment_option`.`active` = 1
-		and				`dev_payment_group`.`state` != 'invisible'
+		select distinct `{$this->eve->DBPref}payment_group`.`id` as `id`
+		from			`{$this->eve->DBPref}payment_group`
+		join			`{$this->eve->DBPref}payment_option`
+		on 				`{$this->eve->DBPref}payment_option`.`payment_group_id` = `{$this->eve->DBPref}payment_group`.`id`
+		where			`{$this->eve->DBPref}payment_option`.`active` = 1
+		and				`{$this->eve->DBPref}payment_group`.`state` != 'invisible'
 	
 		union			
 
-		select distinct	`dev_payment_option`.`payment_group_id` as `id`
-		from			`dev_payment_option`
-		where 			`dev_payment_option`.`payment_group_id` is null
-		and				`dev_payment_option`.`active` = 1
+		select distinct	`{$this->eve->DBPref}payment_option`.`payment_group_id` as `id`
+		from			`{$this->eve->DBPref}payment_option`
+		where 			`{$this->eve->DBPref}payment_option`.`payment_group_id` is null
+		and				`{$this->eve->DBPref}payment_option`.`active` = 1
 		order by		`id`
 		");
 		if ($stmt1 === false)

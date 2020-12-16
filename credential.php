@@ -77,6 +77,7 @@ else
 			);
 		}
 
+		//TODO SERVICE
 		$user = $eve->mysqli->query("SELECT * FROM `{$eve->DBPref}userdata` WHERE `email`='$sname';")->fetch_assoc();
 
 		// Drawing country flag		

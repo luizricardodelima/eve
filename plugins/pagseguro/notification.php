@@ -41,7 +41,7 @@ try
 		$pmt = $evePaymentService->payment_register($response->getReference(), "PagSeguro", date("Y-m-d"), $response->getCode(), $value_paid, $value_received, $items);
 		// TODO #6 Create an option for configuring a different payment method name on PagSeguro plugin
 		
-		log_message(">> EVE Result: $pmt");
+		log_message(">> EVE Transaction output: $pmt");
 		log_message(">> VALUE RECEIVED: $value_received");
 		log_message("End of PagSeguro notification\n");
 	}

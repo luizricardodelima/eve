@@ -3,7 +3,7 @@ session_start();
 require_once '../../eve.class.php';
 require_once 'lib/config/PagSeguroConfig.php';
 
-$eve = new Eve("../../");
+$eve = new Eve();
 
 // Session verification.
 if (!isset($_SESSION['screenname']))

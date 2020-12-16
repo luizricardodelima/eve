@@ -3,7 +3,7 @@ session_start();
 require_once '../eve.class.php';
 require_once '../evepaymentservice.class.php';
 
-$eve = new Eve("../");
+$eve = new Eve();
 $evePaymentService = new EvePaymentService($eve);
 
 // Session verification.

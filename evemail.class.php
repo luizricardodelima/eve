@@ -27,6 +27,7 @@ class EveMail
 		$mail->Debugoutput = function($str, $level) {
 			$this->log .= "$level: $str\n";
 		};
+		$mail->setFrom($mail->Username, $mail->FromName);
 		$mail->AddAddress($emailaddress); 
 		$mail->IsHTML(true);
 		if ($placeholders_map != null)

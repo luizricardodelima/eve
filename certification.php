@@ -95,7 +95,7 @@ else
 		$bg_image_filename = "upload/certification/{$certification_model['backgroundimage']}";
 		$bg_image_file = fopen($bg_image_filename, "r");
 		if ($bg_image_file && is_file($bg_image_filename))
-			$pdf->Image("upload/certification/{$certification_model['backgroundimage']}",0,0, $pdf->w, $pdf->h);
+			$pdf->Image("upload/certification/{$certification_model['backgroundimage']}",0,0, $pdf->GetPageWidth(), $pdf->GetPageHeight());
 		
 		// Using FPDF's encoding...
 		$certificate_text = iconv('UTF-8', 'windows-1252', $certificate_text);

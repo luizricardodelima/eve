@@ -87,7 +87,7 @@ class EvePageService
 		"
 			select *
 			from `{$this->eve->DBPref}page`
-			where `{$this->eve->DBPref}page`.`visible` = 1
+			where `{$this->eve->DBPref}page`.`is_visible` = 1
 			order by `{$this->eve->DBPref}page`.`position`;
 		"
 		:

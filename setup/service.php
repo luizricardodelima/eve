@@ -487,7 +487,7 @@ function create_database($dbpassword, $screenname, $password)
 	$eve = new Eve();
 	$EveUserService = new EveUserService($eve);
 	$encryptedPassword = $EveUserService->encrypt($password);
-	$EveUserService->createUser($screenname, $encryptedPassword, false);
+	$EveUserService->user_create($screenname, $encryptedPassword, false);
 	$EveUserService->admin_add($screenname);
 	// TODO Check error according to settings
 

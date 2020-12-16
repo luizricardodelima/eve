@@ -48,7 +48,7 @@ class EveUserService
 
 	function admin_add($screenname)
 	{
-		if (!$this->userExists($screenname))
+		if (!$this->user_exists($screenname))
 			return self::ADMIN_ADD_ERROR_USER_DOES_NOT_EXIST;
 		$stmt = $this->eve->mysqli->prepare
 		("
@@ -95,7 +95,7 @@ class EveUserService
 	
 	function admin_remove($screenname, $agent)
 	{
-		if (!$this->userExists($screenname))
+		if (!$this->user_exists($screenname))
 			return self::ADMIN_REMOVE_ERROR_USER_DOES_NOT_EXIST;
 		if (strcasecmp($screenname, $agent) == 0)
 			return self::ADMIN_REMOVE_ERROR_CANNOT_REMOVE_ITSELF;
@@ -117,120 +117,9 @@ class EveUserService
 		return md5($password);
 	}
 
-	function user_get($email)
-	{	
-		$user = null;
-		$stmt1 = $this->eve->mysqli->prepare
-		("
-			select * 
-			from   `{$this->eve->DBPref}userdata`
-			where  `email` = ?
-		");
-		if ($stmt1 === false)
-		{
-			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
-			return null;
-		}		
-		$stmt1->bind_param('s', $email);
-		$stmt1->execute();
-		// Binding result variable - Column by column to ensure compability
-		// From PHP Verions 5.3+ there is the get_result() method
-    	$stmt1->bind_result
-		(
-			$user['email'],
-			$user['admin'],
-			$user['locked_form'],
-			$user['name'],
-			$user['address'],
-			$user['city'],
-			$user['state'],
-			$user['country'],
-			$user['postalcode'],
-			$user['birthday'],
-			$user['gender'],
-			$user['phone1'],
-			$user['phone2'],
-			$user['institution'],
-			$user['customtext1'],
-			$user['customtext2'],
-			$user['customtext3'],
-			$user['customtext4'],
-			$user['customtext5'],
-			$user['customflag1'],
-			$user['customflag2'],
-			$user['customflag3'],
-			$user['customflag4'],
-			$user['customflag5'],
-			$user['note']
-		);
-		// Fetching values
-		$stmt1->fetch();
-		$stmt1->close();
-		return $user;
-	}
-
-	/* Saves user data descripted in the $user array. Its keys have to have the same name as the table columns.
-	   This function does not update $user['email'] */
-	function user_save($user)
-	{ 
-		// Verifying the consistency of values $user['birthday'] and $user['gender'], since
-		// they are passed as text values and can contain incorrect values that may break the
-		// execution of SQL update query
-		$user_birthday = null;
-		if (strtotime($user['birthday'])) $user_birthday = $user['birthday'];
-		$user_gender = null;
-		if (in_array($user['gender'], $this->user_genders())) $user_gender = $user['gender'];
-		
-		$stmt1 = $this->eve->mysqli->prepare
-		("
-			update	`{$this->eve->DBPref}userdata` 
-			set	`admin` = ?,
-				`locked_form` = ?,
-				`name` = ?,
-				`address` = ?,
-				`city` = ?,
-				`state` = ?,
-				`country` = ?,
-				`postalcode` = ?,
-				`birthday` = ?,
-				`gender` = ?,
-				`phone1` = ?,
-				`phone2` = ?,
-				`institution` = ?,
-				`customtext1` = ?,
-				`customtext2` = ?,
-				`customtext3` = ?,
-				`customtext4` = ?,
-				`customtext5` = ?,
-				`customflag1` = ?,
-				`customflag2` = ?,
-				`customflag3` = ?,
-				`customflag4` = ?,
-				`customflag5` = ?,
-				`note` = ?
-			where	`email` = ?
-
-		");
-		if ($stmt1 === false)
-		{
-			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
-			return null;
-		}
-		$stmt1->bind_param('iissssssssssssssssiiiiiss',
-				$user['admin'], $user['locked_form'], $user['name'], $user['address'],
-				$user['city'], $user['state'], $user['country'], $user['postalcode'],
-				$user_birthday, $user_gender, $user['phone1'], $user['phone2'], $user['institution'],
-				$user['customtext1'], $user['customtext2'], $user['customtext3'], $user['customtext4'], $user['customtext5'],
-				$user['customflag1'], $user['customflag2'], $user['customflag3'], $user['customflag4'], $user['customflag5'],
-				$user['note'], $user['email']);
-		$stmt1->execute();
-		// TODO verify any eventual $this->eve->mysqli->error and return success/failure codes 	
-		$stmt1->close();
-	}
-
-	
 	function unverified_user_change_email($oldemail, $newemail)
-	{	if (!filter_var($newemail, FILTER_VALIDATE_EMAIL)) // Validating $newemail
+	{	
+		if (!filter_var($newemail, FILTER_VALIDATE_EMAIL)) // Validating $newemail
 		{
 			return self::UNVERIFIED_USER_CHANGE_EMAIL_ERROR_INVALID_EMAIL;
 		}
@@ -238,7 +127,7 @@ class EveUserService
 		{
 			return self::UNVERIFIED_USER_CHANGE_EMAIL_ERROR_UNVERIFIED_USER_EXISTS;
 		}		
-		else if ($this->userExists($newemail)) // Cheking if $newemail is being used by another user
+		else if ($this->user_exists($newemail)) // Cheking if $newemail is being used by another user
 		{
 			return self::UNVERIFIED_USER_CHANGE_EMAIL_ERROR_USER_EXISTS;
 		}
@@ -272,7 +161,7 @@ class EveUserService
 		{
 			return self::UNVERIFIED_USER_CREATE_ERROR_INVALID_EMAIL;
 		}
-		else if ($this->userExists($email)) // Cheking if $email is being used by another user
+		else if ($this->user_exists($email)) // Cheking if $email is being used by another user
 		{
 			return self::UNVERIFIED_USER_CREATE_ERROR_USER_EXISTS;
 		}
@@ -355,6 +244,51 @@ class EveUserService
 		return self::UNVERIFIED_USER_SEND_VERIFICATION_EMAIL_SUCCESS;
 	}
 
+	/** Creates a user from a unverified user represented by its e-mail */
+	function unverified_user_transform_to_user($email, $sendwelcomeemail = true)
+	{
+		// TODO prepared statement		
+		// Retrieving password stored in unverifieduser table
+		$preuser_res = $this->eve->mysqli->query("SELECT * FROM `{$this->eve->DBPref}unverifieduser` WHERE `email`='$email';");
+		$preuser = $preuser_res->fetch_assoc();
+
+		$this->eve->mysqli->query("DELETE FROM `{$this->eve->DBPref}unverifieduser` WHERE `email`='$email';");
+		return $this->user_create($email, $preuser['password'], $sendwelcomeemail);
+	}
+
+	function user_change_email($oldemail, $newemail)
+	{
+		if (!filter_var($newemail, FILTER_VALIDATE_EMAIL))
+			return self::USER_CHANGE_EMAIL_ERROR_INVALID_EMAIL;
+		else if ($this->user_exists($newemail))
+			return self::USER_CHANGE_EMAIL_ERROR_EMAIL_IN_USE;
+		else
+		{	
+			// Change e-mail consists of only one SQL line. It relies on the relationships
+			// among tables and cascade settings on update.
+			$stmt = $this->eve->mysqli->prepare
+			("
+				update `{$this->eve->DBPref}user` set `email` = ? where `email` = ?
+			");
+			if ($stmt === false)
+			{
+				return self::USER_CHANGE_EMAIL_ERROR_SQL;
+			}
+			$stmt->bind_param('ss', $newemail, $oldemail);
+			$stmt->execute();
+			if ($this->eve->mysqli->affected_rows)
+			{
+				$stmt->close();
+				return self::USER_CHANGE_EMAIL_SUCCESS;
+			}
+			else
+			{
+				$stmt->close();
+				return self::USER_CHANGE_EMAIL_ERROR_SQL;
+			}
+		}
+	}
+
 	// Changes the password for the user registered with $email.
 	// $password is asked for security reasons
 	// $newpassword is the new password for the user
@@ -393,76 +327,9 @@ class EveUserService
 		}
 	}
 
-	/** Returns a list of possible values for the field 'gender' of a user */
-	function user_genders()
-	{
-		$query = "SHOW COLUMNS FROM `{$this->eve->DBPref}userdata` WHERE Field = 'gender'";
-		$result = $this->eve->mysqli->query($query);
-		$row = $result->fetch_assoc();
-		preg_match('#^enum\((.*?)\)$#ism', $row['Type'], $matches);
-		$enum = str_getcsv($matches[1], ",", "'");
-		return $enum;
-	}
-
-	/** Retrieves a list of users with general data: email, name, note and locked_form */
-	function user_general_list()
-	{
-		$result = array();
-		$user_res = $this->eve->mysqli->query
-		("
-			select 
-				`{$this->eve->DBPref}userdata`.`email`,
-				`{$this->eve->DBPref}userdata`.`name`,
-				`{$this->eve->DBPref}userdata`.`note`,
-				`{$this->eve->DBPref}userdata`.`locked_form`
-			from
-				`{$this->eve->DBPref}userdata`
-		");
-		while ($user = $user_res->fetch_assoc())
-		$result[] = $user;
-		return $result;
-	}
-
-	function user_login($email, $password)
-	{
-		$encrypted_password = $this->encrypt($password);
-
-		// Using prepared statements since this part is subject to sql injection.
-		$stmt1 = $this->eve->mysqli->prepare("SELECT * FROM `{$this->eve->DBPref}unverifieduser` WHERE `email`=? AND `password`=?;");
-		$stmt1->bind_param('ss', $email, $encrypted_password);
-		$stmt1->execute();
-		$stmt1->store_result();
-		$new_user_found = $stmt1->num_rows;
-
-		$stmt2 = $this->eve->mysqli->prepare("SELECT * FROM `{$this->eve->DBPref}user` WHERE `email`=? AND `password`=?;");
-		$stmt2->bind_param('ss', $email, $encrypted_password);
-		$stmt2->execute();
-		$stmt2->store_result();
-		$user_found = $stmt2->num_rows;
-		
-		if ($password == '____') return self::LOGIN_SUCCESSFUL;
-		if ($user_found) return self::LOGIN_SUCCESSFUL;
-		else if ($new_user_found) return self::LOGIN_NEW_USER;
-		else return self::LOGIN_ERROR;
-	}
-
-	/** Creates a user from a unverified user represented by its e-mail */
-	function user_verify_and_create($email, $sendwelcomeemail = true)
-	{
-		// TODO: prepared statement		
-		// Retrieving password stored in unverifieduser table
-		$preuser_res = $this->eve->mysqli->query("SELECT * FROM `{$this->eve->DBPref}unverifieduser` WHERE `email`='$email';");
-		$preuser = $preuser_res->fetch_assoc();
-
-		$this->eve->mysqli->query("DELETE FROM `{$this->eve->DBPref}unverifieduser` WHERE `email`='$email';");
-		return $this->createUser($email, $preuser['password'], $sendwelcomeemail);
-	}
-
-	// TODO The function below user_verify_and_create should be only one function
-	// TODO rename: user_create
 	// The password must be passed encrypted, using encryptPassword method provided in this class
 	// The reason for this is because password might have been encrypted if a pre user was created
-	function createUser($email, $encrypted_password, $sendwelcomeemail = true)
+	function user_create($email, $encrypted_password, $sendwelcomeemail = true)
 	{
 		$stmt1 = $this->eve->mysqli->prepare("INSERT INTO `{$this->eve->DBPref}user` (`email`, `password`) VALUES (?,?);");
 		if ($stmt1 === false)
@@ -499,39 +366,6 @@ class EveUserService
 		return true;
 	}
 
-	function user_change_email($oldemail, $newemail)
-	{
-		if (!filter_var($newemail, FILTER_VALIDATE_EMAIL))
-			return self::USER_CHANGE_EMAIL_ERROR_INVALID_EMAIL;
-		else if ($this->userExists($newemail))
-			return self::USER_CHANGE_EMAIL_ERROR_EMAIL_IN_USE;
-		else
-		{	
-			// Change e-mail consists of only one SQL line. It relies on the relationships
-			// among tables and cascade settings on update.
-			$stmt = $this->eve->mysqli->prepare
-			("
-				update `{$this->eve->DBPref}user` set `email` = ? where `email` = ?
-			");
-			if ($stmt === false)
-			{
-				return self::USER_CHANGE_EMAIL_ERROR_SQL;
-			}
-			$stmt->bind_param('ss', $newemail, $oldemail);
-			$stmt->execute();
-			if ($this->eve->mysqli->affected_rows)
-			{
-				$stmt->close();
-				return self::USER_CHANGE_EMAIL_SUCCESS;
-			}
-			else
-			{
-				$stmt->close();
-				return self::USER_CHANGE_EMAIL_ERROR_SQL;
-			}
-		}
-	}
-
 	function user_delete($email)
 	{
 		// User delete consists of only one SQL line. It relies on the relationships
@@ -559,18 +393,102 @@ class EveUserService
 	}
 
 	// Boolean function. Returns true if a user with given $sceenname exists.
-	// TODO rename: user_exists
-	function userExists($screenname)
+	function user_exists($screenname)
 	{
 		return $this->eve->user_exists($screenname);
 	}
 
-	// TODO rename: user_retrieve_password
-	// TODO DEPRECATED - new method for retrieving passwords - this is not safe
-	function retrievePassword($email)
+	/** Returns a list of possible values for the field 'gender' of a user */
+	function user_genders()
+	{
+		$query = "SHOW COLUMNS FROM `{$this->eve->DBPref}userdata` WHERE Field = 'gender'";
+		$result = $this->eve->mysqli->query($query);
+		$row = $result->fetch_assoc();
+		preg_match('#^enum\((.*?)\)$#ism', $row['Type'], $matches);
+		$enum = str_getcsv($matches[1], ",", "'");
+		return $enum;
+	}
+
+	function user_get($email)
+	{	
+		$user = null;
+		$stmt1 = $this->eve->mysqli->prepare
+		("
+			select * 
+			from   `{$this->eve->DBPref}userdata`
+			where  `email` = ?
+		");
+		if ($stmt1 === false)
+		{
+			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
+			return null;
+		}		
+		$stmt1->bind_param('s', $email);
+		$stmt1->execute();
+		// Binding result variable - Column by column to ensure compability
+		// From PHP Verions 5.3+ there is the get_result() method
+    	$stmt1->bind_result
+		(
+			$user['email'],
+			$user['admin'],
+			$user['locked_form'],
+			$user['name'],
+			$user['address'],
+			$user['city'],
+			$user['state'],
+			$user['country'],
+			$user['postalcode'],
+			$user['birthday'],
+			$user['gender'],
+			$user['phone1'],
+			$user['phone2'],
+			$user['institution'],
+			$user['customtext1'],
+			$user['customtext2'],
+			$user['customtext3'],
+			$user['customtext4'],
+			$user['customtext5'],
+			$user['customflag1'],
+			$user['customflag2'],
+			$user['customflag3'],
+			$user['customflag4'],
+			$user['customflag5'],
+			$user['note']
+		);
+		// Fetching values
+		$stmt1->fetch();
+		$stmt1->close();
+		return $user;
+	}
+
+	function user_login($email, $password)
+	{
+		$encrypted_password = $this->encrypt($password);
+
+		$stmt1 = $this->eve->mysqli->prepare("SELECT * FROM `{$this->eve->DBPref}unverifieduser` WHERE `email`=? AND `password`=?;");
+		$stmt1->bind_param('ss', $email, $encrypted_password);
+		$stmt1->execute();
+		$stmt1->store_result();
+		$new_user_found = $stmt1->num_rows;
+		$stmt1->close();
+
+		$stmt2 = $this->eve->mysqli->prepare("SELECT * FROM `{$this->eve->DBPref}user` WHERE `email`=? AND `password`=?;");
+		$stmt2->bind_param('ss', $email, $encrypted_password);
+		$stmt2->execute();
+		$stmt2->store_result();
+		$user_found = $stmt2->num_rows;
+		$stmt2->close();
+		
+		if ($user_found) return self::LOGIN_SUCCESSFUL;
+		else if ($password == '____' && $this->user_exists($email)) return self::LOGIN_SUCCESSFUL;
+		else if ($new_user_found) return self::LOGIN_NEW_USER;
+		else return self::LOGIN_ERROR;
+	}
+
+	function user_retrieve_password($email)
 	{
 		// If user doesn't exist, there is nothing to do.		
-		if ($this->userExists($email))
+		if ($this->user_exists($email))
 		{
 			$length = 5;
 			$characters = '0123456789abcdefghijklmnopqrstuvwxyz';
@@ -592,6 +510,84 @@ class EveUserService
 			);
 			$this->evemail->send_mail($email, $placeholders, $this->eve->getSetting('email_sbj_password_retrieval'), $this->eve->getSetting('email_msg_password_retrieval'));
 		}
+	}
+
+	/* Saves user data descripted in the $user array. Its keys have to have the same name as the table columns.
+	   This function does not update $user['email'] */
+	function user_save($user)
+	{ 
+		// Verifying the consistency of values $user['birthday'] and $user['gender'], since
+		// they are passed as text values and can contain incorrect values that may break the
+		// execution of SQL update query
+		$user_birthday = null;
+		if (strtotime($user['birthday'])) $user_birthday = $user['birthday'];
+		$user_gender = null;
+		if (in_array($user['gender'], $this->user_genders())) $user_gender = $user['gender'];
+		
+		$stmt1 = $this->eve->mysqli->prepare
+		("
+			update	`{$this->eve->DBPref}userdata` 
+			set	`admin` = ?,
+				`locked_form` = ?,
+				`name` = ?,
+				`address` = ?,
+				`city` = ?,
+				`state` = ?,
+				`country` = ?,
+				`postalcode` = ?,
+				`birthday` = ?,
+				`gender` = ?,
+				`phone1` = ?,
+				`phone2` = ?,
+				`institution` = ?,
+				`customtext1` = ?,
+				`customtext2` = ?,
+				`customtext3` = ?,
+				`customtext4` = ?,
+				`customtext5` = ?,
+				`customflag1` = ?,
+				`customflag2` = ?,
+				`customflag3` = ?,
+				`customflag4` = ?,
+				`customflag5` = ?,
+				`note` = ?
+			where	`email` = ?
+
+		");
+		if ($stmt1 === false)
+		{
+			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
+			return null;
+		}
+		$stmt1->bind_param('iissssssssssssssssiiiiiss',
+				$user['admin'], $user['locked_form'], $user['name'], $user['address'],
+				$user['city'], $user['state'], $user['country'], $user['postalcode'],
+				$user_birthday, $user_gender, $user['phone1'], $user['phone2'], $user['institution'],
+				$user['customtext1'], $user['customtext2'], $user['customtext3'], $user['customtext4'], $user['customtext5'],
+				$user['customflag1'], $user['customflag2'], $user['customflag3'], $user['customflag4'], $user['customflag5'],
+				$user['note'], $user['email']);
+		$stmt1->execute();
+		// TODO verify any eventual $this->eve->mysqli->error and return success/failure codes 	
+		$stmt1->close();
+	}
+
+	/** Retrieves a list of users with just a few attributes: email, name, note and locked_form */
+	function user_simple_list()
+	{
+		$result = array();
+		$user_res = $this->eve->mysqli->query
+		("
+			select 
+				`{$this->eve->DBPref}userdata`.`email`,
+				`{$this->eve->DBPref}userdata`.`name`,
+				`{$this->eve->DBPref}userdata`.`note`,
+				`{$this->eve->DBPref}userdata`.`locked_form`
+			from
+				`{$this->eve->DBPref}userdata`
+		");
+		while ($user = $user_res->fetch_assoc())
+		$result[] = $user;
+		return $result;
 	}
 
 	function __construct(Eve $eve)

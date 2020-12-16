@@ -35,7 +35,7 @@ if (!isset($_POST['screenname']))
 else
 {
 	$EveUserService = new EveUserService($eve);
-	$EveUserService->retrievePassword($_POST['screenname']);
+	$EveUserService->user_retrieve_password($_POST['screenname']);
 	?>
 	<div class="dialog_panel">
 	<p><?php echo $eve->_('passwordretrieval.result');?></p>

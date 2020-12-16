@@ -223,7 +223,7 @@ else
 		<tbody>
 		<?php
 		
-		foreach($eveUserService->user_general_list('name') as $user)
+		foreach($eveUserService->user_simple_list('name') as $user)
 		{	
 			$locked_form = ($user['locked_form']) ? "&#8226;" : "";
 			echo "<tr>";

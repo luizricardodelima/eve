@@ -93,7 +93,7 @@ else
 	</tr>
 	<?php
 
-	foreach($eveUserService->user_general_list() as $user)
+	foreach($eveUserService->user_simple_list() as $user)
 	{	
 		$locked_form = ($user['locked_form']) ? "&#8226;" : "";
 		echo "<tr>";

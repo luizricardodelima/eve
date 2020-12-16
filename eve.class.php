@@ -174,7 +174,7 @@ class Eve
 			<ul>
 			<?php
 			$evePageService = new EvePageService($this);
-			foreach ($evePageService->page_list(false) as $page) echo "<li><a href=\"{$this->find_relative_path()}index.php?p={$page['id']}\">{$page['title']}</a></li>";
+			foreach ($evePageService->page_list(true) as $page) echo "<li><a href=\"{$this->find_relative_path()}index.php?p={$page['id']}\">{$page['title']}</a></li>";
 			echo "<li><a href=\"{$this->find_relative_path()}userarea.php\">{$this->getSetting('userarea_label')}</a></li>";
 			?>
 			</ul>

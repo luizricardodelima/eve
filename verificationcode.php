@@ -24,7 +24,7 @@ if (isset($_GET['screenname']) && isset($_GET['verificationcode']))
 	else if ($EveUserService->unverified_user_check_code($_GET['screenname'], $_GET['verificationcode']))
 	{
     	// Username with verification code has been found
-		$EveUserService->user_verify_and_create($_GET['screenname']);
+		$EveUserService->unverified_user_transform_to_user($_GET['screenname']);
 		
 		// The new user will be authenticated automatically this time
 		$_SESSION['screenname'] = $_GET['screenname'];

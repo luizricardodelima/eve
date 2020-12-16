@@ -89,13 +89,18 @@ else
 	
 	?>
 	<form action="<?php echo basename(__FILE__)."?id={$_GET['id']}";?>" method="post" id="page_form">
-	<table style="width: 100%;">
-	<tr><td>Titulo</td><td><textarea rows="1" name="title"><?php echo $data['title'];?></textarea></td></tr>
-	<tr><td>Conteúdo</td><td><textarea class="htmleditor" rows="6" cols="50" name="content"><?php echo $data['content'];?></textarea></td></tr>
-	<tr><td>Posição</td><td><input type="number" name="position" value="<?php echo $data['position'];?>"/></td></tr>
-	<tr><td>Visível</td><td><input type="hidden" name="is_visible" value="0"/><input type="checkbox" name="is_visible" value="1" <?php if ($data['is_visible']) echo "checked=\"checked\"";?> /></td></tr>
-	<tr><td>Home page</td><td><input type="hidden" name="is_homepage" value="0"/><input type="checkbox" name="is_homepage" value="1" <?php if ($data['is_homepage']) echo "checked=\"checked\"";?> /></td></tr>
-	</table>
+	<div class="dialog_panel_wide">
+	<label for="title">Titulo</label>
+	<input  id="title" type="text" name="title" value="<?php echo $data['title'];?>"/>
+	<label for="content">Conteúdo</label>
+	<textarea id="content" class="htmleditor" name="content"><?php echo $data['content'];?></textarea>
+	<label for="position">Posição</label>
+	<input id="position" type="number" name="position" value="<?php echo $data['position'];?>"/>
+	<label for="is_visible"><input type="hidden" name="is_visible" value="0"/>
+	<input  id="is_visible" type="checkbox" name="is_visible" value="1" <?php if ($data['is_visible']) echo "checked=\"checked\"";?> />Visível</label>
+	<label for="is_homepage"><input type="hidden" name="is_homepage" value="0"/>
+	<input  id="is_homepage" type="checkbox" name="is_homepage" value="1" <?php if ($data['is_homepage']) echo "checked=\"checked\"";?> />Home page</label>
+	</div>
 	</form>
 	<?php
 

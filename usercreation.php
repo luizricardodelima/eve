@@ -34,7 +34,7 @@ else
 		if ($msg == EveUserService::UNVERIFIED_USER_CREATE_SUCCESS)
 		{
 			// Creating user
-		 	if ($EveUserService->user_verify_and_create($_POST['screenname'], $_POST['sendwelcomeemail']))
+		 	if ($EveUserService->unverified_user_transform_to_user($_POST['screenname'], $_POST['sendwelcomeemail']))
 			{
 				if ($_POST['sendwelcomeemail'])
 					$eve->output_success_message("Usuário <a href=\"user.php?user={$_POST['screenname']}\">{$_POST['screenname']}</a> criado com sucesso. E-mail enviado.");

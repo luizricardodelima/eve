@@ -38,7 +38,7 @@ if (!isset($_SESSION['screenname']) && empty($_POST))
 	<?php } ?>
 
 	<p>
-	<a href="passwordretrieval.php"><?php echo $eve->_('login.option.retrievepassword');?></a> |
+	<a href="passwordretrieval.php"><?php echo $eve->_('passwordretrieval');?></a> |
 	<a href="mailto:<?php echo $eve->getSetting('support_email_address'); ?>"><?php echo $eve->_('common.action.support');?></a> 
 	</p>	
 	

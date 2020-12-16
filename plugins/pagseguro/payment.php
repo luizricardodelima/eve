@@ -8,6 +8,7 @@ require_once 'lib/PagSeguroLibrary.php';
 
 $eve = new Eve("../../");
 
+// TODO G11N
 // Session verification.
 if (!isset($_SESSION['screenname']))
 {	

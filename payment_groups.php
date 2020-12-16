@@ -17,8 +17,7 @@ else if (!$eve->is_admin($_SESSION['screenname']))
 	$eve->output_error_page('common.message.no.permission');
 }
 // Checking whether there are post actions. If so, perform these actions and reload
-// current page without post actions. It's done this way to prevent repeating actions
-// when page is reloaded.
+// current page without post actions.
 else if (isset($_POST['action'])) switch ($_POST['action'])
 {
 	case "create":
@@ -46,8 +45,7 @@ else
 	</div>
 	<?php
 	
-	if (isset($_GET['message'])) 
-		$eve->output_service_message($_GET['message']);
+	if (isset($_GET['message'])) $eve->output_service_message($_GET['message']);
 	
 	?>
 	<table class="data_table">

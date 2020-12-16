@@ -5,7 +5,7 @@ require_once 'evepaymentservice.class.php';
 
 $eve = new Eve();
 $evePaymentService = new EvePaymentService($eve);
-$payment_group = $evePaymentService->payment_group_get($_GET['id']); //(sql injections handled in this function)
+$payment_group = $evePaymentService->payment_group_get($_GET['id']);
 
 // Session verification.
 if (!isset($_SESSION['screenname']))
@@ -22,28 +22,26 @@ else if ($payment_group == null)
 {
 	$eve->output_error_page('common.message.invalid.parameter'); 
 }
-// If there's a valid session, and the current user is administrator and there's no
-// action, display the regular page.
+// Displaying the regular page if there's a valid session and user is administrator
 else
 {
 	$eve->output_html_header(['wysiwyg-editor']);
 	$eve->output_navigation([
 		$eve->getSetting('userarea_label') => "userarea.php",
 		$eve->_("payment_groups") => 'payment_groups.php',
-		$eve->_('payment.group') . ' ('. $payment_group['id'] . ')' => null,
+		$eve->_('payment.group.title', ['<ID>' => $payment_group['id']]) => null,
 	]);	
 	?>
-	<div class="section"><?php echo $eve->_('payment.group') . ' ('. $payment_group['id'] . ')'; ?>
+	<div class="section"><?php echo $eve->_('payment.group.title', ['<ID>' => $payment_group['id']]); ?>
 	<button type="button" onclick="document.forms['payment_group_form'].submit();"><?php echo $eve->_('common.action.save');?></button>
 	</div>
 	<?php
 
-	$data = array();
 	if (!empty($_POST))
 	{
-		// Space for validation
-
-		// If validation is ok, update $payment_group with the new values
+		// Replacing database data by post data. If data is saved successfully, this
+		// makes no difference. If not, the data sent by post will be displayed again,
+		// Giving the user a chance to make the appropriate changes.
 		foreach ($_POST as $column => $value) {$payment_group[$column] = $value;}
 		// Saving data
 		$message = $evePaymentService->payment_group_update($_POST);

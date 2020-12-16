@@ -4,7 +4,10 @@ require_once 'eveuserservice.class.php';
 
 $eve = new Eve();
 $eve->output_html_header();
-$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Esqueci minha senha", null);
+$eve->output_navigation([
+	$eve->getSetting('userarea_label') => "userarea.php",
+	$eve->_('passwordretrieval') => null
+]);
 
 if (!isset($_POST['screenname']))
 {
@@ -19,13 +22,13 @@ if (!isset($_POST['screenname']))
 		
 	<form method="post" autocomplete="off" onsubmit="disable_submit_button();" class="dialog_panel">
 	<p><?php echo $eve->_('passwordretrieval.intro');?></p>
-	<label for="screenname_txt">E-mail&nbsp;</label>
+	<label for="screenname_txt"><?php echo $eve->_('passwordretrieval.field.email');?></label>
 	<input type="text" name="screenname" id="screenname_txt" class="login_form"/>
 	<button type="submit" class="submit" id="submit_button"><?php echo $eve->_('passwordretrieval.option.retrieve');?></button>
-	<p>
-	<a href="userarea.php"><?php echo $eve->_('common.action.back');?></a> | 
+	
+	<span><a href="userarea.php"><?php echo $eve->_('common.action.back');?></a> | 
 	<a href="mailto:<?php echo $eve->getSetting('support_email_address'); ?>"><?php echo $eve->_('common.action.support');?></a> 
-	</p>
+	</span>
 	</form>
 	<?php
 }
@@ -35,11 +38,11 @@ else
 	$EveUserService->retrievePassword($_POST['screenname']);
 	?>
 	<div class="dialog_panel">
-	<p>A senha foi enviada para o e-mail informado, caso esteja cadastrado. Se você estiver com dificuldade em recuperar sua senha, entre em contato com o suporte.</p>
-	<p>
-	<a href="userarea.php"><?php echo $eve->_('common.action.back');?></a> | 
-	<a href="mailto:<?php echo $eve->getSetting('support_email_address'); ?>"><?php echo $eve->_('common.action.support');?></a> 
-	</p>
+	<p><?php echo $eve->_('passwordretrieval.result');?></p>
+	
+	<span><a href="userarea.php"><?php echo $eve->_('common.action.back');?></a> | 
+	<a href="mailto:<?php echo $eve->getSetting('support_email_address'); ?>"><?php echo $eve->_('common.action.support');?></a>
+	</span>
 	</div>
 	<?php
 }

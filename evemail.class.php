@@ -23,7 +23,6 @@ class EveMail
 		$mail->Host = 		$this->mail_settings['host'];
 		$mail->Username = 	$this->mail_settings['username'];
 		$mail->Password = 	$this->mail_settings['password'];
-		$mail->From = 		$this->mail_settings['username'];
 		$mail->FromName = 	$this->mail_settings['fromname'];
 		$mail->Debugoutput = function($str, $level) {
 			$this->log .= "$level: $str\n";

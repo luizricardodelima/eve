@@ -5,7 +5,7 @@ require_once 'evepaymentservice.class.php';
 
 $eve = new Eve();
 $evePaymentService = new EvePaymentService($eve);
-$payment_option = $evePaymentService->payment_option_get($_GET['id']); //(sql injections handled in this function)
+$payment_option = $evePaymentService->payment_option_get($_GET['id']);
 
 // Session verification.
 if (!isset($_SESSION['screenname']))
@@ -22,28 +22,26 @@ else if ($payment_option == null)
 {
 	$eve->output_error_page('common.message.invalid.parameter'); 
 }
-// If there's a valid session, and the current user is administrator and there's no
-// action, display the regular page.
+// Displaying the regular page if there's a valid session and user is administrator
 else
 {
 	$eve->output_html_header();
 	$eve->output_navigation([
 		$eve->getSetting('userarea_label') => "userarea.php",
 		$eve->_("payment_options") => 'payment_options.php',
-		$eve->_('payment.option') . ' ('. $payment_option['id'] . ')' => null,
+		$eve->_('payment.option.title', ['<ID>' => $payment_option['id']]) => null,
 	]);	
 	?>
-	<div class="section"><?php echo $eve->_('payment.option') . ' ('. $payment_option['id'] . ')'; ?>
+	<div class="section"><?php echo $eve->_('payment.option.title', ['<ID>' => $payment_option['id']]); ?>
 	<button type="button" onclick="document.forms['payment_option_form'].submit();"><?php echo $eve->_('common.action.save');?></button>
 	</div>
 	<?php
 
-	$data = array();
 	if (!empty($_POST))
 	{
-		// Space for validation
-
-		// If validation is ok, update $payment_option with the new values
+		// Replacing database data by post data. If data is saved successfully, this
+		// makes no difference. If not, the data sent by post will be displayed again,
+		// Giving the user a chance to make the appropriate changes.
 		foreach ($_POST as $column => $value) {$payment_option[$column] = $value;}
 		// Saving data
 		$message = $evePaymentService->payment_option_update($_POST);

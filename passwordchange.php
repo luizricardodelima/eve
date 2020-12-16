@@ -47,7 +47,7 @@ else
 	}
 	else // ($message == EveUserService::USER_PASSWORDCHANGE_SUCCESS)
 	{
-		// Showed when password is successfully changed
+		// Shown when password is successfully changed
 		?>
 		<div class="dialog_panel">
 		<p><?php echo $eve->_($message);?></p>

@@ -17,8 +17,7 @@ else if (!$eve->is_admin($_SESSION['screenname']))
 	$eve->output_error_page('common.message.no.permission');
 }
 // Checking whether there are post actions. If so, perform these actions and reload
-// current page without post actions. It's done this way to prevent repeating actions
-// when page is reloaded.
+// current page without post actions.
 else if (isset($_POST['action'])) switch ($_POST['action'])
 {
 	case "create":
@@ -46,8 +45,9 @@ else
 	</div>
 	<?php
 	
-	if (isset($_GET['message'])) 
-		$eve->output_service_message($_GET['message']);
+	if (isset($_GET['message'])) $eve->output_service_message($_GET['message']);
+
+	$formatter = new NumberFormatter($eve->getSetting('system_locale'), NumberFormatter::CURRENCY);
 	
 	?>
 	<table class="data_table" id="payment_options_table">
@@ -56,7 +56,7 @@ else
 	<th style="width:20%" onclick="sortColumn('payment_options_table',1,false)"><?php echo $eve->_('payment.option.name'); ?></th>
 	<th style="width:20%" onclick="sortColumn('payment_options_table',2,false)"><?php echo $eve->_('payment.option.type'); ?></th>
 	<th style="width:20%" onclick="sortColumn('payment_options_table',3,false)"><?php echo $eve->_('payment.group'); ?></th>
-	<th style="width:20%" onclick="sortColumn('payment_options_table',4,true)"><?php echo $eve->_('payment.option.value'); ?></th>
+	<th style="width:20%"><?php echo $eve->_('payment.option.value'); ?></th>
 	<th style="width:15%" colspan="2"><?php echo $eve->_('common.table.header.options');?></th>		
 	</tr>
 	<?php
@@ -69,7 +69,7 @@ else
 		<td style="text-align:left"><?php echo $payment_option['name'];?></td>
 		<td style="text-align:left"><?php echo $eve->_('payment.option.type.'.$payment_option['type']);?></td>
 		<td style="text-align:left"><?php echo ($payment_option['payment_group_id'] === null)  ? $eve->_('common.select.none') : $payment_groups[$payment_option['payment_group_id']]['name'];?></td>
-		<td style="text-align:right"><?php echo $payment_option['value'];?></td>	
+		<td style="text-align:right"><?php echo $formatter->format($payment_option['value']);?></td>	
 		<td><button type="button" onclick="window.location.href='payment_option.php?id=<?php echo $payment_option['id'];?>'"><img src="style/icons/edit.png"></button></td>
 		<td><button type="button" onclick="payment_option_delete(<?php echo $payment_option['id'];?>)"><img src="style/icons/delete.png"></button></td>
 		</tr>

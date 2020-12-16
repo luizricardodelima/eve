@@ -124,11 +124,11 @@ else
 	?>
 	</tbody></table>
 	<!-- Items selector -->
-	<div id="selector" style="display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgb(0,0,0); background-color: rgba(0,0,0,0.4);">
-	<div style="background-color: white; margin: 15% auto; border: 2px solid #333; width: 80%;" >
-	<button type="button" style="background-color:#333; color: white; float: right; border-radius: 0;" onclick="document.getElementById('selector').style.display = 'none';"> X </button>
-	<div id="selector_content" style="padding: 20px; display: grid; grid-gap: 0.5em; grid-template-columns: 1fr;"></div>
+	<div id="selector" class="viewer"><div class="viewer_container">
+	<button class="close_button" type="button" onclick="document.getElementById('selector').style.display = 'none';"> X </button>
+	<div id="selector_content" class="viewer_content" style=""><?php echo $eve->_('settings.payments.email.help'); ?></div>
 	</div></div>
+
 	<script>
 	var payment_options = [];
 	function show_selector() {

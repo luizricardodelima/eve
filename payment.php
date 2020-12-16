@@ -16,11 +16,11 @@ else
 	$payment_group = isset($_GET['group']) ? $evePaymentService->payment_group_get($_GET['group']) : null;
 	$payment_group_id = ($payment_group === null) ? null : $payment_group['id'];
 
-	$navigation_string = ($payment_group === null) ? $eve->_('userarea.option.payment') : $eve->_('userarea.option.payment') . ' - ' . $payment_group['name'];
+	$page_title = ($payment_group === null) ? $eve->_('payment') : $eve->_('payment') . ' - ' . $payment_group['name'];
 	$eve->output_html_header();
 	$eve->output_navigation([
 		$eve->getSetting('userarea_label') => "userarea.php",
-		$navigation_string => null
+		$page_title => null
 	]);
 
 	$payments = $evePaymentService->payment_list_for_user($_SESSION['screenname'], $payment_group_id);
@@ -52,13 +52,9 @@ else
 
 	if (empty($payments) && (empty($mainOptions) && empty($accessoryOptions)))
 	{
-		// If no payments and no avaliable payment options, display a message to user
-		?>
-		<div class="section">Efetuar pagamento</div> <!-- TODO G11n -->
-		<div class="dialog_panel">
-		<p>Não há opções de pagamento disponíveis</p> <!-- TODO G11n -->
-		</div>
-		<?php
+		// If no payments and no avaliable payment options, it means that the
+		// Payment group has no payment options, which means that there wouldn't be
+		// a page with such id being displayed. Therefore we don't need to worry with that
 	}
 	else if (!empty($payments) && (empty($mainOptions) && empty($accessoryOptions)))
 	{
@@ -70,7 +66,7 @@ else
 	{
 		// If there are payment options available, they have to be displayed
 		?>
-		<div class="section">Efetuar pagamento</div> <!-- TODO G11n -->
+		<div class="section"><?php echo $page_title;?></div>
 		<form name="payment" class="dialog_panel" method="post">
 		<script>
 		function changeValue(source)
@@ -111,7 +107,8 @@ else
 			</label>
 			<?php
 		}
-		if(!empty($accessoryOptions)) echo "<div class=\"dialog_section\">Opcionais</div>"; // TODO G11N
+		if(!empty($accessoryOptions)) 
+			echo "<div class=\"dialog_section\">{$eve->_('payment.acessory.options')}</div>";
 		foreach ($accessoryOptions as $accessoryOption)
 		{
 			?>
@@ -134,7 +131,10 @@ else
 			{
 				$plugin_info = parse_ini_file("$plugin/plugin.ini");
 				if ($plugin_info['type'] == 'payment')
-					echo "<button type=\"button\" class=\"submit\" onclick=\"payment_go('{$plugin}/{$plugin_info['paymentscreen']}')\">Pagar com {$plugin_info['name']}</button>"; //TODO G11N
+				{
+					$button_label = $eve->_('payment.button.plugin', ['<PLUGINNAME>' => $plugin_info['name']]);
+					echo "<button type=\"button\" class=\"submit\" onclick=\"payment_go('{$plugin}/{$plugin_info['paymentscreen']}')\">$button_label</button>";			
+				}
 			}
 		}
 
@@ -145,7 +145,7 @@ else
 		{
 			if ($('input[name=payment_main]:checked').length + $('input[type=checkbox]:checked').length  == 0)
 			{
-				alert('É necessário selecionar uma das opções de pagamento para prosseguir'); // TODO G11N
+				alert('<?php echo $eve->_('payment.message.please.select.one.option');?>');
 			}
 			else
 			{
@@ -158,7 +158,7 @@ else
 	}
 
 	?>
-	<div class="section">Status do pagamento</div><!-- TODO G11N -->
+	<div class="section"><?php echo $eve->_('payment.status');?></div>
 	<div class="dialog_panel">
 	<?php
 
@@ -171,28 +171,9 @@ else
 	{
 		if ($payment_group !== null) echo $payment_group['verified_payment_info'];
 		else echo "<p>{$eve->_('payment.message.payment.verified')}</p>";
-
-		$date_formatter = new IntlDateFormatter($eve->getSetting('system_locale'), IntlDateFormatter::SHORT, IntlDateFormatter::NONE);
-		$money_formatter = new NumberFormatter($eve->getSetting('system_locale'), NumberFormatter::CURRENCY);
-
 		foreach($payments as $payment)
 		{
-			// TODO G11N
-			echo "<div class=\"dialog_section\">Dados do pagamento - ID {$payment['id']}</div>";
-			echo "<table class=\"data_table\">";
-			echo "<tr><td>Data</td><td>{$date_formatter->format(strtotime($payment['date']))}</td></tr>";
-			echo "<tr><td>Método de pagamento</td><td>{$payment['payment_method']}</td></tr>";
-			echo "<tr><td>Valor pago</td><td>{$money_formatter->format($payment['value_paid'])}</td></tr>";
-			echo "</table>";
-			echo "<div class=\"dialog_section\">Ítens adquiridos</div>";
-			echo "<table class=\"data_table\">";
-			if (isset($payment['id'])) foreach ($evePaymentService->payment_item_list($payment['id']) as $item)
-			{
-				echo "<tr>";
-				echo "<td>{$item['name']}</td>";
-				echo "</tr>";
-			}
-			echo "</table>";
+			echo $evePaymentService->payment_output_details_for_user($payment['id']);
 			echo "<p></p>";
 		}
 	}

@@ -32,7 +32,7 @@ class EvePaymentService
 	
 
 	/**
-	 * Returns a list of payments made for user (represented by $screenname) for 
+	 * Returns a list of payments made by the user (represented by $screenname) for 
 	 * a certain payment group (represented by $payment_group_id)
 	 */
 	function payment_list_for_user($screenname, $payment_group_id)
@@ -44,7 +44,8 @@ class EvePaymentService
 			select 	*
 			from	`{$this->eve->DBPref}payment`
 			where	`{$this->eve->DBPref}payment`.`user_email` = ?
-			and		`{$this->eve->DBPref}payment`.`payment_group_id` <=> ?			
+			and		`{$this->eve->DBPref}payment`.`payment_group_id` <=> ?
+			and		`{$this->eve->DBPref}payment`.`active` = 1
 		");
 		if ($stmt === false)
 		{
@@ -85,7 +86,7 @@ class EvePaymentService
 		return $this->payment_save(null, $payment_group_id, $user_email, $date, $payment_method, $note, $value_paid, $value_received, $payment_options);
 	}
 
-	function payment_delete($id, $send_email = 'true')
+	function payment_delete($id)
 	{
 		$payment = $this->payment_get($id);
 		$agent = (isset($_SESSION['screenname'])) ? $_SESSION['screenname'] : "unknown user";
@@ -111,14 +112,17 @@ class EvePaymentService
 		}
 		$stmt1->close();
 
-		if ($send_email)
+		if ($this->eve->getSetting('email_snd_payment_update'))
 		{
+			// Payment_details still can be retrieved since payment is only deactivated,
+			// note deleted from database
 			$placeholders = array
 			(
 				'$email' => $payment['user_email'],
 				'$support_email_address' => $this->eve->getSetting('support_email_address'),
 				'$system_name' => $this->eve->getSetting('system_name'),
-				'$site_url' => $this->eve->sysurl()
+				'$site_url' => $this->eve->sysurl(),
+				'$payment_details' => $this->payment_output_details_for_user($id)
 			);
 			$this->evemail->send_mail($payment['user_email'], $placeholders, $this->eve->getSetting('email_sbj_payment_delete'), $this->eve->getSetting('email_msg_payment_delete'));
 		}
@@ -322,22 +326,42 @@ class EvePaymentService
 		// Sending email if it is defined on settings
 		if ($this->eve->getSetting('email_snd_payment_update'))
 		{
-			$date_formatter = new IntlDateFormatter($this->eve->getSetting('system_locale'), IntlDateFormatter::SHORT, IntlDateFormatter::NONE);
-			$money_formatter = new NumberFormatter($this->eve->getSetting('system_locale'), NumberFormatter::CURRENCY);
 			$placeholders = array
 			(
-				'$email' => $screenname,
+				'$email' => $user_email,
 				'$support_email_address' => $this->eve->getSetting('support_email_address'),
 				'$system_name' => $this->eve->getSetting('system_name'),
 				'$site_url' => $this->eve->sysurl(),
-				'$payment_date' => $date_formatter->format(strtotime($date)),
-				'$payment_method' => $payment_method,
-				'$payment_value_paid' => $money_formatter->format($value_paid)
+				'$payment_details' => $this->payment_output_details_for_user($payment_id)
 			);
-			$this->evemail->send_mail($screenname, $placeholders, $this->eve->getSetting('email_sbj_payment_update'), $this->eve->getSetting('email_msg_payment_update'));
+			$this->evemail->send_mail($user_email, $placeholders, $this->eve->getSetting('email_sbj_payment_update'), $this->eve->getSetting('email_msg_payment_update'));
 		}
 
 		return $payment_id;
+	}
+
+	/** Output a human readable HTML formatted table containing the Payment details */
+	function payment_output_details_for_user($id)
+	{
+		$payment = $this->payment_get($id);
+		$payment_items = $this->payment_item_list($id);
+
+		$date_formatter = new IntlDateFormatter($this->eve->getSetting('system_locale'), IntlDateFormatter::SHORT, IntlDateFormatter::NONE);
+		$curr_formatter = new NumberFormatter($this->eve->getSetting('system_locale'), NumberFormatter::CURRENCY);
+		$formatted_payment_date = $date_formatter->format(strtotime($payment['date']));
+		$formatted_value_paid = $curr_formatter->format($payment['value_paid']);
+
+		$result = "";
+		$result.= "<table class=\"data_table\"><thead><th width=\"30%\"></th><th width=\"30%\"></th></thead>";
+		$result.= "<tr><td><strong>{$this->eve->_('payment.id')}</strong></td><td>{$payment['id']}</td></tr>";
+		$result.= "<tr><td><strong>{$this->eve->_('payment.date')}</strong></td><td>$formatted_payment_date</td></tr>";
+		$result.= "<tr><td><strong>{$this->eve->_('payment.value.paid')}</strong></td><td>$formatted_value_paid</td></tr>";
+		$result.= "<tr><td><strong>{$this->eve->_('payment.payment.method')}</strong></td><td>{$payment['payment_method']}</td></tr>";
+		$result.= "<tr><td><strong>{$this->eve->_('payment.items')}</strong></td><td>";
+		foreach ($payment_items as $payment_item) $result.= "{$payment_item['name']}<br/>";
+		$result.= "</td></tr>";
+		$result.= "</table>";
+		return $result;
 	}
 
 	/**
@@ -384,8 +408,9 @@ class EvePaymentService
 
 	/**
 	 * Returns an array of payment group ids that indicates groups for user.
-	 * In there are payment options that are not associated with a group, the
-	 * array will contain a null element.
+	 * If there are payment options that are not associated with a group, the
+	 * array will contain a null element. This does not list payment groups
+	 * which are invisible.
 	 */
 	function payment_group_list_for_user()
 	{
@@ -393,11 +418,20 @@ class EvePaymentService
 
 		$stmt1 = $this->eve->mysqli->prepare
 		("
-			select distinct 
-						`{$this->eve->DBPref}payment_option`.`payment_group_id`
-			from		`{$this->eve->DBPref}payment_option`
-			where		`{$this->eve->DBPref}payment_option`.`active` = 1
-			order by	`{$this->eve->DBPref}payment_option`.`payment_group_id`;
+		select distinct `dev_payment_group`.`id` as `id`
+		from			`dev_payment_group`
+		join			`dev_payment_option`
+		on 				`dev_payment_option`.`payment_group_id` = `dev_payment_group`.`id`
+		where			`dev_payment_option`.`active` = 1
+		and				`dev_payment_group`.`state` != 'invisible'
+	
+		union			
+
+		select distinct	`dev_payment_option`.`payment_group_id` as `id`
+		from			`dev_payment_option`
+		where 			`dev_payment_option`.`payment_group_id` is null
+		and				`dev_payment_option`.`active` = 1
+		order by		`id`
 		");
 		if ($stmt1 === false)
 		{
@@ -415,6 +449,7 @@ class EvePaymentService
 			$result[] = $id;
 		}
 		$stmt1->close();
+
 		return $result;
 	}
 

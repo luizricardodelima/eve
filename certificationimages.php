@@ -3,6 +3,7 @@ session_start();
 require_once 'eve.class.php';
 require_once 'lib/filechecker/filechecker.php';
 
+// TODO G11N
 // Defining constants for image upload
 $image_filetype = array("image/png");
 
@@ -49,7 +50,7 @@ else
 	([
 		$eve->getSetting('userarea_label') => "userarea.php",
 		$eve->_('userarea.option.admin.certificationtemplates') => "certification_models.php",
-		"Imagens de fundo" => null
+		$eve->_('certificationmodels.background.images') => null
 	]);
 
 	if (isset($_GET['fileerrorcode']))

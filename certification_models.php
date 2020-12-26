@@ -41,7 +41,6 @@ else if (isset($_POST['action']))
 else
 {
 	$eve->output_html_header(['sort-table']);
-	//TODO g11n
 	$eve->output_navigation
 	([
 		$eve->getSetting('userarea_label') => "userarea.php",
@@ -49,35 +48,13 @@ else
 	]);
 
 	// Success/Error messages
-	if (isset($_GET['message'])) switch ($_GET['message'])
-	{
-		case EveCertificationService::CERTIFICATIONMODEL_CREATE_ERROR_SQL:
-			$eve->output_error_message("Erro no banco de dados ao criar modelo de certificado."); //TODO g11n
-			break;
-		case EveCertificationService::CERTIFICATIONMODEL_CREATE_SUCCESS:
-			$eve->output_success_message("Modelo de certificado criado com sucesso."); //TODO g11n
-			break;	
-		case EveCertificationService::CERTIFICATIONMODEL_DELETE_ERROR_SQL:
-			$eve->output_error_message("Erro no banco de dados ao apagar modelo de certificado."); //TODO g11n
-			break;		
-		case EveCertificationService::CERTIFICATIONMODEL_DELETE_SUCCESS:
-			$eve->output_success_message("Modelo de certificado apagado com sucesso."); //TODO g11n
-			break;
-		case EveCertificationService::CERTIFICATIONMODEL_DUPLICATE_ERROR_INVALID_ID:
-			$eve->output_error_message("Erro ao duplicar modelo de certificado: ID inválido."); //TODO g11n
-			break;
-		case EveCertificationService::CERTIFICATIONMODEL_DUPLICATE_ERROR_SQL:
-			$eve->output_error_message("Erro no banco de dados ao duplicar modelo de certificado."); //TODO g11n
-			break;
-		case EveCertificationService::CERTIFICATIONMODEL_DUPLICATE_SUCCESS:
-			$eve->output_success_message("Modelo de certificado duplicado com sucesso."); //TODO g11n
-			break;
-	}
+	if (isset($_GET['message'])) $eve->output_service_message($_GET['message']);
+
 	?>
 	<div class="section">		
-	<button type="button" onclick="certificationmodel_create();">Criar novo</button>
-	<button type="button" onclick="certificationmodel_duplicate();">Duplicar</button>
-	<button type="button" onclick="window.location='certificationimages.php';">Gerenciar imagens de fundo</button>
+	<button type="button" onclick="certificationmodel_create();"><?php echo $eve->_('certificationmodels.action.create');?></button>
+	<button type="button" onclick="certificationmodel_duplicate();"><?php echo $eve->_('certificationmodels.action.duplicate');?></button>
+	<button type="button" onclick="window.location='certificationimages.php';"><?php echo $eve->_('certificationmodels.background.images');?></button>
 	</div>
 	
 	<table class="data_table" id="certification_models_table">
@@ -112,48 +89,72 @@ else
 	<script>
 	function certificationmodel_create() 
 	{
-		var certificationmodel_name = prompt('Digite o nome do novo modelo de certificado');
+		var certificationmodel_name = prompt('<?php echo $eve->_('certificationmodels.message.create');?>');
 		if (certificationmodel_name != null)
-		{			
-			document.getElementById('certificationmodel_create_name').value = certificationmodel_name;
-			document.getElementById('certificationmodel_create_form').submit();
+		{
+			form = document.createElement('form');
+        	form.setAttribute('method', 'POST');
+        	var1 = document.createElement('input');
+        	var1.setAttribute('type', 'hidden');
+			var1.setAttribute('name', 'action');
+        	var1.setAttribute('value', 'create');
+        	form.appendChild(var1);
+			var2 = document.createElement('input');
+        	var2.setAttribute('type', 'hidden');
+			var2.setAttribute('name', 'name');
+        	var2.setAttribute('value', certificationmodel_name);
+        	form.appendChild(var2);
+        	document.body.appendChild(form);
+			form.submit();
 		}
-		return false;
 	}
+
 	function certificationmodel_delete(certificationmodel_id) 
 	{
-		if (confirm('Tem certeza que deseja apagar este modelo de certificado?'))
-		{			
-			document.getElementById('certificationmodel_delete_id').value = certificationmodel_id;
-			document.getElementById('certificationmodel_delete_form').submit();
+		var raw_message = '<?php echo $eve->_('certificationmodels.message.delete')?>';
+		var message = raw_message.replace("<ID>", certificationmodel_id)	
+		if (confirm(message))
+		{
+			form = document.createElement('form');
+        	form.setAttribute('method', 'POST');
+        	var1 = document.createElement('input');
+        	var1.setAttribute('type', 'hidden');
+			var1.setAttribute('name', 'action');
+        	var1.setAttribute('value', 'delete');
+        	form.appendChild(var1);
+			var2 = document.createElement('input');
+        	var2.setAttribute('type', 'hidden');
+			var2.setAttribute('name', 'id');
+        	var2.setAttribute('value', certificationmodel_id);
+        	form.appendChild(var2);
+        	document.body.appendChild(form);
+			form.submit();
 		}
-		return false;
 	}
+
 	function certificationmodel_duplicate() 
 	{
-		var certificationmodel_id = prompt('Digite o ID do modelo de certificado a ser duplicado');
+		var certificationmodel_id = prompt('<?php echo $eve->_('certificationmodels.message.duplicate');?>');
 		if (certificationmodel_id != null)
 		{
-			document.getElementById('certificationmodel_duplicate_id').value=certificationmodel_id;
-			document.getElementById('certificationmodel_duplicate_form').submit();
+			form = document.createElement('form');
+        	form.setAttribute('method', 'POST');
+        	var1 = document.createElement('input');
+        	var1.setAttribute('type', 'hidden');
+			var1.setAttribute('name', 'action');
+        	var1.setAttribute('value', 'duplicate');
+        	form.appendChild(var1);
+			var2 = document.createElement('input');
+        	var2.setAttribute('type', 'hidden');
+			var2.setAttribute('name', 'id');
+        	var2.setAttribute('value', certificationmodel_id);
+        	form.appendChild(var2);
+        	document.body.appendChild(form);
+			form.submit();
 		}
-		return false;
 	}
 	</script>
 	
-	<form id="certificationmodel_create_form" method="post">
-		<input type="hidden" name="action" value="create"/>
-		<input type="hidden" name="name" id="certificationmodel_create_name"/>
-	</form>
-	<form id="certificationmodel_delete_form" method="post">
-		<input type="hidden" name="action" value="delete"/>
-		<input type="hidden" name="id" id="certificationmodel_delete_id"/>
-	</form>
-	<form id="certificationmodel_duplicate_form" method="post">
-		<input type="hidden" name="action" value="duplicate"/>
-		<input type="hidden" name="id" id="certificationmodel_duplicate_id"/>
-	</form>
-
 	<?php
 	$eve->output_html_footer();
 }

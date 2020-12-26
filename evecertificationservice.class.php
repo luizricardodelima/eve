@@ -11,15 +11,15 @@ class EveCertificationService
 	const CERTIFICATION_ATTRIBUITION_ERROR_SQL = 1;
 	const CERTIFICATION_ATTRIBUITION_SUCCESS = 2;
 
-	const CERTIFICATIONMODEL_CREATE_ERROR_SQL = 10;	
-	const CERTIFICATIONMODEL_CREATE_SUCCESS = 11;
+	const CERTIFICATIONMODEL_CREATE_ERROR_SQL = 'certificationmodel.create.error.sql';
+	const CERTIFICATIONMODEL_CREATE_SUCCESS = 'certificationmodel.create.success';
 
-	const CERTIFICATIONMODEL_DELETE_ERROR_SQL = 12;	
-	const CERTIFICATIONMODEL_DELETE_SUCCESS = 13;
+	const CERTIFICATIONMODEL_DELETE_ERROR_SQL = 'certificationmodel.delete.error.sql';
+	const CERTIFICATIONMODEL_DELETE_SUCCESS = 'certificationmodel.delete.success';
 
-	const CERTIFICATIONMODEL_DUPLICATE_ERROR_INVALID_ID = 14;
-	const CERTIFICATIONMODEL_DUPLICATE_ERROR_SQL = 15;
-	const CERTIFICATIONMODEL_DUPLICATE_SUCCESS = 16;
+	const CERTIFICATIONMODEL_DUPLICATE_ERROR_INVALID_ID = 'certificationmodel.duplicate.error.invalid.id';
+	const CERTIFICATIONMODEL_DUPLICATE_ERROR_SQL = 'certificationmodel.duplicate.error.sql';
+	const CERTIFICATIONMODEL_DUPLICATE_SUCCESS = 'certificationmodel.duplicate.success';
 
 	private $eve;
 	private $evemail;
@@ -485,6 +485,8 @@ class EveCertificationService
 
 	function certificationmodel_duplicate($id)
 	{
+		if($this->certificationmodel_get($id) === null)
+			return self::CERTIFICATIONMODEL_DUPLICATE_ERROR_INVALID_ID;
 		$stmt = $this->eve->mysqli->prepare
 		("
 			insert into `{$this->eve->DBPref}certification_model` 

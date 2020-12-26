@@ -27,7 +27,7 @@ else
 	<div class="dialog_panel_thin">
 	<div class="dialog_section"><?php echo $eve->_('settings.section.general');?></div>
 		<button type="button" class="submit" onclick="window.location.href='settingsgeneralinfo.php'">
-		<?php echo $eve->_('settings.general.settings');?>
+		<?php echo $eve->_('settings.general');?>
 		</button>
 		<button type="button" class="submit" onclick="window.location.href='settingsadmins.php'">
 		<?php echo $eve->_('settings.system.admins');?>

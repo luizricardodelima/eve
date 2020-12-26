@@ -44,11 +44,20 @@ else
 			break;
 	}
 	
-	$eve->output_html_header();
+	$navigation_array = 
+	[
+		$eve->getSetting('userarea_label') => "userarea.php",
+		$eve->_('submission_definitions') => "submission_definitions.php",
+		$submission_definition['description'] => "submission_definition.php?id={$_GET['id']}",
+		$eve->_('submission_definition.reviewers') => null
+	];
 	if (isset($_GET['backlink']) && $_GET['backlink'] == 'submissions_final_reviewer')
-		$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $submission_definition['description'], "submissions.php?id={$_GET['id']}&access_mode=final_reviewer", $eve->_('submission_definition.reviewers'), null);
-	else
-		$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('submission_definitions'), "submission_definitions.php", $submission_definition['description'], "submission_definition.php?id={$_GET['id']}", $eve->_('submission_definition.reviewers'), null);
+	{
+		unset($navigation_array[$eve->_('submission_definitions')]);
+		$navigation_array[$submission_definition['description']] = "submissions.php?id={$_GET['id']}&access_mode=final_reviewer";
+	} 
+	$eve->output_html_header();
+	$eve->output_navigation($navigation_array);
 
 	// Success/error messages
 	if (!is_null($message)) $eve->output_service_message($message);

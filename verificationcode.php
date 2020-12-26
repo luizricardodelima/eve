@@ -10,7 +10,11 @@ if (isset($_GET['screenname']) && isset($_GET['verificationcode']))
 {
 	$EveUserService = new EveUserService($eve);
 	$eve->output_html_header();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Código de verificação", null);
+	$eve->output_navigation
+	([
+		$eve->getSetting('userarea_label') => "userarea.php",
+		"Código de verificação" => null
+	]);
 
 	if ($eve->user_exists($_GET['screenname']))
 	{
@@ -47,7 +51,11 @@ if (isset($_GET['screenname']) && isset($_GET['verificationcode']))
 else if (isset($_GET['screenname']))
 {
 	$eve->output_html_header();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Código de verificação", null);
+	$eve->output_navigation
+	([
+		$eve->getSetting('userarea_label') => "userarea.php",
+		"Código de verificação" => null
+	]);
 
 	?>
 	<form id="verificationcode_form" class="dialog_panel" method="get">

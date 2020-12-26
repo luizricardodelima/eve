@@ -40,7 +40,11 @@ else if (isset($_POST['action']))
 else
 {
 	$eve->output_html_header();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php",  "Usuários sem verificação", null);//TODO g11n
+	$eve->output_navigation
+	([
+		$eve->getSetting('userarea_label') => "userarea.php",
+		$eve->_('userarea.option.admin.unverifiedusers') => null
+	]);
  
 	// Success/Error messages
 	if (isset($_GET['message'])) switch ($_GET['message'])

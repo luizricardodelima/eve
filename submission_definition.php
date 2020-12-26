@@ -37,7 +37,12 @@ else
 	$submission_definition = $eveSubmissionService->submission_definition_get($_GET['id']);
 
 	$eve->output_html_header(['wysiwyg-editor']);
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('submission_definitions'), "submission_definitions.php", $submission_definition['description'], null);
+	$eve->output_navigation
+	([
+		$eve->getSetting('userarea_label') => "userarea.php",
+		$eve->_('submission_definitions') => "submission_definitions.php",
+		$submission_definition['description'] => null
+	]);
 	?>
 	<div class="section">
 	<button type="button" onclick="document.forms['submission_definition_form'].submit();"><?php echo $eve->_('common.action.save');?></button>

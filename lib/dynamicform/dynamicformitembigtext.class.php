@@ -11,7 +11,7 @@ class DynamicFormItemBigtext extends DynamicFormItem
 
     public function getHtmlFormattedContent()
     {
-        return htmlentities($this->content, ENT_QUOTES, 'utf-8');
+        return "<pre>".htmlentities($this->content, ENT_QUOTES, 'utf-8')."</pre>";
     }
 
     public static function getType()

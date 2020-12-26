@@ -274,26 +274,11 @@ class Eve
 	}
 
 	/** 
-	 * This function outputs the navigation bar of the user area. It receives pairs of arguments,
-	 * a label and its corresponding link. If the label does not have a link, this link should be
-	 * a null argument. This throws an error if an odd number of arguments is passed.
-	 * 
-	 * @deprecated use output_navigation instead, because it receives an array and can be better modelled
+	 * Outputs the navigation bar the page.
+	 * $navigation_array is an associative array. The key corresponds to the label and its
+	 * value corresponds to the link. If the value is null, the label is outputted without
+	 * link.
 	 */
-	function output_navigation_bar()
-	{
-		$array = array();
-
-		for ($i = 0, $n = 0; $i < func_num_args(); $i = $i+2, $n++)
-		{
-			if (is_null(func_get_arg($i+1)))
-				$array[$n] = func_get_arg($i);
-			else
-				$array[$n] = "<a href=\"".func_get_arg($i+1)."\">".func_get_arg($i)."</a>";
-		} 
-		echo '<div id="navigation_bar">'.implode(' &rarr; ', $array).'</div>';
-	}
-
 	function output_navigation($navigation_array)
 	{
 		$items = array();		

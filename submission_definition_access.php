@@ -38,7 +38,13 @@ else
 {
 	$submission_definition = $eveSubmissionService->submission_definition_get($_GET['id']);
 	$eve->output_html_header();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('submission_definitions'), "submission_definitions.php", $submission_definition['description'], "submission_definition.php?id={$_GET['id']}", "Gerenciar acesso restrito", null);
+	$eve->output_navigation
+	([
+		$eve->getSetting('userarea_label') => "userarea.php",
+		$eve->_('submission_definitions') => "submission_definitions.php",
+		$submission_definition['description'] => "submission_definition.php?id={$_GET['id']}",
+		"Gerenciar acesso restrito" => null
+	]);
 
 	if (isset ($_GET['msg'])) $eve->output_service_message($_GET['msg']);
 	?>

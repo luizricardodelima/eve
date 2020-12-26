@@ -18,7 +18,12 @@ else if (!$eve->is_admin($_SESSION['screenname']))
 else
 {
 	$eve->output_html_header();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "../../userarea.php", $eve->_('userarea.option.admin.settings'), "../../settings.php", "PagSeguro", null);
+	$eve->output_navigation
+	([
+		$eve->getSetting('userarea_label') => "../../userarea.php",
+		$eve->_('userarea.option.admin.settings') => "../../settings.php",
+		"PagSeguro" => null
+	]);
 	?>
 	<div class="section">Variáves da conta PagSeguro. Para editar, modifique o arquivo <strong>/plugins/pagseguro/lib/config/PagSeguroConfig.php</strong> com as respectivas informações.</div>
 	<table class="data_table">

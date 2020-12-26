@@ -12,7 +12,7 @@ $eve = new Eve();
 if (!isset($_SESSION['screenname']) && empty($_POST))
 {
 	$eve->output_html_header();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php");	
+	$eve->output_navigation([$eve->getSetting('userarea_label') => "userarea.php"]);	
 
 	if (isset($_GET['loginerror'])) $eve->output_error_message('login.error');
 	if (isset($_GET['sessionexpired'])) $eve->output_error_message('login.sessionexpired');
@@ -86,7 +86,7 @@ else
 	$eveSubmissionService = new EveSubmissionService($eve);
 	$evePaymentService = new EvePaymentService($eve);
 	$eve->output_html_header();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php");
+	$eve->output_navigation([$eve->getSetting('userarea_label') => "userarea.php"]);
 
 	if (isset($_GET['systemmessage'])) switch ($_GET['systemmessage'])
 	{

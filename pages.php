@@ -42,7 +42,11 @@ else
 {
 	$evePageService = new EvePageService($eve);
 	$eve->output_html_header();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Páginas", null);
+	$eve->output_navigation
+	([
+		$eve->getSetting('userarea_label') => "userarea.php",
+		$eve->_('userarea.option.admin.pages') => null
+	]);
 
 	?>
 	<div class="section">

@@ -42,7 +42,11 @@ else
 {
 	$eve->output_html_header(['sort-table']);
 	//TODO g11n
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Modelos de certificado", null);
+	$eve->output_navigation
+	([
+		$eve->getSetting('userarea_label') => "userarea.php",
+		$eve->_('userarea.option.admin.certificationtemplates') => null
+	]);
 
 	// Success/Error messages
 	if (isset($_GET['message'])) switch ($_GET['message'])

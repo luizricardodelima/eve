@@ -48,7 +48,12 @@ else if (isset($_POST['action'])) switch ($_POST['action'])
 else
 {
 	$eve->output_html_header();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Modelos de certificado", "certification_models.php", "Atribuição de certificados", null);
+	$eve->output_navigation
+	([
+		$eve->getSetting('userarea_label') => "userarea.php",
+		$eve->_('userarea.option.admin.certificationtemplates') => "certification_models.php",
+		"Atribuição de certificados" => null
+	]);
 	
 	?>
 	<form method="post" action="<?php echo basename(__FILE__)."?id=".$_GET['id'];?>" id="specialsubmissionattibuition_form">

@@ -37,7 +37,11 @@ else
 	$date_formatter = new IntlDateFormatter($eve->getSetting('system_locale'), IntlDateFormatter::SHORT, IntlDateFormatter::NONE);
 
 	$eve->output_html_header(['sort-table']);
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('userarea.option.admin.payments'), null);
+	$eve->output_navigation
+	([
+		$eve->getSetting('userarea_label') => "userarea.php",
+		$eve->_('userarea.option.admin.payments') => null
+	]);
 
 	?>
 	<script>

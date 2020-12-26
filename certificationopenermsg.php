@@ -28,7 +28,11 @@ else
 {
 	$certification_model = $eveCertificationService->certificationmodel_get($certification['id']);
 	$eve->output_html_header();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php",  $certification_model['name'], null);
+	$eve->output_navigation
+	([
+		$eve->getSetting('userarea_label') => "userarea.php",
+		$certification_model['name'] => null
+	]);
 	
 	?>
 	<div class="dialog_panel">

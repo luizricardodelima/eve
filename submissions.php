@@ -77,11 +77,15 @@ else
 	} 
 
 	// Page header
+	$navigation_array = 
+	[
+		$eve->getSetting('userarea_label') => "userarea.php",
+		$eve->_('submission_definitions') => "submission_definitions.php",
+		$submission_definition['description'] => null
+	];
+	if ($access_mode != 'admin') unset($navigation_array[$eve->_('submission_definitions')]);
 	$eve->output_html_header();
-	if ($access_mode == 'admin')
-		$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('submission_definitions'), "submission_definitions.php", $submission_definition['description'], null);
-	else
-		$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $submission_definition['description'], null);
+	$eve->output_navigation($navigation_array);
 	
 	// Success/error messages
 	if (!is_null($message)) $eve->output_service_message($message);

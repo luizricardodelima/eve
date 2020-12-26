@@ -4,7 +4,11 @@ require_once 'eveuserservice.class.php';
 
 $eve = new Eve();
 $eve->output_html_header();
-$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('signup.title'), null);
+$eve->output_navigation
+([
+	$eve->getSetting('userarea_label') => "userarea.php",
+	$eve->_('signup.title') => null
+]);
 
 // If accepting new sign ups, the user signup page will be shown. Otherwise, the user shouldn't be able 
 // to access this page, since the link that leads to this page should be disabled. Anyway, the verification
@@ -18,7 +22,7 @@ if ($eve->getSetting('user_signup_closed'))
 }
 else
 {
-	$msg = false;
+	$msg = null;
 	if (!empty($_POST))
 	{
 		$EveUserService = new EveUserService($eve);
@@ -39,21 +43,8 @@ else
 	}
 	else // there is no message or there were errors on creating an unverified user
 	{
-		switch ($msg)
-		{
-			case EveUserService::UNVERIFIED_USER_CREATE_ERROR_PASSWORD_TOO_SMALL:
-				$eve->output_error_message("signup.error.password.too.small");
-				break;
-			case EveUserService::UNVERIFIED_USER_CREATE_ERROR_INVALID_EMAIL:
-				$eve->output_error_message("signup.error.invalid.email");
-				break;
-			case EveUserService::UNVERIFIED_USER_CREATE_ERROR_USER_EXISTS:
-				$eve->output_error_message("signup.error.user.exists");
-				break;
-			case EveUserService::UNVERIFIED_USER_CREATE_ERROR_PASSWORDS_DO_NOT_MATCH:
-				$eve->output_error_message("signup.error.passwords.do.not.match");
-				break;
-		}
+		if (isset($msg)) $eve->output_service_message($msg);
+
 		?> 
 		<form method="post" autocomplete="off" class="dialog_panel">
 		<p><?php echo $eve->_('signup.intro');?></p>

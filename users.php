@@ -35,7 +35,11 @@ else if (isset($_POST['action']))
 else
 {
 	$eve->output_html_header(['sort-table']);
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Usuários", null);	
+	$eve->output_navigation
+	([
+		$eve->getSetting('userarea_label') => "userarea.php",
+		$eve->_('userarea.option.admin.users') => null
+	]);
 	if (isset ($_GET['msg'])) $eve->output_service_message($_GET['msg']);
 
 	?>

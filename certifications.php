@@ -38,7 +38,11 @@ else if (isset($_POST['action']))
 else
 {
 	$eve->output_html_header(['sort-table']);
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php",  "Certificados", null);
+	$eve->output_navigation
+	([
+		$eve->getSetting('userarea_label') => "userarea.php",
+		$eve->_('userarea.option.admin.certifications') => null
+	]);
 
 	if (isset($_GET['success'])) switch ($_GET['success'])
 	{

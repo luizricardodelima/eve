@@ -17,7 +17,11 @@ if (!isset($_SESSION['screenname']))
 else
 {
 	$eve->output_html_header();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "../../userarea.php", "Pagamento via PagSeguro", null);
+	$eve->output_navigation
+	([
+		$eve->getSetting('userarea_label') => "../../userarea.php",
+		"Pagamento via PagSeguro" => null
+	]);
 	?>
 	<div class="section">Pagamento via PagSeguro</div>
 	<div class="dialog_panel">

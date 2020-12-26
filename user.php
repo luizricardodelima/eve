@@ -120,9 +120,14 @@ else
 		
 	if ($admin_mode)
 	{
-		$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Usuários", "users.php", "Dados do usuário", null);		
+		$eve->output_navigation
+		([
+			$eve->getSetting('userarea_label') => "userarea.php",
+			$eve->_('userarea.option.admin.users') => "users.php",
+			$eve->_('userarea.option.userdata') => null
+		]);		
 		?>
-		<div class="section">Dados do usuário - modo administrador
+		<div class="section"><?php echo $eve->_('userarea.option.userdata');?> - modo administrador <!-- TODO G11N -->
 		<button type="button" onclick="document.forms['user_form'].submit()"><?php echo $eve->_('common.action.save');?></button>
 		<button type="button" onclick="document.getElementById('credential_form').submit()">Gerar credencial</button>
 		</div>
@@ -133,7 +138,11 @@ else
 	}
 	else
 	{
-		$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('userarea.option.userdata'), null);	
+		$eve->output_navigation
+		([
+			$eve->getSetting('userarea_label') => "userarea.php",
+			$eve->_('userarea.option.userdata') => null
+		]);	
 		?>
 		<div class="section"><?php echo $eve->_('userarea.option.userdata');?></div>
 		<?php	

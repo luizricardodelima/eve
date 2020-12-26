@@ -19,7 +19,13 @@ else if (!$eve->is_admin($_SESSION['screenname']))
 else
 {
 	$eve->output_html_header();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", "Usuários", "users.php", "Criar usuário", null);	
+	// TODO G11N
+	$eve->output_navigation
+	([
+		$eve->getSetting('userarea_label') => "userarea.php",
+		$eve->_('userarea.option.admin.users') => "users.php",
+		"Criar usuário" => null
+	]);
 	
 	?>
 	<div class="section">Criar usuário</div>
@@ -33,7 +39,7 @@ else
 
 		if ($msg == EveUserService::UNVERIFIED_USER_CREATE_SUCCESS)
 		{
-			// Creating user
+			// Creating user // TODO G11N
 		 	if ($EveUserService->unverified_user_transform_to_user($_POST['screenname'], $_POST['sendwelcomeemail']))
 			{
 				if ($_POST['sendwelcomeemail'])
@@ -48,20 +54,10 @@ else
 			// Cleaning variables because they are displayed on textboxs again, when there are validation errors.
 			$_POST['screenname'] = "";
 		}
-		else // there is no message or there were errors on creating an unverified user
+		else 
 		{
-			switch ($msg)
-			{
-				case EveUserService::UNVERIFIED_USER_CREATE_ERROR_PASSWORD_TOO_SMALL:
-					$eve->output_error_message("signup.error.password.too.small");
-					break;
-				case EveUserService::UNVERIFIED_USER_CREATE_ERROR_INVALID_EMAIL:
-					$eve->output_error_message("signup.error.invalid.email");
-					break;
-				case EveUserService::UNVERIFIED_USER_CREATE_ERROR_USER_EXISTS:
-					$eve->output_error_message("signup.error.user.exists");
-					break;
-			}
+			// there were errors on creating an unverified user
+			if (isset($msg)) $eve->output_service_message($msg);
 		}
 	}
 	else
@@ -79,7 +75,7 @@ else
 	<label for="password">Senha</label>
 	<input  id="password"type="text" name="password" value="<?php if(isset($_POST['password']))  echo $_POST['password'];?>"/></td></tr>
 	<label for="sendwelcomeemail"><input type="hidden" name="sendwelcomeemail" value="0"/>
-	<input  id="sendwelcomeemail" type="checkbox" name="sendwelcomeemail" <?php if ($_POST['sendwelcomeemail']) echo "checked=\"checked\"";?>/>E-mail de boas vindas?</label>
+	<input  id="sendwelcomeemail" type="checkbox" name="sendwelcomeemail" <?php if ($_POST['sendwelcomeemail']) echo "checked=\"checked\"";?>/>E-mail de boas vindas</label>
 	<button type="button" class="submit" onclick="document.forms['newuser_form'].submit();">Criar</button>
 	</div>	
 	</form>

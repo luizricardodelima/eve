@@ -7,3 +7,5 @@ Let's suppose you have an application where the users can submit form data, for 
 1. After the structure is defined, display the form on screen
 1. Validate the data before storing on database, and this includes file uploads
 1. Have the form content (as well the structure) saved in your database
+## Changelog
+- 2020-12-16 **(bug fix)** The html output of a Bigtext is now enclosed with `<pre>...</pre>`, so the spacing is preserved.

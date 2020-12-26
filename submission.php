@@ -56,7 +56,11 @@ else
 
 	// Header	
 	$eve->output_html_header();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $submission_definition['description'], null);
+	$eve->output_navigation
+	([
+		$eve->getSetting('userarea_label') => "userarea.php",
+		$submission_definition['description'] => null
+	]);
 
 	// Success/error messages
 	if (isset($_GET['message'])) $eve->output_service_message($_GET['message']);

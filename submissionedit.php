@@ -56,7 +56,13 @@ else
 
 	$submissiondefinition = $eveSubmissionService->submission_definition_get($submission['submission_definition_id']);
 	$eve->output_html_header();
-	$eve->output_navigation_bar($eve->getSetting('userarea_label'), "userarea.php", $eve->_('submission_definitions'), "submission_definitions.php", $submissiondefinition['description'], "submissions.php?id={$submissiondefinition['id']}", "ID {$submission['id']}", null);
+	$eve->output_navigation
+	([
+		$eve->getSetting('userarea_label') => "userarea.php",
+		$eve->_('submission_definitions') => "submission_definitions.php",
+		$submissiondefinition['description'] => "submissions.php?id={$submissiondefinition['id']}",
+		"ID {$submission['id']}" => null
+	]);
 
 	// Success/error messages
 	if (!is_null($message)) $eve->output_service_message($message);

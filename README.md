@@ -10,8 +10,8 @@ _Event management system_
 
 ## Changelog
 
-- 2021-01-08 **(feature)** Font selection on certifications
-- 2021-01-08 **(bug fix)** Certifications bug fixes on "exotic" characters which made all the text disappear and other code enhancements.
+- 2021-01-08 **(feature)** Font selection on certification models.
+- 2021-01-08 **(bug fix)** Certifications bug fixes on "exotic" characters which made all the text disappear and other security and code enhancements.
 - 2020-12-16 **(usability)** Now using the flags from the project RegionFlags (https://github.com/google/region-flags)
 - 2020-12-16 **(bug fix)** Now the sender email is not automatically copied from "username" from e-mail configuration, since it is explicity defined (see below).
 - 2020-12-16 **(feature)** "fromname" e-mail configuration was replaced by "sendername" and "senderemail". PHPMailer was updated to the newest version so far (6.2.0)

@@ -467,8 +467,14 @@ function create_database($dbpassword, $screenname, $password)
 	// Loading settings
 	$base_settings = json_decode(file_get_contents('settings.json'), true);
     $user_settings = json_decode(file_get_contents('settings_user.json'), true);
-	$settings = array_merge($base_settings, $user_settings);
-	// TODO Check error if settings were not loaded
+	if ($user_settings != null)
+		$settings = array_merge($base_settings, $user_settings);
+	else
+	{
+		//if settings_user.json is malformed or nonexistent, ignore it.
+		$log[] = "WARNING - Malformed settings_user.json";
+		$settings = $base_settings;
+	}
 
 	// Populating settings		
 	$stmt = $mysqli->prepare("insert into `{$pref}settings` (`key`, `value`) values (?, ?)");

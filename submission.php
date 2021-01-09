@@ -200,7 +200,18 @@ else
 		<?php echo $submission_definition['information']; ?>
 		<?php echo $dynamicForm->outputControls('submission_structure', 'submission_content') ?>
 		<input type="hidden" name="action" value="submission"/>
-		<button type="submit" class="submit">Enviar</button>
+		<button type="submit" class="submit" onclick="deactivate_button(this)">Enviar</button>
+
+		<script>
+		function deactivate_button(e)
+		{
+			var el = document.createElement("p");
+			el.style.textAlign = 'center';
+			el.innerHTML = '<img src="style/icons/loading.gif" style="height: 2rem; width: 2rem;"/>';
+			e.parentNode.insertBefore(el, e);
+			e.style.display = 'none';
+		}
+		</script>
 		</form>
 		<?php
 	}

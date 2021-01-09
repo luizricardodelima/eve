@@ -7,6 +7,10 @@ require_once 'evesubmissionservice.class.php';
 
 class EveCertificationService
 {
+	// Values accepted by FPDF
+	const TEXT_FONTS = ['Courier', 'Helvetica', 'Times', 'Symbol', 'ZapfDingbats'];
+	const DEFAULT_TEXT_FONT = 'Helvetica';
+	
 	const CERTIFICATION_ATTRIBUITION_ERROR = 0;	
 	const CERTIFICATION_ATTRIBUITION_ERROR_SQL = 1;
 	const CERTIFICATION_ATTRIBUITION_SUCCESS = 2;
@@ -283,6 +287,26 @@ class EveCertificationService
 				$this->send_certification_mail($stmt2->insert_id);
 		}
 		$stmt2->close();
+	}
+
+	/**
+	 *  Increases by 1 the view counter of the certification.
+	 */
+	function certification_increase_view_count($id)
+	{
+		$stmt = $this->eve->mysqli->prepare
+		("
+			update	`{$this->eve->DBPref}certification`
+			set 	`views` = `views` + 1
+			where	`id` = ?
+		");
+		if ($stmt === false)
+		{
+			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
+		}
+		$stmt->bind_param('i', $id);
+		$stmt->execute();
+		$stmt->close();
 	}
 
 	function certification_list()
@@ -628,6 +652,18 @@ class EveCertificationService
 		preg_match('#^enum\((.*?)\)$#ism', $row['Type'], $matches);
 		$enum = str_getcsv($matches[1], ",", "'");
 		return $enum;
+	}
+
+	/** Returns list of possible values for the field 'text_fonts' of a certification model */
+	function certificationmodel_textfonts()
+	{
+		return self::TEXT_FONTS;
+	}
+
+	/** Return the default text_font in case of a blank value or an unsupported font is used.*/
+	function certificationmodel_textfont_default()
+	{
+		return self::DEFAULT_TEXT_FONT;
 	}
 
 	/** Returns list of possible values for the field 'pageorientation' of a certification model */

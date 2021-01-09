@@ -52,6 +52,7 @@
 	"certificationmodel.text.alignment.right":"Right",
 	"certificationmodel.text.alignment.center":"Center",
 	"certificationmodel.text.alignment.justified":"Justified",
+	"certificationmodel.text.font":"Font",
 	"certificationmodel.type": "Type",
 	"certificationmodel.type.submissioncertification": "Submission certification",
 	"certificationmodel.type.usercertification": "User certification",

@@ -7,8 +7,6 @@ $eve = new Eve();
 $eveCertificationService = new EveCertificationService($eve);
 $data = isset($_GET['id']) ? $eveCertificationService->certificationmodel_get($_GET['id']) : null;
 
-// TODO #4 2 New variables for certification model: Text alignment and text font (use FPDFs fonts)
-
 // Session verification.
 if (!isset($_SESSION['screenname']))
 {	
@@ -56,12 +54,13 @@ else
 	<div class="section">
 	<?php echo $eve->_('certificationmodel')." ({$_GET['id']})";?>
 	<button type="button" onclick="document.forms['certification_model_form'].submit();"><?php echo $eve->_('common.action.save');?></button>
-	<button type="button" onclick="window.location.href = 'certification.php?templateid=<?php echo $_GET['id'];?>';"><?php echo $eve->_('common.action.test');?></button>
+	<button type="button" onclick="window.location.href = 'certification.php?model_id=<?php echo $_GET['id'];?>';"><?php echo $eve->_('common.action.test');?></button>
 	</div>
 
 	<form action="<?php echo basename(__FILE__)."?id={$_GET['id']}";?>" method="post" id="certification_model_form">
-	<div class="section"><?php echo $eve->_('certificationmodel.section.general');?></div>
+	
 	<div class="dialog_panel">
+	<div class="dialog_section"><?php echo $eve->_('certificationmodel.section.general');?></div>
 	<input type="hidden" name="id" value="<?php echo $_GET['id'];?>"/>
 	
 	<label for="type"><?php echo $eve->_('certificationmodel.type');?></label>
@@ -80,8 +79,8 @@ else
 	<input id="name" type="text" name="name" value="<?php echo $data['name'];?>"/>
 	</div>	
 
-	<div class="section"><?php echo $eve->_('certificationmodel.section.page');?></div>
 	<div class="dialog_panel">
+	<div class="dialog_section"><?php echo $eve->_('certificationmodel.section.page');?></div>
 	<label for="pagesize"><?php echo $eve->_('certificationmodel.pagesize');?></label>
 	<select id="pagesize" name="pagesize">
 	<?php
@@ -123,8 +122,8 @@ else
 	</select>
 	</div>
 
-	<div class="section"><?php echo $eve->_('certificationmodel.section.text');?></div>
 	<div class="dialog_panel">
+	<div class="dialog_section"><?php echo $eve->_('certificationmodel.section.text');?></div>
 	<label for="text"><?php echo $eve->_('certificationmodel.text');?><img src="style/icons/help.png" type="button" onclick="document.getElementById('viewer').style.display = 'block'"/></label>
 	<textarea id="text" name="text" rows="7"><?php echo $data['text'];?></textarea>
 
@@ -143,6 +142,18 @@ else
 	<label for="text_fontsize"><?php echo $eve->_('certificationmodel.textfontsize');?></label>
 	<input id="text_fontsize" type="number" min="1" step="1" name="text_fontsize" value="<?php echo $data['text_fontsize'];?>"/>
 
+	<label for="text_font"><?php echo $eve->_('certificationmodel.text.font');?></label>
+	<select id="text_font" name="text_font">
+	<?php 
+	foreach($eveCertificationService->certificationmodel_textfonts() as $text_font)
+	{	
+		echo "<option value=\"$text_font\"";
+		if ($data['text_font'] === $text_font) echo " selected=\"selected\"";
+		echo ">".$text_font."</option>";
+	}
+	?>
+	</select>
+
 	<label for="text_alignment"><?php echo $eve->_('certificationmodel.text.alignment');?></label>
 	<select id="text_alignment" name="text_alignment">
 	<?php 
@@ -156,8 +167,8 @@ else
 	</select>
 	</div>
 
-	<div class="section"><?php echo $eve->_('certificationmodel.section.openermsg');?></div>
 	<div class="dialog_panel">
+	<div class="dialog_section"><?php echo $eve->_('certificationmodel.section.openermsg');?></div>
 	<label for="hasopenermsg">
 	<input type="hidden" name="hasopenermsg" value="0"/>
 	<input type="checkbox" name="hasopenermsg" id="hasopenermsg" value="1" <?php if ($data['hasopenermsg']) echo "checked=\"checked\"";?> />

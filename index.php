@@ -14,7 +14,9 @@ if (isset($_GET['p']))
 	{
 		// TODO: Permissions - only admins can view not visible pages
 		$eve->output_html_header();
+		echo "<div class=\"dialog_panel_wide\">";
 		echo $page;
+		echo "</div>";
 		$eve->output_html_footer();
 	}
 }
@@ -26,7 +28,9 @@ else
 	else
 	{
 		$eve->output_html_header();
+		echo "<div class=\"dialog_panel_wide\">";
 		echo $page;
+		echo "</div>";
 		$eve->output_html_footer();
 	}
 }

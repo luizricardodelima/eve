@@ -141,7 +141,7 @@ table.data_table button
 table.data_table th
 {
 	background-color: cornflowerblue;
-	color: white;cornflowerblue
+	color: white;
 	padding: 0.5rem;
 	font-size: 0.8rem;
 	text-transform: uppercase;
@@ -375,6 +375,11 @@ table.data_table tr.selected
 	font-size: 			1.1rem;
 	line-height: 		1.9rem;
 	outline:			0;
+}
+
+.dialog_panel img, .dialog_panel_thin img, .dialog_panel_wide img
+{
+	max-width: 100%;
 }
 
 .payment_option

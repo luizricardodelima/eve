@@ -36,7 +36,7 @@ else
 	$eve->output_navigation
 	([
 		$eve->getSetting('userarea_label') => "userarea.php", 
-		$eve->_('userarea.option.admin.certificationtemplates') => "certification_models.php",
+		$eve->_('userarea.option.admin.certification_models') => "certification_models.php",
 		$eve->_('certificationmodel')." ({$_GET['id']})" => null
 	]);
 

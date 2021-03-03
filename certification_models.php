@@ -44,7 +44,7 @@ else
 	$eve->output_navigation
 	([
 		$eve->getSetting('userarea_label') => "userarea.php",
-		$eve->_('userarea.option.admin.certificationtemplates') => null
+		$eve->_('userarea.option.admin.certification_models') => null
 	]);
 
 	// Success/Error messages
@@ -54,7 +54,7 @@ else
 	<div class="section">		
 	<button type="button" onclick="certificationmodel_create();"><?php echo $eve->_('certificationmodels.action.create');?></button>
 	<button type="button" onclick="certificationmodel_duplicate();"><?php echo $eve->_('certificationmodels.action.duplicate');?></button>
-	<button type="button" onclick="window.location='certificationimages.php';"><?php echo $eve->_('certificationmodels.background.images');?></button>
+	<button type="button" onclick="window.location='imagemanager.php?entity=certification';"><?php echo $eve->_('imagemanager');?></button>
 	</div>
 	
 	<table class="data_table" id="certification_models_table">

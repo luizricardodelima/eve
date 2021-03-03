@@ -183,7 +183,7 @@ else
 		$eve->output_big_goto_button("payment_options", "&#91;", "payment_options.php");
 		$eve->output_big_goto_button("payment_groups", "&#91;", "payment_groups.php");
 		$eve->output_big_goto_button("userarea.option.admin.certifications", "&#34;", "certifications.php");
-		$eve->output_big_goto_button("userarea.option.admin.certificationtemplates", "&#34;", "certification_models.php");
+		$eve->output_big_goto_button("userarea.option.admin.certification_models", "&#34;", "certification_models.php");
 		$eve->output_big_goto_button("userarea.option.admin.pages", "&#108;", "pages.php");
 		$eve->output_big_goto_button("userarea.option.admin.settings", "&#106;", "settings.php");
 		echo "</div>";

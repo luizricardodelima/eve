@@ -51,6 +51,7 @@ else
 	?>
 	<div class="section">
 	<button type="button" onclick="document.forms['create_form'].submit();">Criar p&aacute;gina</button>
+	<button type="button" onclick="window.location='imagemanager.php?entity=page';"><?php echo $eve->_('imagemanager');?></button>
 	</div>
 
 	<table class="data_table">

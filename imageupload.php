@@ -4,6 +4,9 @@ require_once 'eve.class.php';
 
 $eve = new Eve();
 
+// TODO: Use the same strategies used in imagemanager
+// TODO: Rename this page to image single upload
+// TODO: G11N naturally
 // This page is used for uploading images for several contexts. This
 // This array contains the information necessary to load this page in each context.
 $upload_types = 

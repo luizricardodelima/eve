@@ -10,6 +10,7 @@ _Event management system_
 
 ## Changelog
 
+- 2021-03-04 **(feature)** Payment plugins can now be activated and deactivated. It open rooms for new payment plugins to be developed and only the desired ones being available to the user.
 - 2021-03-02 **(feature)** Better styling for pages and a new image manager for certification backgrounds and pages.
 - 2021-01-08 **(feature)** Font selection on certification models.
 - 2021-01-08 **(bug fix)** Certifications bug fixes on "exotic" characters which made all the text disappear and other security and code enhancements.

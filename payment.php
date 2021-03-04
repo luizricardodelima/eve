@@ -2,6 +2,7 @@
 session_start();
 require_once 'eve.class.php';
 require_once 'evepaymentservice.class.php';
+require_once 'evesettingsservice.class.php';
 
 $eve = new Eve();
 
@@ -124,13 +125,10 @@ else
 		$plugins = glob('plugins/*' , GLOB_ONLYDIR);
 		if (!empty($plugins))
 		{
-			// TODO The payments plugins need not only be installed in the system to be
-			// listed, but also need to be activated or deactivated by the administrator.
-			// This also needs to show an error message if no payment plugins are found.
 			foreach ($plugins as $plugin)
 			{
 				$plugin_info = parse_ini_file("$plugin/plugin.ini");
-				if ($plugin_info['type'] == 'payment')
+				if ($plugin_info['type'] == 'payment' && $eve->getSetting($plugin_info['activationsetting']))
 				{
 					$button_label = $eve->_('payment.button.plugin', ['<PLUGINNAME>' => $plugin_info['name']]);
 					echo "<button type=\"button\" class=\"submit\" onclick=\"payment_go('{$plugin}/{$plugin_info['paymentscreen']}')\">$button_label</button>";			

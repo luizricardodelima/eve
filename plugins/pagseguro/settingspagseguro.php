@@ -1,9 +1,11 @@
 <?php
 session_start();
 require_once '../../eve.class.php';
+require_once '../../evesettingsservice.class.php';
 require_once 'lib/config/PagSeguroConfig.php';
 
 $eve = new Eve();
+$eveSettingsService = new EveSettingsService($eve);
 
 // Session verification.
 if (!isset($_SESSION['screenname']))
@@ -15,6 +17,12 @@ else if (!$eve->is_admin($_SESSION['screenname']))
 {
 	$eve->output_error_page('common.message.no.permission');
 }
+// There are settings as POST variables to be saved.
+else if (!empty($_POST))
+{
+	$msg = $eveSettingsService->settings_update($_POST);
+	$eve->output_redirect_page(basename(__FILE__)."?msg=$msg");
+}
 else
 {
 	$eve->output_html_header();
@@ -24,24 +32,48 @@ else
 		$eve->_('userarea.option.admin.settings') => "../../settings.php",
 		"PagSeguro" => null
 	]);
+	$settings = $eveSettingsService->settings_get
+	(
+		'plugin_pagseguro_active'
+	);
 	?>
-	<div class="section">Variáves da conta PagSeguro. Para editar, modifique o arquivo <strong>/plugins/pagseguro/lib/config/PagSeguroConfig.php</strong> com as respectivas informações.</div>
+	<div class="section">
+	PagSeguro
+	<button type="button" onclick="document.forms['settings_form'].submit();"><?php echo $eve->_('common.action.save');?></button>
+	</div>
+	
+	<form class="dialog_panel_wide" id="settings_form" method="post">
+	<div class="dialog_section">Geral</div>
+	<label for="plugin_pagseguro_active"><input type="hidden" name="plugin_pagseguro_active" value="0"/>
+	<input 	id="plugin_pagseguro_active" type="checkbox" name="plugin_pagseguro_active" value="1" <?php echo ($settings['plugin_pagseguro_active']) ? "checked=\"checked\"" : "";?> />
+	Ativo
+	</label>
+
+	<div class="dialog_section">Variáves da conta PagSeguro</div>
+	<p> Para editar, modifique o arquivo <strong>/plugins/pagseguro/lib/config/PagSeguroConfig.php</strong> com as respectivas informações.</p>
 	<table class="data_table">
-	<thead><th>Variável</th><th>Valor</th></thead>
-	<tr><td>$PagSeguroConfig['environment']</td><td><?php echo $PagSeguroConfig['environment'];?></td></tr>
-	<tr><td>$PagSeguroConfig['credentials']['email']</td><td><?php echo $PagSeguroConfig['credentials']['email'];?></td></tr>
-	<tr><td>$PagSeguroConfig['credentials']['token']['production']</td><td><?php echo $PagSeguroConfig['credentials']['token']['production'];?></td></tr>
-	<tr><td>$PagSeguroConfig['credentials']['token']['sandbox']</td><td><?php echo $PagSeguroConfig['credentials']['token']['sandbox'];?></td></tr>
-	<tr><td>$PagSeguroConfig['application']['charset']</td><td><?php echo $PagSeguroConfig['application']['charset'];?></td></tr>
-	<tr><td>$PagSeguroConfig['log']['active']</td><td><?php if (!$PagSeguroConfig['log']['active']) echo "false"; else echo "true";?></td></tr>
-	<tr><td>$PagSeguroConfig['log']['fileLocation']</td><td><?php echo $PagSeguroConfig['log']['fileLocation'];?></td></tr>
+	<tr><td><code>$PagSeguroConfig['environment']</code></td>
+	<td><code><?php echo $PagSeguroConfig['environment'];?></code></td></tr>
+	<tr><td><code>$PagSeguroConfig['credentials']['email']</code></td>
+	<td><code><?php echo $PagSeguroConfig['credentials']['email'];?></code></td></tr>
+	<tr><td><code>$PagSeguroConfig['credentials']['token']['production']</code></td>
+	<td><code><?php echo $PagSeguroConfig['credentials']['token']['production'];?></code></td></tr>
+	<tr><td><code>$PagSeguroConfig['credentials']['token']['sandbox']</code></td>
+	<td><code><?php echo $PagSeguroConfig['credentials']['token']['sandbox'];?></code></td></tr>
+	<tr><td><code>$PagSeguroConfig['application']['charset']</code></td>
+	<td><code><?php echo $PagSeguroConfig['application']['charset'];?></code></td></tr>
+	<tr><td><code>$PagSeguroConfig['log']['active']</code></td>
+	<td><code><?php if (!$PagSeguroConfig['log']['active']) echo "false"; else echo "true";?></code></td></tr>
+	<tr><td><code>$PagSeguroConfig['log']['fileLocation']</code></td>
+	<td><code><?php echo $PagSeguroConfig['log']['fileLocation'];?></code></td></tr>
 	</table>
 	
-	<div class="section">Arquivos de logs. É necessário que a pasta <strong>/plugins/pagseguro/log</strong> tenha permissão de escrita.</div>
-	<div class="dialog_panel">Status atual:
-	<?php if (is_writable('log/')) echo "Permissão ok"; else echo "Permissão negada";?>
-	</div>
-
+	<br/>
+	<div class="dialog_section">Escrita de arquivos de logs</div>
+	<p>
+	<?php echo (is_writable('log/')) ? "Permissão ok": "Permissão negada. É necessário que a pasta <strong>/plugins/pagseguro/log</strong> tenha permissão de escrita.";?>
+	</p>
+	</form>
 	<?php
 	// TODO #5 Create an option for configuring a prefix code for items on PagSeguro plugin
 

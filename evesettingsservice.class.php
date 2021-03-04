@@ -25,6 +25,7 @@ class EveSettingsService
         }
         foreach (func_get_args() as $argument)
         {
+            $list[$argument] = null;
             $stmt->bind_param('s', $argument);
             $stmt->execute();
             $stmt->bind_result($key, $value);
@@ -41,9 +42,10 @@ class EveSettingsService
     {
         $stmt = $this->eve->mysqli->prepare
         ("
-            update  `{$this->eve->DBPref}settings`
-            set     `{$this->eve->DBPref}settings`.`value` = ?
-            where   `{$this->eve->DBPref}settings`.`key` = ?
+            insert into `{$this->eve->DBPref}settings`
+            (`key`, `value`) values (?, ?)
+            on duplicate key update `value` = ?
+
 		");
 		if ($stmt === false)
 		{
@@ -52,7 +54,7 @@ class EveSettingsService
         }
         foreach ($settings as $key => $value)
         {
-            $stmt->bind_param('ss', $value, $key);
+            $stmt->bind_param('sss', $key, $value, $value);
             $stmt->execute();
         }
         $stmt->close();

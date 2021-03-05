@@ -365,6 +365,8 @@
 	"user.passwordchange.error.passwords.do.not.match":"Erro: a nova senha e a confirmação não conferem",
 	"user.passwordchange.error.incorrect.password":"Erro: senha atual incorreta",
 	"user.passwordchange.success":"Senha alterada com sucesso",
+	"user.validation.error.invalid":"O valor para o campo <FIELD> é inválido",
+	"user.validation.error.blank":"O valor para o campo <FIELD> não pode estar em branco",
 	"userarea.message.email.successfully.verified": "O e-mail foi verificado com sucesso e seu acesso foi liberado.",
 	"userarea.message.submission.sent": "Submissão enviada com sucesso!",
 	"userarea.message.userdata.saved.successfully": "Cadastro salvo com sucesso",

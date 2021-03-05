@@ -590,6 +590,69 @@ class EveUserService
 		return $result;
 	}
 
+	/** 
+	 * Validates the information contained in user according to the settings. For 
+	 * instance, if field 'city' is required and $user['city'] is empty, the return
+	 * array will contain a message (user readable message) informing about the
+	 * validation error. If no validation errors are found, this returns an empty
+	 * array.
+	 */
+	function user_validate($user)
+	{
+		$validation_errors = array();
+		// Validating name, if visible and mandatory
+		if ($this->eve->getSetting('user_name_visible') && $this->eve->getSetting('user_name_mandatory') && $user['name'] == '')
+			$validation_errors[] = $this->eve->_('user.validation.error.blank', ['<FIELD>' => $this->eve->_('user.data.name')]);
+		// Validating birthday, if visible and mandatory
+		if ($this->eve->getSetting('user_birthday_visible') && $this->eve->getSetting('user_birthday_mandatory') && !strtotime($user['birthday']))
+			$validation_errors[] = $this->eve->_('user.validation.error.invalid', ['<FIELD>' => $this->eve->_('user.data.birthday')]);	
+		// Validating gender, if visible and mandatory
+		if ($this->eve->getSetting('user_gender_visible') && $this->eve->getSetting('user_gender_mandatory') && $user['gender'] == '')
+			$validation_errors[] = $this->eve->_('user.validation.error.blank', ['<FIELD>' => $this->eve->_('user.data.gender')]);
+		// Validating address, if visible and mandatory
+		if ($this->eve->getSetting('user_address_visible') && $this->eve->getSetting('user_address_mandatory') && $user['address'] == '')
+			$validation_errors[] = $this->eve->_('user.validation.error.blank', ['<FIELD>' => $this->eve->_('user.data.address')]);
+		// Validating city, if visible and mandatory
+		if ($this->eve->getSetting('user_city_visible') && $this->eve->getSetting('user_city_mandatory') && $user['city'] == '')
+			$validation_errors[] = $this->eve->_('user.validation.error.blank', ['<FIELD>' => $this->eve->_('user.data.city')]);
+		// Validating state, if visible and mandatory
+		if ($this->eve->getSetting('user_state_visible') && $this->eve->getSetting('user_state_mandatory') && $user['state'] == '')
+			$validation_errors[] = $this->eve->_('user.validation.error.blank', ['<FIELD>' => $this->eve->_('user.data.state')]);
+		// Validating country, if visible and mandatory
+		if ($this->eve->getSetting('user_country_visible') && $this->eve->getSetting('user_country_mandatory') && $user['country'] == '')
+			$validation_errors[] = $this->eve->_('user.validation.error.blank', ['<FIELD>' => $this->eve->_('user.data.country')]);
+		// Validating postalcode, if visible and mandatory
+		if ($this->eve->getSetting('user_postalcode_visible') && $this->eve->getSetting('user_postalcode_mandatory') && $user['postalcode'] == '')
+			$validation_errors[] = $this->eve->_('user.validation.error.blank', ['<FIELD>' => $this->eve->_('user.data.postalcode')]);
+		// Validating phone1, if visible and mandatory
+		if ($this->eve->getSetting('user_phone1_visible') && $this->eve->getSetting('user_phone1_mandatory') && $user['phone1'] == '')
+			$validation_errors[] = $this->eve->_('user.validation.error.blank', ['<FIELD>' => $this->eve->_('user.data.phone1')]);
+		// Validating phone2, if visible and mandatory
+		if ($this->eve->getSetting('user_phone2_visible') && $this->eve->getSetting('user_phone2_mandatory') && $user['phone2'] == '')
+			$validation_errors[] = $this->eve->_('user.validation.error.blank', ['<FIELD>' => $this->eve->_('user.data.phone2')]);
+		// Validating institution, if visible and mandatory
+		if ($this->eve->getSetting('user_institution_visible') && $this->eve->getSetting('user_institution_mandatory') && $user['institution'] == '')
+			$validation_errors[] = $this->eve->_('user.validation.error.blank', ['<FIELD>' => $this->eve->_('user.data.institution')]);
+		// TODO VALIDATE CUSTOMTEXTS ACCORDING TO THEIR MASKS
+		// Validating customtext1, if visible and mandatory
+		if ($this->eve->getSetting('user_customtext1_visible') && $this->eve->getSetting('user_customtext1_mandatory') && $user['customtext1'] == '')
+			$validation_errors[] = $this->eve->_('user.validation.error.blank', ['<FIELD>' => $this->eve->getSetting('user_customtext1_label')]);
+		// Validating customtext2, if visible and mandatory
+		if ($this->eve->getSetting('user_customtext2_visible') && $this->eve->getSetting('user_customtext2_mandatory') && $user['customtext2'] == '')
+			$validation_errors[] = $this->eve->_('user.validation.error.blank', ['<FIELD>' => $this->eve->getSetting('user_customtext2_label')]);
+		// Validating customtext3, if visible and mandatory
+		if ($this->eve->getSetting('user_customtext3_visible') && $this->eve->getSetting('user_customtext3_mandatory') && $user['customtext3'] == '')
+			$validation_errors[] = $this->eve->_('user.validation.error.blank', ['<FIELD>' => $this->eve->getSetting('user_customtext3_label')]);
+		// Validating customtext4, if visible and mandatory
+		if ($this->eve->getSetting('user_customtext4_visible') && $this->eve->getSetting('user_customtext4_mandatory') && $user['customtext4'] == '')
+			$validation_errors[] = $this->eve->_('user.validation.error.blank', ['<FIELD>' => $this->eve->getSetting('user_customtext4_label')]);
+		// Validating customtext5, if visible and mandatory
+		if ($this->eve->getSetting('user_customtext5_visible') && $this->eve->getSetting('user_customtext5_mandatory') && $user['customtext5'] == '')
+			$validation_errors[] = $this->eve->_('user.validation.error.blank', ['<FIELD>' => $this->eve->getSetting('user_customtext5_label')]);
+		
+		return $validation_errors;
+	}
+
 	function __construct(Eve $eve)
 	{
 		$this->eve = $eve;

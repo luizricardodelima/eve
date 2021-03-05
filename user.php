@@ -5,7 +5,7 @@ require_once 'eve.class.php';
 require_once 'eveuserservice.class.php';
 
 $eve = new Eve();
-$EveUserService = new EveUserService($eve);
+$eveUserService = new EveUserService($eve);
 
 if (!isset($_SESSION['screenname']))
 {
@@ -23,7 +23,7 @@ else
 	// own data, ignoring 'screenname' passed as a GET parameter.
 	$admin_mode = (isset($_GET['user']) && $eve->is_admin($_SESSION['screenname'])) ? 1 : 0;			
 	$email = ($admin_mode == 1) ? $_GET['user'] : $_SESSION['screenname'];
-	$user = $EveUserService->user_get($email); // User data
+	$user = $eveUserService->user_get($email); // User data
 	$validation_errors = array();
 
 	if (!empty($_POST))
@@ -41,71 +41,13 @@ else
 		// TODO lock_request_from_user? why not sending this to the user_save method?
 		foreach ($_POST as $column => $value) {$user[$column] = $value;}
 		
-		// START OF VALIDATION (NOT PERFORMED IN ADMIN MODE)
-		if (!$admin_mode)
-		{
-			// TODO proper g11n
-			$validation_invalid_field_start = "O valor para o campo ";
-			$validation_invalid_field_end = " &eacute; inv&aacute;lido.";
-			$validation_missing_field_start = "O campo ";
-			$validation_missing_field_end = " n&atilde;o pode estar em branco.";
-
-			// Validating name, if visible and mandatory
-			if ($eve->getSetting('user_name_visible') && $eve->getSetting('user_name_mandatory') && $user['name'] == '')
-				$validation_errors[] = $validation_missing_field_start.$eve->_('user.data.name').$validation_missing_field_end;
-			// Validating birthday, if visible and mandatory
-			if ($eve->getSetting('user_birthday_visible') && $eve->getSetting('user_birthday_mandatory') && !strtotime($user['birthday']))
-				$validation_errors[] = $validation_invalid_field_start.$eve->_('user.data.birthday').$validation_invalid_field_end;
-			// Validating gender, if visible and mandatory
-			if ($eve->getSetting('user_gender_visible') && $eve->getSetting('user_gender_mandatory') && $user['gender'] == '')
-				$validation_errors[] = $validation_missing_field_start.$eve->_('user.data.gender').$validation_missing_field_end;
-			// Validating address, if visible and mandatory
-			if ($eve->getSetting('user_address_visible') && $eve->getSetting('user_address_mandatory') && $user['address'] == '')
-				$validation_errors[] = $validation_missing_field_start.$eve->_('user.data.address').$validation_missing_field_end;
-			// Validating city, if visible and mandatory
-			if ($eve->getSetting('user_city_visible') && $eve->getSetting('user_city_mandatory') && $user['city'] == '')
-				$validation_errors[] = $validation_missing_field_start.$eve->_('user.data.city').$validation_missing_field_end;
-			// Validating state, if visible and mandatory
-			if ($eve->getSetting('user_state_visible') && $eve->getSetting('user_state_mandatory') && $user['state'] == '')
-				$validation_errors[] = $validation_missing_field_start.$eve->_('user.data.state').$validation_missing_field_end;
-			// Validating country, if visible and mandatory
-			if ($eve->getSetting('user_country_visible') && $eve->getSetting('user_country_mandatory') && $user['country'] == '')
-				$validation_errors[] = $validation_missing_field_start.$eve->_('user.data.country').$validation_missing_field_end;
-			// Validating postalcode, if visible and mandatory
-			if ($eve->getSetting('user_postalcode_visible') && $eve->getSetting('user_postalcode_mandatory') && $user['postalcode'] == '')
-				$validation_errors[] = $validation_missing_field_start.$eve->_('user.data.postalcode').$validation_missing_field_end;
-			// Validating phone1, if visible and mandatory
-			if ($eve->getSetting('user_phone1_visible') && $eve->getSetting('user_phone1_mandatory') && $user['phone1'] == '')
-				$validation_errors[] = $validation_missing_field_start.$eve->_('user.data.phone1').$validation_missing_field_end;
-			// Validating phone2, if visible and mandatory
-			if ($eve->getSetting('user_phone2_visible') && $eve->getSetting('user_phone2_mandatory') && $user['phone2'] == '')
-				$validation_errors[] = $validation_missing_field_start.$eve->_('user.data.phone2').$validation_missing_field_end;
-			// Validating institution, if visible and mandatory
-			if ($eve->getSetting('user_institution_visible') && $eve->getSetting('user_institution_mandatory') && $user['institution'] == '')
-				$validation_errors[] = $validation_missing_field_start.$eve->_('user.data.institution').$validation_missing_field_end;
-			// TODO VALIDATE CUSTOMTEXTS ACCORDING TO THEIR MASKS
-			// Validating customtext1, if visible and mandatory
-			if ($eve->getSetting('user_customtext1_visible') && $eve->getSetting('user_customtext1_mandatory') && $user['customtext1'] == '')
-				$validation_errors[] = $validation_missing_field_start.$eve->getSetting('user_customtext1_label').$validation_missing_field_end;
-			// Validating customtext2, if visible and mandatory
-			if ($eve->getSetting('user_customtext2_visible') && $eve->getSetting('user_customtext2_mandatory') && $user['customtext2'] == '')
-				$validation_errors[] = $validation_missing_field_start.$eve->getSetting('user_customtext2_label').$validation_missing_field_end;
-			// Validating customtext3, if visible and mandatory
-			if ($eve->getSetting('user_customtext3_visible') && $eve->getSetting('user_customtext3_mandatory') && $user['customtext3'] == '')
-				$validation_errors[] = $validation_missing_field_start.$eve->getSetting('user_customtext3_label').$validation_missing_field_end;
-			// Validating customtext4, if visible and mandatory
-			if ($eve->getSetting('user_customtext4_visible') && $eve->getSetting('user_customtext4_mandatory') && $user['customtext4'] == '')
-				$validation_errors[] = $validation_missing_field_start.$eve->getSetting('user_customtext4_label').$validation_missing_field_end;
-			// Validating customtext5, if visible and mandatory
-			if ($eve->getSetting('user_customtext5_visible') && $eve->getSetting('user_customtext5_mandatory') && $user['customtext5'] == '')
-				$validation_errors[] = $validation_missing_field_start.$eve->getSetting('user_customtext5_label').$validation_missing_field_end;
-		}		
-		// END OF VALIDATION
+		// Validating user data if not in admin mode
+		if (!$admin_mode) $validation_errors = $eveUserService->user_validate($user);
 
 		if (empty($validation_errors))
 		{
 			// Updating user data, if there are no validating errors
-			$EveUserService->user_save($user);
+			$eveUserService->user_save($user);
 			if (($eve->getSetting('block_user_form') == 'after_sending') && $lock_request_from_user)
 			{
 				// TODO these things should be inserted in a service.
@@ -148,7 +90,7 @@ else
 		<?php	
 	}	
 	
-	if ($validation_errors)
+	if (!empty($validation_errors))
 		$eve->output_error_list_message($validation_errors);
 
 	$mandatory = "<small> (obrigatório)</small>"; //TODO g11n
@@ -212,7 +154,7 @@ else
 	<select id="user_data_gender" name="gender"/>
 	<option value=""><?php echo $eve->_('common.select.null');?></option>
 	<?php
-	foreach ($EveUserService->user_genders() as $gender)
+	foreach ($eveUserService->user_genders() as $gender)
 	{
 		echo "<option value=\"$gender\"";
 		if ($user['gender'] == $gender) echo " selected=\"selected\"";

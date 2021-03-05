@@ -365,6 +365,8 @@
 	"user.passwordchange.error.passwords.do.not.match":"Error: new password and the confirmation do not match",
 	"user.passwordchange.error.incorrect.password":"Error: current password is incorrect",
 	"user.passwordchange.success":"Password changed successfully",
+	"user.validation.error.invalid":"The value for field <FIELD> is invalid",
+	"user.validation.error.blank":"The value for field <FIELD> cannot be blank",
 	"userarea.message.email.successfully.verified": "The e-mail address has been successfully verified and now you have access to the system.",
 	"userarea.message.submission.sent": "Submission successfully sent!",
 	"userarea.message.userdata.saved.successfully": "User form saved successfully",

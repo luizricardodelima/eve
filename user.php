@@ -19,29 +19,27 @@ else
 {	
 	// $admin_mode flag. System administrators can use this page to view and edit other users' data.
 	// This is recognized when a 'screenname' GET parameter is passed and the current user is admin.
-	// If a non-admin tries to pass a 'screenname' GET parameter, they will see this page with their
-	// own data, ignoring 'screenname' passed as a GET parameter.
+	// If a non-admin tries to pass a 'screenname' GET parameter, this code will simply ignore it
 	$admin_mode = (isset($_GET['user']) && $eve->is_admin($_SESSION['screenname'])) ? 1 : 0;			
 	$email = ($admin_mode == 1) ? $_GET['user'] : $_SESSION['screenname'];
-	$user = $eveUserService->user_get($email); // User data
+	$user = $eveUserService->user_get($email);
 	$validation_errors = array();
 
 	if (!empty($_POST))
 	{
-		// There are POST data. There is no need to retrieve data from database.
-		// POST data will be validadated. If valid, they will be saved on db,
-		// otherwise they will only be displayed with an error message.
+		// There are POST information with user data. If they are valid, they will be
+		// saved, if not an error will be displayed.
 
 		// $_POST['lock_request_from_user'] is not user data, but a request for
 		// locking the form sent by user in the non-admin mode.
 		$lock_request_from_user = isset($_POST['lock_request_from_user']) ? $_POST['lock_request_from_user'] : 0;
 		unset($_POST['lock_request_from_user']);
 
-		// TODO why not saving POST directly?
-		// TODO lock_request_from_user? why not sending this to the user_save method?
+		// Overwriting $user with POST data so users can see the data they have
+		// inputted, even if the data is not saved because of a validation error.
 		foreach ($_POST as $column => $value) {$user[$column] = $value;}
 		
-		// Validating user data if not in admin mode
+		// Validating user data only if not in admin mode
 		if (!$admin_mode) $validation_errors = $eveUserService->user_validate($user);
 
 		if (empty($validation_errors))
@@ -50,7 +48,7 @@ else
 			$eveUserService->user_save($user);
 			if (($eve->getSetting('block_user_form') == 'after_sending') && $lock_request_from_user)
 			{
-				// TODO these things should be inserted in a service.
+				// TODO this code should be in a service.
 				$eve->mysqli->query("UPDATE `{$eve->DBPref}userdata` SET `locked_form` = 1 WHERE `email` = '$email';");
 				$user['locked_form'] = 1;
 			}
@@ -93,7 +91,7 @@ else
 	if (!empty($validation_errors))
 		$eve->output_error_list_message($validation_errors);
 
-	$mandatory = "<small> (obrigatório)</small>"; //TODO g11n
+	$mandatory = "&nbsp;<small><em>{$eve->_('common.mandatory.field')}</em></small>";
 	?>
 	<form method="post" id="user_form" class="dialog_panel" <?php if ($admin_mode) echo "action=\"".basename(__FILE__)."?user=$email\"";?>>
 
@@ -273,8 +271,8 @@ else
 	}
 	else
 	{
-		// Displaying note and lockd form as hidden variables
-		// TODO kind of a security breach...
+		// Displaying note and locked_form as hidden variables
+		// TODO this is a security breach... A malicious user can change this values
 		?>
 		<input type="hidden" name="note" value="<?php echo $user['note'];?>"/> 
 		<input type="hidden" name="locked_form" value="<?php echo $user['locked_form'];?>"/> 

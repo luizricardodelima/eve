@@ -47,7 +47,7 @@ else
 			{
 				$msg = $eveSubmissionService->submission_create($_GET['id'], $_SESSION['screenname'], $dynamicForm);
 				if ($msg == EveSubmissionService::SUBMISSION_CREATE_SUCCESS)					
-					$eve->output_redirect_page("userarea.php?systemmessage=submission.sent");
+					$eve->output_redirect_page("userarea.php?msg=userarea.message.submission.sent.successfully");
 				else					
 					$eve->output_redirect_page(basename(__FILE__)."?id={$_GET['id']}&message=$msg");
 			}

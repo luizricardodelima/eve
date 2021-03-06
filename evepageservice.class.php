@@ -108,7 +108,4 @@ class EvePageService
 		$this->eve = $eve;
 	}
 }
-
-
-
 ?>

@@ -52,7 +52,7 @@ else
 				$eve->mysqli->query("UPDATE `{$eve->DBPref}userdata` SET `locked_form` = 1 WHERE `email` = '$email';");
 				$user['locked_form'] = 1;
 			}
-			$eve->output_redirect_page("userarea.php?systemmessage=userdata.saved.successfully");
+			$eve->output_redirect_page("userarea.php?msg=userarea.message.userdata.saved.successfully");
 		}
 	}
 

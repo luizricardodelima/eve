@@ -20,28 +20,43 @@ else if (!$eve->is_admin($_SESSION['screenname']))
 {
 	$eve->output_error_page('common.message.no.permission');
 }
+// Parameter verification
 else if ($certificationmodel == null)
 {
 	$eve->output_error_page('common.message.invalid.parameter');
 } 
-// Post actions
+// Checking if there are post actions
 else if (isset($_POST['action'])) switch ($_POST['action'])
 {
 	case "specialsubmissionattibuition":
-		$msg = $eveCertificationService->certification_attribuition($_GET['id'], $_POST['screenname'], $_POST['submission_id'], $_POST['locked']);
-		$eve->output_redirect_page(basename(__FILE__)."?id=".$_GET['id']."&msg=$msg");
+		$msgs = array();
+		$msgs[$_POST['submission_id']] = $eveCertificationService->certification_model_attribuition($_GET['id'], $_POST['screenname'], $_POST['submission_id'], $_POST['locked']);
+		$eve->output_redirect_page(basename(__FILE__)."?id=".$_GET['id']."&msgs=".urlencode(json_encode($msgs)));
 		break;
 	case "attribuition":
 		if ($certificationmodel['type'] == "submissioncertification")
 		{
-			$eveCertificationService->certification_attribuition_submission($_GET['id'], $_POST['submission'], $_POST['locked']);
-			$eve->output_redirect_page(basename(__FILE__)."?id=".$_GET['id']."&success=1");
+			$msgs = array();
+			foreach($_POST['submission'] as $submission_id) //$_POST['submission'] is an array
+			{
+				$screenname = $eveSubmissionService->submission_get($submission_id)['email'];
+				$msgs[$submission_id] = $eveCertificationService->certification_model_attribuition($_GET['id'], $screenname, $submission_id, $_POST['locked']);
+			}
+			$eve->output_redirect_page(basename(__FILE__)."?id=".$_GET['id']."&msgs=".urlencode(json_encode($msgs)));
 		}
 		else if  ($certificationmodel['type'] == "usercertification") 
 		{
-			$eveCertificationService->certification_attribuition_user($_GET['id'], $_POST['screenname'], $_POST['locked']);
-			$eve->output_redirect_page(basename(__FILE__)."?id=".$_GET['id']."&success=1");
+			$msgs = array();
+			foreach($_POST['screenname'] as $screenname) //$_POST['screenname'] is an array
+			{
+				$msgs[$screenname] = $eveCertificationService->certification_model_attribuition($_GET['id'], $screenname, null, $_POST['locked']);
+			}
+			$eve->output_redirect_page(basename(__FILE__)."?id=".$_GET['id']."&msgs=".urlencode(json_encode($msgs)));
 		}
+	break;
+	default:
+		// If an unrecognized post action is passed, simply reload the page
+		$eve->output_redirect_page(basename(__FILE__)."?id=".$_GET['id']);
 	break;
 }
 // Regular view
@@ -52,7 +67,7 @@ else
 	([
 		$eve->getSetting('userarea_label') => "userarea.php",
 		$eve->_('userarea.option.admin.certification_models') => "certification_models.php",
-		"Atribuição de certificados" => null
+		$eve->_('certificationmodel.attribuition') => null
 	]);
 	
 	?>
@@ -181,20 +196,25 @@ else
 	}
 	?>
 	</div>
-
 	<?php
-	if (isset($_GET['success'])) // TODO: Deprecated
+
+	// Success or error messages on certification model attribuition
+	if (isset($_GET['msgs']))
 	{
-		if ($_GET['success'] == 1) $eve->output_success_message("Certificados atribuídos com sucesso.");
-	}
-	if (isset($_GET['msg'])) switch($_GET['msg'])
-	{
-		case EveCertificationService::CERTIFICATION_ATTRIBUITION_ERROR:
-			$eve->output_error_message("Erro ao atribuir certificado."); break;
-		case EveCertificationService::CERTIFICATION_ATTRIBUITION_ERROR_SQL:
-			$eve->output_error_message("Erro no banco de dados ao atribuir certificado."); break;
-		case EveCertificationService::CERTIFICATION_ATTRIBUITION_SUCCESS:
-			$eve->output_success_message("Certificado atribuido com sucesso."); break;
+		$msgs = json_decode($_GET['msgs'], true);
+		$success_count = 0;
+		$error_count = 0;
+		$detailed_messages = array();
+		if (is_array($msgs)) foreach($msgs as $key => $msg)
+		{
+			if ($msg == EveCertificationService::CERTIFICATION_MODEL_ATTRIBUITION_SUCCESS)
+				$success_count++;
+			else
+				$error_count++;
+			$detailed_messages[] = "$key: ".$eve->_($msg);
+		}
+		$base_message = $eve->_('certificationmodel.attribuition.result', ['<SUCCESS_COUNT>' => $success_count, '<ERROR_COUNT>' => $error_count]);
+		$eve->output_info_messagebox($base_message, true, $detailed_messages);
 	}
 
 	if ($certificationmodel['type'] == "submissioncertification")
@@ -246,7 +266,7 @@ else
 	}
 	?>
 	</form>
-	
 	<?php
+	
 	$eve->output_html_footer();
 }?>

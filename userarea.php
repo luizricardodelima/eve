@@ -88,18 +88,8 @@ else
 	$eve->output_html_header();
 	$eve->output_navigation([$eve->getSetting('userarea_label') => "userarea.php"]);
 
-	if (isset($_GET['systemmessage'])) switch ($_GET['systemmessage'])
-	{
-		case 'userdata.saved.successfully':
-			$eve->output_success_message('userarea.message.userdata.saved.successfully'); 
-			break;
-		case 'submission.sent':
-			$eve->output_success_message('userarea.message.submission.sent');
-			break;
-	}
-
-	// TODO: Change to the pattern above
-	if (isset($_GET['emailverificationsuccess'])) $eve->output_success_message('userarea.message.email.successfully.verified');	
+	// Displaying messages to user, if any
+	if (isset($_GET['msg'])) $eve->output_service_message($_GET['msg']);
 
 	if($eve->getSetting('system_custom_message'))
 	{
@@ -191,4 +181,3 @@ else
 	$eve->output_html_footer();
 }
 ?>
-

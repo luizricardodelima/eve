@@ -11,9 +11,9 @@ class EveCertificationService
 	const TEXT_FONTS = ['Courier', 'Helvetica', 'Times', 'Symbol', 'ZapfDingbats'];
 	const DEFAULT_TEXT_FONT = 'Helvetica';
 	
-	const CERTIFICATION_ATTRIBUITION_ERROR = 0;	
-	const CERTIFICATION_ATTRIBUITION_ERROR_SQL = 1;
-	const CERTIFICATION_ATTRIBUITION_SUCCESS = 2;
+	const CERTIFICATION_MODEL_ATTRIBUITION_ERROR = 'certificationmodel.attribuition.error';	
+	const CERTIFICATION_MODEL_ATTRIBUITION_ERROR_SQL = 'certificationmodel.attribuition.error.sql';
+	const CERTIFICATION_MODEL_ATTRIBUITION_SUCCESS = 'certificationmodel.attribuition.success';
 
 	const CERTIFICATIONMODEL_CREATE_ERROR_SQL = 'certificationmodel.create.error.sql';
 	const CERTIFICATIONMODEL_CREATE_SUCCESS = 'certificationmodel.create.success';
@@ -203,92 +203,6 @@ class EveCertificationService
 			return implode($comma, array_slice($output_array, 0, count($output_array)-1)) . $and . $output_array[count($output_array)-1];
 	}
 
-	function certification_attribuition($certificationtemplate_id, $screenname, $submission_id, $locked = 0)
-	{
-		// TODO check if screenname and submissionid are valid to return more specific errors
-		// Preparing insert statement
-		$stmt2 = $this->eve->mysqli->prepare
-		("
-			insert
-			into `{$this->eve->DBPref}certification` (`certification_model_id`, `screenname`, `submissionid`, `locked`)
-			values (?, ?, ?, ?);
-		");
-		if ($stmt2 === false)
-		{
-			return self::CERTIFICATION_ATTRIBUITION_ERROR_SQL;
-		}
-		$stmt2->bind_param('isii', $certificationtemplate_id, $screenname, $submission_id, $locked);
-		$stmt2->execute();
-		if ($this->eve->mysqli->affected_rows)
-		{
-			if (!$locked && $this->eve->getSetting('email_snd_certification'))
-			$this->send_certification_mail($stmt2->insert_id);
-			$stmt2->close();
-			return self::CERTIFICATION_ATTRIBUITION_SUCCESS;
-		}
-		else
-		{
-			$stmt2->close();
-			return self::CERTIFICATION_ATTRIBUITION_ERROR;
-		}
-	}
-	
-	// $submission_ids must be an array // TODO REUSE certification_attribuition FUNCTION
-	function certification_attribuition_submission($certificationtemplate_id, $submission_ids, $locked = 0)
-	{
-		// Preparing insert statement
-		$stmt2 = $this->eve->mysqli->prepare
-		("
-			insert
-			into `{$this->eve->DBPref}certification` (`certification_model_id`, `screenname`, `submissionid`, `locked`)
-			values (?, ?, ?, ?);
-		");
-		if ($stmt2 === false)
-		{
-			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
-			return false;
-		}
-		$user_screennames = array();
-		$eveSubmissionService = new EveSubmissionService($this->eve);
-		foreach ($submission_ids as $key => $submission_id)
-		{
-			$user_screennames[$key] = $eveSubmissionService->submission_get($submission_id)['email'];
-		}
-		foreach ($submission_ids as $key => $submission_id)
-		{
-			$stmt2->bind_param('isii', $certificationtemplate_id, $user_screennames[$key], $submission_id, $locked);
-			$stmt2->execute();
-			if (!$locked && $this->eve->getSetting('email_snd_certification'))
-				$this->send_certification_mail($stmt2->insert_id);
-		}
-		$stmt2->close();
-	}
-
-	// $users must be an array // TODO REUSE certification_attribuition FUNCTION
-	function certification_attribuition_user($certificationtemplate_id, $users, $locked = 0)
-	{
-		// Preparing insert statement
-		$stmt2 = $this->eve->mysqli->prepare
-		("
-			insert
-			into `{$this->eve->DBPref}certification` (`certification_model_id`, `screenname`, `locked`)
-			values (?, ?, ?);
-		");
-		if ($stmt2 === false)
-		{
-			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
-			return false;
-		}
-		foreach ($users as $user)
-		{
-			$stmt2->bind_param('isi', $certificationtemplate_id, $user, $locked);
-			$stmt2->execute();
-			if (!$locked && $this->eve->getSetting('email_snd_certification'))
-				$this->send_certification_mail($stmt2->insert_id);
-		}
-		$stmt2->close();
-	}
-
 	/**
 	 *  Increases by 1 the view counter of the certification.
 	 */
@@ -472,6 +386,36 @@ class EveCertificationService
 		$this->evemail->send_mail($certification['owner'], $placeholders, $this->eve->getSetting('email_sbj_certification'), $this->eve->getSetting('email_msg_certification'));
 	}
 
+	function certification_model_attribuition($certification_model_id, $screenname, $submission_id, $locked = 0)
+	{
+		// TODO check if screenname and submissionid are valid to return more specific errors
+		// Preparing insert statement
+		$stmt2 = $this->eve->mysqli->prepare
+		("
+			insert
+			into `{$this->eve->DBPref}certification` (`certification_model_id`, `screenname`, `submissionid`, `locked`)
+			values (?, ?, ?, ?);
+		");
+		if ($stmt2 === false)
+		{
+			return self::CERTIFICATION_MODEL_ATTRIBUITION_ERROR_SQL;
+		}
+		$stmt2->bind_param('isii', $certification_model_id, $screenname, $submission_id, $locked);
+		$stmt2->execute();
+		if ($this->eve->mysqli->affected_rows)
+		{
+			if (!$locked && $this->eve->getSetting('email_snd_certification'))
+			$this->send_certification_mail($stmt2->insert_id);
+			$stmt2->close();
+			return self::CERTIFICATION_MODEL_ATTRIBUITION_SUCCESS;
+		}
+		else
+		{
+			$stmt2->close();
+			return self::CERTIFICATION_MODEL_ATTRIBUITION_ERROR;
+		}
+	}
+	
 	function certificationmodel_create($name = "")
 	{
 		$stmt = $this->eve->mysqli->prepare

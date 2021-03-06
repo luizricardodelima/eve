@@ -32,7 +32,7 @@ if (isset($_GET['screenname']) && isset($_GET['verificationcode']))
 		
 		// The new user will be authenticated automatically this time
 		$_SESSION['screenname'] = $_GET['screenname'];
-		$eve->output_redirect_page("userarea.php?emailverificationsuccess=1");		
+		$eve->output_redirect_page("userarea.php?msg=userarea.message.email.successfully.verified");		
 	}
 	else
 	{	// Username with verification code has not been found

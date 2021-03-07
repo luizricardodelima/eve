@@ -18,6 +18,7 @@ class EveCertificationService
 	const CERTIFICATIONMODEL_CREATE_ERROR_SQL = 'certificationmodel.create.error.sql';
 	const CERTIFICATIONMODEL_CREATE_SUCCESS = 'certificationmodel.create.success';
 
+	const CERTIFICATIONMODEL_DELETE_ERROR_CHILDREN_CERTIFICATIONS = 'certificationmodel.delete.error.children.certifications';
 	const CERTIFICATIONMODEL_DELETE_ERROR_SQL = 'certificationmodel.delete.error.sql';
 	const CERTIFICATIONMODEL_DELETE_SUCCESS = 'certificationmodel.delete.success';
 
@@ -479,20 +480,39 @@ class EveCertificationService
 
 	function certificationmodel_delete($id)
 	{
-		$stmt = $this->eve->mysqli->prepare
+		$stmt1 = $this->eve->mysqli->prepare
 		("
-			delete from `{$this->eve->DBPref}certification_model`
-			where `{$this->eve->DBPref}certification_model`.`id` = ?
-			limit 1;
+			select	count(*)
+			from	`{$this->eve->DBPref}certification`
+			where	`{$this->eve->DBPref}certification`.`certification_model_id` = ?
 		");
-		if ($stmt === false)
+		$stmt1->bind_param('i', $id);
+		$stmt1->execute();
+		$there_are_children_certifications = null;
+		$stmt1->bind_result($there_are_children_certifications); // Select count(*) - only one column
+		$stmt1->fetch(); // Select count(*) - only one row
+		$stmt1->close();
+		if ($there_are_children_certifications)
 		{
-			return self::CERTIFICATIONMODEL_DELETE_ERROR_SQL;
+			return self::CERTIFICATIONMODEL_DELETE_ERROR_CHILDREN_CERTIFICATIONS;
 		}
-		$stmt->bind_param('i', $id);
-		$stmt->execute();
-		$stmt->close();
-		return self::CERTIFICATIONMODEL_DELETE_SUCCESS;
+		else
+		{
+			$stmt = $this->eve->mysqli->prepare
+			("
+				delete from `{$this->eve->DBPref}certification_model`
+				where `{$this->eve->DBPref}certification_model`.`id` = ?
+				limit 1;
+			");
+			if ($stmt === false)
+			{
+				return self::CERTIFICATIONMODEL_DELETE_ERROR_SQL;
+			}
+			$stmt->bind_param('i', $id);
+			$stmt->execute();
+			$stmt->close();
+			return self::CERTIFICATIONMODEL_DELETE_SUCCESS;
+		}
 	}
 
 	function certificationmodel_duplicate($id)

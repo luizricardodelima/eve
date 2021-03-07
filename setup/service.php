@@ -424,7 +424,7 @@ function create_database($dbpassword, $screenname, $password)
 	$mysqli->query
 	("
 		ALTER TABLE `{$pref}certification`
-		  ADD CONSTRAINT `{$pref}certification_ibfk_1` FOREIGN KEY (`certification_model_id`) REFERENCES `{$pref}certification_model` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+		  ADD CONSTRAINT `{$pref}certification_ibfk_1` FOREIGN KEY (`certification_model_id`) REFERENCES `{$pref}certification_model` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
 		  ADD CONSTRAINT `{$pref}certification_ibfk_2` FOREIGN KEY (`screenname`) REFERENCES `{$pref}user` (`email`) ON DELETE CASCADE ON UPDATE CASCADE,
 		  ADD CONSTRAINT `{$pref}certification_ibfk_3` FOREIGN KEY (`submissionid`) REFERENCES `{$pref}submission`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 	");

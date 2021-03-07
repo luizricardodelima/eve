@@ -136,7 +136,14 @@ table.data_table button
 	width: 100%;
 	text-align: center;
 	background-color: transparent;
+	vertical-align: middle;
 }
+
+table.data_table button img
+{
+	vertical-align: text-bottom;
+}
+
 
 table.data_table th
 {

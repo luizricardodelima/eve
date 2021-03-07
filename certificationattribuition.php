@@ -30,30 +30,9 @@ else if (isset($_POST['action'])) switch ($_POST['action'])
 {
 	case "specialsubmissionattibuition":
 		$msgs = array();
-		$msgs[$_POST['submission_id']] = $eveCertificationService->certification_model_attribuition($_GET['id'], $_POST['screenname'], $_POST['submission_id'], $_POST['locked']);
+		$msgs[$_POST['submission_id']] = $eveCertificationService->certification_model_attribuition($_GET['id'], $_POST['screenname'], $_POST['submission_id']);
 		$eve->output_redirect_page(basename(__FILE__)."?id=".$_GET['id']."&msgs=".urlencode(json_encode($msgs)));
 		break;
-	case "attribuition":
-		if ($certificationmodel['type'] == "submissioncertification")
-		{
-			$msgs = array();
-			foreach($_POST['submission'] as $submission_id) //$_POST['submission'] is an array
-			{
-				$screenname = $eveSubmissionService->submission_get($submission_id)['email'];
-				$msgs[$submission_id] = $eveCertificationService->certification_model_attribuition($_GET['id'], $screenname, $submission_id, $_POST['locked']);
-			}
-			$eve->output_redirect_page(basename(__FILE__)."?id=".$_GET['id']."&msgs=".urlencode(json_encode($msgs)));
-		}
-		else if  ($certificationmodel['type'] == "usercertification") 
-		{
-			$msgs = array();
-			foreach($_POST['screenname'] as $screenname) //$_POST['screenname'] is an array
-			{
-				$msgs[$screenname] = $eveCertificationService->certification_model_attribuition($_GET['id'], $screenname, null, $_POST['locked']);
-			}
-			$eve->output_redirect_page(basename(__FILE__)."?id=".$_GET['id']."&msgs=".urlencode(json_encode($msgs)));
-		}
-	break;
 	default:
 		// If an unrecognized post action is passed, simply reload the page
 		$eve->output_redirect_page(basename(__FILE__)."?id=".$_GET['id']);
@@ -75,13 +54,107 @@ else
 	<input type="hidden" name="action" value="specialsubmissionattibuition"/>
 	<input type="hidden" name="submission_id" id="ipt_specialsubmissionattibuition_submissionid"/>
 	<input type="hidden" name="screenname" id="ipt_specialsubmissionattibuition_screenname"/>
-	<input type="hidden" name="locked" id="ipt_specialsubmissionattibuition_locked"/>
 	</form>
-	<form method="post" action="<?php echo basename(__FILE__)."?id=".$_GET['id'];?>" id="certificationattribuition_form">
-	<input type="hidden" name="action" value="attribuition"/>
+
 	<div class="section">
 	<label for="certification_ipt">Atribuição de <?php echo $certificationmodel['name'];?></label>
+
+	<?php
+	if ($certificationmodel['type'] == 'submissioncertification')
+	{
+		echo " para ";
+		echo "<select id=\"sel_submissiondefinition\" onchange=\"changeSubmissionDefinition()\">";
+		echo "<option value=\"null\">{$eve->_('common.select.null')}</option>";
+		foreach ($eveSubmissionService->submission_definition_list() as $submissiondefinition)
+			echo "<option value=\"{$submissiondefinition['id']}\">{$submissiondefinition['description']}</option>";
+		echo "</select>";
+		echo "<button type=\"button\" onclick=\"specialSubmissionAttribuition()\">Atribuição especial</button>";
+	}
+	?>
+	</div>
+	<?php
+
+	if ($certificationmodel['type'] == "submissioncertification")
+	{
+		?>
+		<table class="data_table" id="submissions_table">
+		<thead>
+		<th>E-mail</th>
+		<th>Nome</th>
+		<th>Id Subm.</th>
+		<th>Tipo de Atrib.</th>
+		<th>Id Cert.</th>
+		<th>Visualizações</th>
+		<th colspan="2"><?php echo $eve->_('common.table.header.options');?></th>
+		</thead>
+		<tbody>
+		</tbody>
+		</table>
+		<?php
+	}
+	else if ($certificationmodel['type'] == "usercertification") 
+	{
+		$eveUserService = new EveUserService($eve);
+		?>
+		<table class="data_table">
+		<thead>
+		<th>E-mail</th>
+		<th>Nome</th>
+		<th>Id cert.</th>
+		<th>Visualizações</th>
+		<th colspan="2"><?php echo $eve->_('common.table.header.options');?></th>
+		</thead>
+		<tbody>
+		<?php
+		
+		foreach($eveCertificationService->certificationmodel_user_certification_list($_GET['id']) as $user_certification)
+		{	
+			$tr_style = ($user_certification['id'] !== null) ? " style=\"font-style: italic;\"" : "";
+			echo "<tr$tr_style>";
+			echo "<td>{$user_certification['email']}</td>";
+			echo "<td>{$user_certification['name']}</td>";
+			echo "<td>{$user_certification['id']}</td>";
+			echo "<td>{$user_certification['views']}</td>";
+			echo "<td>"; 
+			echo ($user_certification['id'] === null) ?
+				"<button type=\"button\" onclick=\"certification_attribuition('{$user_certification['email']}', null)\"/><img src=\"style/icons/certification_new.png\"/>Atribuir</button>" : 
+				"<button type=\"button\" onclick=\"window.location.href='certification.php?id={$user_certification['id']}'\"><img src=\"style/icons/view.png\"/>Ver</button>";
+			echo "</td>";
+			echo "<td>"; 
+			echo ($user_certification['id'] === null) ?
+				"" : 
+				"<button type=\"button\" onclick=\"alert('Implement Delete')\"/><img src=\"style/icons/delete.png\"/>Apagar</button>" ;
+			echo "</td>";
+			echo "</tr>";
+		}
+		?>
+		</tbody>
+		</table>
+		<?php
+	}
+	?>
+
 	<script>
+		function certification_attribuition(screenname, submission_id)
+		{
+			var xhr = new XMLHttpRequest();
+			xhr.open('GET', 'service/certification_attribuition.php?certificationmodel_id=<?php echo $_GET['id'];?>&screenname='+screenname+'&submission_id='+submission_id);
+			xhr.onload = function() {
+				if (xhr.status === 200) 
+				{
+					if (xhr.responseText == '<?php echo EveCertificationService::CERTIFICATION_MODEL_ATTRIBUITION_SUCCESS; ?>')
+						alert('success! reload page - ' + xhr.responseText);
+					else
+						alert('not success - ' + xhr.responseText);		
+				}
+				else 
+				{
+					// HTTP Error message
+					alert('<?php echo $eve->_('common.message.error.http.request');?>' + xhr.status);
+				}
+			};
+			xhr.send();
+		}
 	function changeSubmissionDefinition()
 	{
 		var submission_definition_id = document.getElementById("sel_submissiondefinition").value;
@@ -90,32 +163,39 @@ else
 
 		var structure_variable = null;
 		var xhr = new XMLHttpRequest();
-		xhr.open('GET', 'service/submissions_list.php?id=' + submission_definition_id);
+		xhr.open('GET', 'service/submission_certifications_list.php?certificationmodel_id=<?php echo $_GET['id'];?>&submission_definition_id=' + submission_definition_id);
 		xhr.onload = function() {
 		    if (xhr.status === 200) {
-			structure_variable = JSON.parse(xhr.responseText);
-			for (i = 0; i < structure_variable.length; i++)
-			{ 
-				var row = table.insertRow(-1);
-				var cell_check = row.insertCell(-1);
-				var cell_id = row.insertCell(-1);
-				var cell_date = row.insertCell(-1);
-				var cell_email = row.insertCell(-1);
-				var cell_authorname = row.insertCell(-1);
-				
-				var input = document.createElement("input");
-				input.type = "checkbox";
-				input.name = "submission[]";
-				input.value = structure_variable[i].id;
-				input.setAttribute("onchange", "toggleRow('this')");
-				cell_check.appendChild(input);
+				structure_variable = JSON.parse(xhr.responseText);
+				for (i = 0; i < structure_variable.length; i++)
+				{ 
+					var row = table.insertRow(-1);
+					var cell_email = row.insertCell(-1);
+					var cell_name = row.insertCell(-1);
+					var cell_submissionid = row.insertCell(-1);
+					var cell_attribuitiontype = row.insertCell(-1);
+					var cell_id = row.insertCell(-1);
+					var cell_views = row.insertCell(-1);
+					var cell_option1 = row.insertCell(-1);
+					var cell_option2 = row.insertCell(-1);
 
-				//cell_check.innerHTML = '<input type="checkbox" name="submission[]" value="'+structure_variable[i].id+' onclick="toggleRow(this)"/>';
-				cell_id.innerHTML = structure_variable[i].id;
-				cell_date.innerHTML = structure_variable[i].date;
-				cell_email.innerHTML = structure_variable[i].email;
-				cell_authorname.innerHTML = structure_variable[i].name;
-			}
+					cell_email.innerHTML = structure_variable[i].email;
+					cell_name.innerHTML = structure_variable[i].name;
+					cell_submissionid.innerHTML = structure_variable[i].submission_id;
+					cell_attribuitiontype.innerHTML = structure_variable[i].attibuition_type;
+					cell_id.innerHTML = structure_variable[i].id;
+					cell_views.innerHTML = structure_variable[i].views;
+					if (structure_variable[i].id == null)
+					{
+						cell_option1.innerHTML = '<button type="button" onclick="certification_attribuition(\''+structure_variable[i].email+'\','+structure_variable[i].submission_id+')"/><img src="style/icons/certification_new.png"/>Atribuir</button>';				
+					}
+					else
+					{
+						row.style.fontStyle = 'italic';
+						cell_option1.innerHTML = '<button type="button" onclick="window.location.href=\'certification.php?id=' + structure_variable[i].id + '\'"><img src="style/icons/view.png"/>Ver</button>';
+						cell_option2.innerHTML = '<button type="button" onclick="alert(\'Implement Delete\')"/><img src="style/icons/delete.png"/>Apagar</button>';
+					}
+				}
 		    }
 		    else {
 				// HTTP Error message
@@ -123,27 +203,6 @@ else
 		    }
 		};
 		xhr.send();
-	}
-	function toggle(source, elementname)
-	{
-		checkboxes = document.getElementsByName(elementname);
-		for(var i=0, n=checkboxes.length;i<n;i++)
-		{
-			checkboxes[i].checked = source.checked;
-			toggleRow(checkboxes[i]);
-		}
-	}
-
-	function toggleRow(source)
-	{
-		if (source.checked)
-		{
-			source.parentNode.parentNode.classList.add('selected');
-		}
-		else
-		{
-			source.parentNode.parentNode.classList.remove('selected');
-		}
 	}
 	function specialSubmissionAttribuition()
 	{
@@ -160,112 +219,12 @@ else
 				{
 					document.getElementById('ipt_specialsubmissionattibuition_submissionid').value = submission_id;
 					document.getElementById('ipt_specialsubmissionattibuition_screenname').value = screenname;
-					if (document.getElementById('locked_ipt').checked)					
-						document.getElementById('ipt_specialsubmissionattibuition_locked').value = 1;
-					else
-						document.getElementById('ipt_specialsubmissionattibuition_locked').value = 0;
 					document.forms['specialsubmissionattibuition_form'].submit();
 				}
 			}
 		}	
 	}
 	</script>
-	<?php
-	if ($certificationmodel['type'] == "submissioncertification")
-	{
-		echo " para ";
-		echo "<select id=\"sel_submissiondefinition\" onchange=\"changeSubmissionDefinition()\">";
-		echo "<option value=\"null\">{$eve->_('common.select.null')}</option>";
-		foreach ($eveSubmissionService->submission_definition_list() as $submissiondefinition)
-			echo "<option value=\"{$submissiondefinition['id']}\">{$submissiondefinition['description']}</option>";
-		echo "</select>";
-	}
-	?>	
-	<input type="hidden" name="locked" value="0"/>
-	<label for="locked_ipt">
-	<input type="checkbox" name="locked" id="locked_ipt" value="1"/>
-	Bloqueado
-	</label>
-	<button type="submit">Atribuir</button>
-	<?php
-	if ($certificationmodel['type'] == "submissioncertification")
-	{
-		?>
-		<button type="button" onclick="specialSubmissionAttribuition()">Atribuição especial</button>
-		<?php
-	}
-	?>
-	</div>
-	<?php
-
-	// Success or error messages on certification model attribuition
-	if (isset($_GET['msgs']))
-	{
-		$msgs = json_decode($_GET['msgs'], true);
-		$success_count = 0;
-		$error_count = 0;
-		$detailed_messages = array();
-		if (is_array($msgs)) foreach($msgs as $key => $msg)
-		{
-			if ($msg == EveCertificationService::CERTIFICATION_MODEL_ATTRIBUITION_SUCCESS)
-				$success_count++;
-			else
-				$error_count++;
-			$detailed_messages[] = "$key: ".$eve->_($msg);
-		}
-		$base_message = $eve->_('certificationmodel.attribuition.result', ['<SUCCESS_COUNT>' => $success_count, '<ERROR_COUNT>' => $error_count]);
-		$eve->output_info_messagebox($base_message, true, $detailed_messages);
-	}
-
-	if ($certificationmodel['type'] == "submissioncertification")
-	{
-		?>
-		<table class="data_table" id="submissions_table">
-		<thead>
-		<th><input type="checkbox" onClick="toggle(this, 'screenname[]')"/></th>
-		<th>Id</th>
-		<th>Data de envio</th>
-		<th>E-mail</th>
-		<th>Nome do autor</th>
-		</thead>
-		<tbody>
-		</tbody>
-		</table>
-		<?php
-	}
-	else if ($certificationmodel['type'] == "usercertification") 
-	{
-		$eveUserService = new EveUserService($eve);
-		?>
-		<table class="data_table">
-		<thead>
-		<th><input type="checkbox" onClick="toggle(this, 'screenname[]')"/></th>
-		<th>Nome</th>
-		<th>E-mail</th>
-		<th>Obs</th>
-		<th>Bloq.</th>
-		</thead>
-		<tbody>
-		<?php
-		
-		foreach($eveUserService->user_simple_list('name') as $user)
-		{	
-			$locked_form = ($user['locked_form']) ? "&#8226;" : "";
-			echo "<tr>";
-			echo "<td><input type=\"checkbox\" name=\"screenname[]\" value=\"{$user['email']}\" onclick=\"toggleRow(this)\"/></td>";
-			echo "<td>{$user['name']}</td>";
-			echo "<td>{$user['email']}</td>";
-			echo "<td>{$user['note']}</td>";
-			echo "<td style=\"text-align:center\">$locked_form</td>";
-			echo "</tr>";
-		}
-		?>
-		</tbody>
-		</table>
-		<?php
-	}
-	?>
-	</form>
 	<?php
 	
 	$eve->output_html_footer();

@@ -273,34 +273,6 @@ class Eve
 		$this->output_message('success', $message);
 	}
 
-	function output_info_messagebox($base_message, $see_more = false, $detailed_messages = null)
-	{
-		echo " 
-		<div id=\"message\" class=\"viewer\"><div class=\"viewer_container\">
-		<button class=\"close_button\" type=\"button\" onclick=\"document.getElementById('message').style.display = 'none';\"> X </button>
-		<div class=\"viewer_content\">
-		<p>$base_message&nbsp;";
-		if ($see_more) echo "<button type=\"button\" onclick=\"document.getElementById('see_more').style.display = 'block';\">".$this->_('common.action.see.more')."</button>";
-		echo "
-		</p>";
-		if ($see_more && is_array($detailed_messages))
-		{
-			echo "
-			<ul id=\"see_more\" style=\"height:6rem; overflow-y:scroll; display: none;\">";
-			foreach($detailed_messages as $detailed_message)
-				echo "<li>$detailed_message</li>";
-			echo "</ul>";
-		}
-		else if ($see_more)
-		{
-			echo "
-			<p id=\"see_more\" style=\"height:6rem; overflow-y:scroll; display: none;\">$detailed_messages</p>";
-		}
-		echo "
-		</div>
-		</div></div>
-		<script>document.getElementById('message').style.display = 'block';</script>";
-	}
 	/** 
 	 * Outputs the navigation bar the page.
 	 * $navigation_array is an associative array. The key corresponds to the label and its

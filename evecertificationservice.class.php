@@ -52,7 +52,6 @@ class EveCertificationService
 			$certification['certification_model_id'],
 			$certification['screenname'],
 			$certification['submissionid'],
-			$certification['locked'],
 			$certification['views']
 		);
 		// Fetching values
@@ -231,7 +230,6 @@ class EveCertificationService
 				`{$this->eve->DBPref}certification`.`id`,	
 				`{$this->eve->DBPref}userdata`.`name`,
 				`{$this->eve->DBPref}certification_model`.`name`, 
-				`{$this->eve->DBPref}certification`.`locked`,
 				`{$this->eve->DBPref}certification`.`views`
 			FROM
 				`{$this->eve->DBPref}certification_model`,
@@ -264,11 +262,8 @@ class EveCertificationService
 				`{$this->eve->DBPref}certification`,
 				`{$this->eve->DBPref}certification_model`
 			WHERE
-				`{$this->eve->DBPref}certification`.`certification_model_id` = `{$this->eve->DBPref}certification_model`.`id` 
-				AND
+				`{$this->eve->DBPref}certification`.`certification_model_id` = `{$this->eve->DBPref}certification_model`.`id` AND
 				`{$this->eve->DBPref}certification`.`screenname` = '$screenname'
-				AND
-				`{$this->eve->DBPref}certification`.`locked` = 0;
 		");
 		while ($certification = $certifications_res->fetch_assoc())
 			$certifications[] = $certification;
@@ -276,71 +271,22 @@ class EveCertificationService
 	}
 	
 	// $certifications must be an array with certification ids
-	function lock_certifications($certifications)
+	function certification_delete($certification_id)
 	{
 		$stmt = $this->eve->mysqli->prepare
 		("
-			update `{$this->eve->DBPref}certification`
-			set `locked` = 1
-			where `id` = ?;
+			delete from	`{$this->eve->DBPref}certification`
+			where 		`{$this->eve->DBPref}certification`.`id` = ?
+			limit 		1;
 		");
 		if ($stmt === false)
 		{
-			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
-			return false;
+			return self::CERTIFICATION_DELETE_ERROR_SQL;
 		}
-		foreach ($certifications as $certification)
-		{
-			$stmt->bind_param('i', $certification);
-			$stmt->execute();
-		}
+		$stmt->bind_param('i', $id);
+		$stmt->execute();
 		$stmt->close();
-	}
-
-	// $certifications must be an array with certification ids
-	function unlock_certifications($certifications)
-	{
-		$stmt = $this->eve->mysqli->prepare
-		("
-			update `{$this->eve->DBPref}certification`
-			set `locked` = 0
-			where `id` = ?;
-		");
-		if ($stmt === false)
-		{
-			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
-			return false;
-		}
-		foreach ($certifications as $certification)
-		{
-			$stmt->bind_param('i', $certification);
-			$stmt->execute();
-			if ($this->eve->getSetting('email_snd_certification'))
-				$this->send_certification_mail($certification);
-		}
-		$stmt->close();
-	}
-
-	// $certifications must be an array with certification ids
-	function delete_certifications($certifications)
-	{
-		$stmt = $this->eve->mysqli->prepare
-		("
-			delete from `{$this->eve->DBPref}certification`
-			where `id` = ?
-			limit 1;
-		");
-		if ($stmt === false)
-		{
-			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
-			return false;
-		}
-		foreach ($certifications as $certification)
-		{
-			$stmt->bind_param('i', $certification);
-			$stmt->execute();
-		}
-		$stmt->close();
+		return self::CERTIFICATION_DELETE_SUCCESS;
 	}
 
 	private function send_certification_mail($certification_id)
@@ -386,25 +332,25 @@ class EveCertificationService
 		$this->evemail->send_mail($certification['owner'], $placeholders, $this->eve->getSetting('email_sbj_certification'), $this->eve->getSetting('email_msg_certification'));
 	}
 
-	function certification_model_attribuition($certification_model_id, $screenname, $submission_id, $locked = 0)
+	function certification_model_attribuition($certification_model_id, $screenname, $submission_id)
 	{
 		// TODO check if screenname and submissionid are valid to return more specific errors
 		// Preparing insert statement
 		$stmt2 = $this->eve->mysqli->prepare
 		("
 			insert
-			into `{$this->eve->DBPref}certification` (`certification_model_id`, `screenname`, `submissionid`, `locked`)
-			values (?, ?, ?, ?);
+			into `{$this->eve->DBPref}certification` (`certification_model_id`, `screenname`, `submissionid`)
+			values (?, ?, ?);
 		");
 		if ($stmt2 === false)
 		{
 			return self::CERTIFICATION_MODEL_ATTRIBUITION_ERROR_SQL;
 		}
-		$stmt2->bind_param('isii', $certification_model_id, $screenname, $submission_id, $locked);
+		$stmt2->bind_param('isi', $certification_model_id, $screenname, $submission_id);
 		$stmt2->execute();
 		if ($this->eve->mysqli->affected_rows)
 		{
-			if (!$locked && $this->eve->getSetting('email_snd_certification'))
+			if ($this->eve->getSetting('email_snd_certification'))
 			$this->send_certification_mail($stmt2->insert_id);
 			$stmt2->close();
 			return self::CERTIFICATION_MODEL_ATTRIBUITION_SUCCESS;
@@ -414,6 +360,104 @@ class EveCertificationService
 			$stmt2->close();
 			return self::CERTIFICATION_MODEL_ATTRIBUITION_ERROR;
 		}
+	}
+
+	function certificationmodel_submission_certification_list($certification_model_id, $submission_definition_id)
+	{
+		$stmt = $this->eve->mysqli->prepare
+		("
+		-- listing the submission certifications issued to the submissions sent by their
+		-- owners, and null certifications when a submission sent has no certification
+		-- for its owner
+		select	`{$this->eve->DBPref}userdata`.`email`,
+				`{$this->eve->DBPref}userdata`.`name`,
+				`{$this->eve->DBPref}submission`.`id` as `submission_id`,
+				'to_owner' as `attibuition_type`,
+				`{$this->eve->DBPref}certification`.`id`,
+				`{$this->eve->DBPref}certification`.`views`
+		from 	`{$this->eve->DBPref}submission`
+		inner join
+				`{$this->eve->DBPref}userdata`
+		on
+				`{$this->eve->DBPref}userdata`.`email` = `{$this->eve->DBPref}submission`.`email`
+		left join
+				`{$this->eve->DBPref}certification`
+		on      `{$this->eve->DBPref}certification`.`screenname` = `{$this->eve->DBPref}submission`.`email` and
+				`{$this->eve->DBPref}certification`.`submissionid` = `{$this->eve->DBPref}submission`.`id`
+		where
+				`{$this->eve->DBPref}submission`.`submission_definition_id` = ? and
+				`{$this->eve->DBPref}submission`.`active` = 1 and
+				(`{$this->eve->DBPref}certification`.`certification_model_id` = ? or
+				`{$this->eve->DBPref}certification`.`certification_model_id` is null)
+		
+		union 
+		
+		-- listing the submission certifications issued for an user who is not
+		-- the owener or the suvmission sent
+		
+		select 	`{$this->eve->DBPref}userdata`.`email`,
+				`{$this->eve->DBPref}userdata`.`name`,
+				`{$this->eve->DBPref}submission`.`id` as `submission_id`,
+				'to_third_person' as `attibuition_type`,
+				`{$this->eve->DBPref}certification`.`id`,
+				`{$this->eve->DBPref}certification`.`views`
+		from 	`{$this->eve->DBPref}certification`
+		inner join
+				`{$this->eve->DBPref}submission`
+		on      `{$this->eve->DBPref}certification`.`submissionid` = `{$this->eve->DBPref}submission`.`id` AND
+				`{$this->eve->DBPref}certification`.`screenname` != `{$this->eve->DBPref}submission`.`email`
+		inner join	
+				`{$this->eve->DBPref}userdata`
+		on
+				`{$this->eve->DBPref}certification`.`screenname` = `{$this->eve->DBPref}userdata`.`email`
+		where
+				`{$this->eve->DBPref}submission`.`submission_definition_id` = ? and
+				`{$this->eve->DBPref}certification`.`certification_model_id` = ?
+		");
+		if ($stmt === false)
+		{
+			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
+			return null;
+		}
+		$stmt->bind_param('iiii', $submission_definition_id, $certification_model_id, $submission_definition_id, $certification_model_id);
+		$stmt->execute();
+		$result = $stmt->get_result();
+		$list = array();
+		while ($row = $result->fetch_array(MYSQLI_ASSOC))
+			$list[] = $row;
+		$stmt->close();
+		return $list;
+	}
+
+	function certificationmodel_user_certification_list($certification_model_id)
+	{
+		$stmt = $this->eve->mysqli->prepare
+		("
+		select 	`{$this->eve->DBPref}userdata`.`email`,
+				`{$this->eve->DBPref}userdata`.`name`,
+				`{$this->eve->DBPref}certification`.`id`,
+				`{$this->eve->DBPref}certification`.`views`
+		from 	`{$this->eve->DBPref}userdata`
+		left join
+				`{$this->eve->DBPref}certification` on
+				`{$this->eve->DBPref}userdata`.`email` = `{$this->eve->DBPref}certification`.`screenname`
+				and `{$this->eve->DBPref}certification`.`certification_model_id` = ?
+		 -- where 	`{$this->eve->DBPref}certification`.`certification_model_id` = ? or
+		--		`{$this->eve->DBPref}certification`.`certification_model_id` is null
+		");
+		if ($stmt === false)
+		{
+			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
+			return null;
+		}
+		$stmt->bind_param('i', $certification_model_id);
+		$stmt->execute();
+		$result = $stmt->get_result();
+		$list = array();
+		while ($row = $result->fetch_array(MYSQLI_ASSOC))
+			$list[] = $row;
+		$stmt->close();
+		return $list;
 	}
 	
 	function certificationmodel_create($name = "")

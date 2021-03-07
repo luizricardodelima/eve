@@ -77,10 +77,10 @@ else
 		echo "<td>".$eve->_('certificationmodel.type.'.$certificationmodel['type'])."</td>";
 		echo "<td>{$certificationmodel['name']}</td>";
 		echo "<td>".mb_substr($certificationmodel['text'], 0, 70, "UTF-8")."</td>";
-		echo "<td><button type=\"button\" onclick=\"window.location='certification.php?model_id={$certificationmodel['id']}';\"><img src=\"style/icons/view.png\"/></button></td>";
-		echo "<td><button type=\"button\" onclick=\"window.location='certification_model.php?id={$certificationmodel['id']}';\"><img src=\"style/icons/edit.png\"/></button></td>";
-		echo "<td><button type=\"button\" onclick=\"window.location='certificationattribuition.php?id={$certificationmodel['id']}';\"><img src=\"style/icons/certification_attribuition.png\"></button></td>";	
-		echo "<td><button type=\"button\" onclick=\"certificationmodel_delete({$certificationmodel['id']});\"><img src=\"style/icons/delete.png\"/></button></td>";
+		echo "<td><button type=\"button\" onclick=\"window.location='certificationattribuition.php?id={$certificationmodel['id']}';\"><img src=\"style/icons/view.png\">Listar e atribuir</button></td>";	
+		echo "<td><button type=\"button\" onclick=\"window.location='certification.php?model_id={$certificationmodel['id']}';\"><img src=\"style/icons/page_white_magnify.png\"/>Ver prévia</button></td>";
+		echo "<td><button type=\"button\" onclick=\"window.location='certification_model.php?id={$certificationmodel['id']}';\"><img src=\"style/icons/edit.png\"/>Editar</button></td>";
+		echo "<td><button type=\"button\" onclick=\"certificationmodel_delete({$certificationmodel['id']});\"><img src=\"style/icons/delete.png\"/>Apagar</button></td>";
 		echo "</tr>";
 	}
 	?>

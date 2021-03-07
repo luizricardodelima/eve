@@ -132,7 +132,6 @@ function create_database($dbpassword, $screenname, $password)
 		  `certification_model_id` int(11) DEFAULT NULL,
 		  `screenname` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
 		  `submissionid` int(11) DEFAULT NULL,
-		  `locked` int(11) NOT NULL DEFAULT '0',
 		  `views` int(11) NOT NULL DEFAULT '0'
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 	");

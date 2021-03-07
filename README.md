@@ -10,7 +10,7 @@ _Event management system_
 
 ## Changelog
 
-- 2021-03-08 **(feature)** Remodeled Certifications area for administrators. The certification attribuition page nows functions both as listing and attribuition page, and it is more simple and intuitive. Certification attribuition now works with ajax, so, it is one http request for each attribuition, avoiding timeout problems when lots of attribuitions were asked in one request (and lots of e-mails being sent). The locking feature of crtifications was removed, since it has proven to be useless.
+- 2021-03-08 **(feature)** Remodeled Certifications area for administrators. The certification attribuition page nows functions both as listing and attribuition page, and it is more simple and intuitive. Certification attribuition now works with ajax, so, it is one http request for each attribuition, avoiding timeout problems when lots of attribuitions were asked in one request (and lots of e-mails being sent). The locking feature of crtifications has been removed, since it has proven to be useless.
 - 2021-03-04 **(feature)** Payment plugins can now be activated and deactivated. It open rooms for new payment plugins to be developed and only the desired ones being available to the user.
 - 2021-03-02 **(feature)** Better styling for pages and a new image manager for certification backgrounds and pages.
 - 2021-01-08 **(feature)** Font selection on certification models.

@@ -82,49 +82,49 @@ Opções do usuário
 
 <div class="col">
 <button type="button" class="btn btn-primary" style="height: 8em; width: 8em;">
-<i class="bi-person d-block display-5"></i>
+<i class="bi-person d-block display-6"></i>
 Cadastro
 </button>
 </div>
 
 <div class="col">
 <button type="button" class="btn btn-primary" style="height: 8em; width: 8em;">
-<i class="bi-person-check d-block display-5"></i>
+<i class="bi-person-check d-block display-6"></i>
 Cadastro
 </button>
 </div>
 
 <div class="col">
 <button type="button" class="btn btn-primary" style="height: 8em; width: 8em;">
-<i class="bi-cart4 d-block display-5"></i>
+<i class="bi-cart4 d-block display-6"></i>
 Pagamento
 </button>
 </div>
 
 <div class="col">
 <button type="button" class="btn btn-primary" style="height: 8em; width: 8em;">
-<i class="bi-file-earmark-text d-block display-5"></i>
+<i class="bi-file-earmark-text d-block display-6"></i>
 Trabalho
 </button>
 </div>
 
 <div class="col">
 <button type="button" class="btn btn-primary" style="height: 8em; width: 8em;">
-<i class="bi-award d-block display-5"></i>
+<i class="bi-award d-block display-6"></i>
 Certificado
 </button>
 </div>
 
 <div class="col">
 <button type="button" class="btn btn-outline-primary" style="height: 8em; width: 8em;">
-<i class="bi-lock d-block display-5"></i>
+<i class="bi-lock d-block display-6"></i>
 Alterar senha
 </button>
 </div>
 
 <div class="col">
 <button type="button" class="btn btn-outline-primary" style="height: 8em; width: 8em;">
-<i class="bi-door-open d-block display-5"></i>
+<i class="bi-door-open d-block display-6"></i>
 Sair
 </button>
 </div>
@@ -146,14 +146,14 @@ Opções do revisor
 
 <div class="col">   
 <button type="button" class="btn btn-primary" style="height: 8em; width: 8em;">
-<i class="bi-file-earmark-check d-block display-5"></i>
+<i class="bi-file-earmark-check d-block display-6"></i>
 Trabalho
 </button>
 </div>
 
 <div class="col">
 <button type="button" class="btn btn-primary" style="height: 8em; width: 8em;">
-<i class="bi-file-earmark-check d-block display-5"></i>
+<i class="bi-file-earmark-check d-block display-6"></i>
 Trabalho
 </button>
 </div>
@@ -176,28 +176,36 @@ Opções do administrador
 
 <div class="col">
 <button type="button" class="btn btn-primary" style="height: 8em; width: 8em;">
-<i class="bi-person-x d-block display-5"></i>
+<i class="bi-person-x d-block display-6"></i>
 Usuários sem verificação
 </button>
 </div>
 
 <div class="col">
 <button type="button" class="btn btn-primary" style="height: 8em; width: 8em;">
-<i class="bi-people d-block display-5"></i>
+<i class="bi-people d-block display-6"></i>
 Usuários
 </button>
 </div>
 
 <div class="col">
 <button type="button" class="btn btn-primary" style="height: 8em; width: 8em;">
-<i class="bi-file-earmark d-block display-5"></i>
+<i class="bi-shop-window d-block display-6"></i>
+Eventos
+</button>
+</div>
+
+
+<div class="col">
+<button type="button" class="btn btn-primary" style="height: 8em; width: 8em;">
+<i class="bi-file-earmark d-block display-6"></i>
 Definições de submissão
 </button>
 </div>
 
 <div class="col">
 <button type="button" class="btn btn-primary" style="height: 8em; width: 8em;">
-<i class="bi-cart4 d-block display-5"></i>
+<i class="bi-cart4 d-block display-6"></i>
 Pagamentos
 </button>
 </div>
@@ -205,41 +213,27 @@ Pagamentos
 <div class="col">
 <button type="button" class="btn btn-primary" style="height: 8em; width: 8em;">
 <i class="bi-cart4 d-block display-5"></i>
-Opções de pagamento
-</button>
-</div>
-
-<div class="col">
-<button type="button" class="btn btn-primary " style="height: 8em; width: 8em;">
-<i class="bi-cart4 d-block display-5"></i>
-Grupos de pagamento
+Grupos e opções pgto.
 </button>
 </div>
 
 <div class="col">
 <button type="button" class="btn btn-primary" style="height: 8em; width: 8em;">
-<i class="bi-award d-block display-5"></i>
-Certificados
-</button>
-</div>
-
-<div class="col">
-<button type="button" class="btn btn-primary" style="height: 8em; width: 8em;">
-<i class="bi-award-fill d-block display-5"></i>
+<i class="bi-award d-block display-6"></i>
 Modelos de certificado
 </button>
 </div>
 
 <div class="col">
 <button type="button" class="btn btn-primary" style="height: 8em; width: 8em;">
-<i class="bi-window d-block display-5"></i>
+<i class="bi-window d-block display-6"></i>
 Páginas
 </button>
 </div>
 
 <div class="col">
 <button type="button" class="btn btn-primary" style="height: 8em; width: 8em;">
-<i class="bi-gear d-block display-5"></i>
+<i class="bi-gear d-block display-6"></i>
 Ajustes do sistema
 </button>
 </div>

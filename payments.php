@@ -44,6 +44,78 @@ else
 	]);
 
 	?>
+
+	<div class="section">		
+	<input type="radio" name="view" id="payment_view_option" value="payment_view" checked="checked" onchange="change_view();">
+	<label for="payment_view_option"><?php echo $eve->_('payments.option.paymentview');?></label>
+	<!-- TODO Future feature
+	<input type="radio" name="view" id="paymentitem_view_option" value="paymentitem_view" onchange="change_view();">
+	<label for="paymentitem_view_option"><?php echo $eve->_('payments.option.paymentitemview');?></label>
+	-->
+	<button type="button" class="payment_view_button" onclick="payment_create()">
+	<?php echo $eve->_('payments.button.create');?></button>
+	<button type="button" class="payment_view_button" onclick="window.location='paymentsexport.php';">
+	<?php echo $eve->_('payments.button.export');?></button>
+	<button type="button" class="payment_view_button" onclick="window.location='settingspaymentslisting.php';">
+	<?php echo $eve->_('payments.button.export.settings');?></button>
+	<button type="button" class="payment_view_button" onclick="send_message()">
+	<?php echo $eve->_('payments.button.message');?></button>
+	</div>
+
+	<!-- Payment view start ------------------------------------------------------------------->
+	<table class="data_table" id="payment_table">
+	<tr>
+	<th style="width: 02%"></th>
+	<th style="width: 04%" onclick="sortColumn('payment_table',1,false)"><?php echo $eve->_('payments.header.id');?></th>
+	<th style="width: 09%" onclick="sortColumn('payment_table',2,false)"><?php echo $eve->_('payments.header.payment.group');?></th>
+	<th style="width: 20%" onclick="sortColumn('payment_table',3,false)"><?php echo $eve->_('payments.header.name');?></th>
+	<th style="width: 14%" onclick="sortColumn('payment_table',4,false)"><?php echo $eve->_('payments.header.screenname');?></th>
+	<th style="width: 10%" onclick="sortColumn('payment_table',5,false)"><?php echo $eve->_('payments.header.payment.method');?></th>
+	<th style="width: 09%"><?php echo $eve->_('payments.header.value.paid');?></th>
+	<th style="width: 09%"><?php echo $eve->_('payments.header.value.received');?></th>
+	<th style="width: 08%" onclick="sortColumn('payment_table',8,false)"><?php echo $eve->_('payments.header.date');?></th>
+	<th style="width: 05%" colspan="3"><?php echo $eve->_('common.table.header.options');?></th>		
+	</tr>
+	<?php
+	$payment_groups = $evePaymentService->payment_group_list(true);
+	foreach ($evePaymentService->payment_list() as $payment)
+	{
+		echo "<tr>";
+		echo "<td><input type=\"checkbox\" name=\"screenname\" value=\"{$payment['email']}\"/></td>";
+		echo "<td>{$payment['id']}</td>";
+		echo "<td>";
+		echo $payment['payment_group_id'] === null ? $eve->_('common.select.none') : $payment_groups[$payment['payment_group_id']]['name'];
+		echo "</td>";
+		echo "<td>{$payment['name']}</td>";
+		echo "<td>{$payment['email']}</td>";
+		echo "<td>{$payment['payment_method']}</td>";
+		echo "<td>".$curr_formatter->format($payment['value_paid'])."</td>";
+		echo "<td>".$curr_formatter->format($payment['value_received'])."</td>";
+		echo "<td>".$date_formatter->format(strtotime($payment['date']))."</td>";
+		echo "<td><button type=\"button\" onclick=\"window.location='paymentedit.php?id={$payment['id']}'\"><img src=\"style/icons/payment_edit.png\"></button></td>";
+		echo "<td><button type=\"button\" onclick=\"window.location='user.php?user={$payment['email']}'\"><img src=\"style/icons/user_edit.png\"></button></td>";
+		echo "<td><button type=\"button\" onclick=\"payment_delete({$payment['id']})\"><img src=\"style/icons/delete.png\"></button></td>";
+		echo "</tr>";
+	}
+	?>
+	</table>
+	<!-- Payment view end --------------------------------------------------------------------->
+
+	<!-- Payment item view start -------------------------------------------------------------->
+	<table class="data_table" id="paymentitem_table" style="display:none;">
+	<thead>
+	<!--
+	<th style="width: 40%">A</th>
+	<th style="width: 20%">B</th>
+	<th style="width: 20%">C</th>
+	<th style="width: 20%">D</th>
+	-->
+	</thead>
+	<tbody>
+	</tbody>
+	</table>
+	<!-- Payment item view end ---------------------------------------------------------------->
+	
 	<script>
 	function change_view()
 	{
@@ -95,74 +167,27 @@ else
         	form.submit();
 		}
 	}
-	</script>	
+	function send_message() {
+		var screennames = [];
+		$("input:checkbox[name=screenname]:checked").each(function(){
+    		screennames.push($(this).val());
+		});
 
-	<div class="section">		
-	<input type="radio" name="view" id="payment_view_option" value="payment_view" checked="checked" onchange="change_view();">
-	<label for="payment_view_option"><?php echo $eve->_('payments.option.paymentview');?></label>
-	<!-- TODO Future feature
-	<input type="radio" name="view" id="paymentitem_view_option" value="paymentitem_view" onchange="change_view();">
-	<label for="paymentitem_view_option"><?php echo $eve->_('payments.option.paymentitemview');?></label>
-	-->
-	<button type="button" class="payment_view_button" onclick="payment_create()">
-	<?php echo $eve->_('payments.button.create');?></button>
-	<button type="button" class="payment_view_button" onclick="window.location='paymentsexport.php';">
-	<?php echo $eve->_('payments.button.export');?></button>
-	<button type="button" class="payment_view_button" onclick="window.location='settingspaymentslisting.php';">
-	<?php echo $eve->_('payments.button.export.settings');?></button>
-	</div>
-
-	<!-- Payment view start ------------------------------------------------------------------->
-	<table class="data_table" id="payment_table">
-	<tr>
-	<th style="width: 04%" onclick="sortColumn('payment_table',0,false)"><?php echo $eve->_('payments.header.id');?></th>
-	<th style="width: 09%" onclick="sortColumn('payment_table',1,false)"><?php echo $eve->_('payments.header.payment.group');?></th>
-	<th style="width: 20%" onclick="sortColumn('payment_table',2,false)"><?php echo $eve->_('payments.header.name');?></th>
-	<th style="width: 15%" onclick="sortColumn('payment_table',3,false)"><?php echo $eve->_('payments.header.screenname');?></th>
-	<th style="width: 10%" onclick="sortColumn('payment_table',4,false)"><?php echo $eve->_('payments.header.payment.method');?></th>
-	<th style="width: 09%"><?php echo $eve->_('payments.header.value.paid');?></th>
-	<th style="width: 09%"><?php echo $eve->_('payments.header.value.received');?></th>
-	<th style="width: 09%" onclick="sortColumn('payment_table',7,false)"><?php echo $eve->_('payments.header.date');?></th>
-	<th style="width: 05%" colspan="3"><?php echo $eve->_('common.table.header.options');?></th>		
-	</tr>
-	<?php
-	$payment_groups = $evePaymentService->payment_group_list(true);
-	foreach ($evePaymentService->payment_list() as $payment)
-	{
-		echo "<tr>";
-		echo "<td>{$payment['id']}</td>";
-		echo "<td>";
-		echo $payment['payment_group_id'] === null ? $eve->_('common.select.none') : $payment_groups[$payment['payment_group_id']]['name'];
-		echo "</td>";
-		echo "<td>{$payment['name']}</td>";
-		echo "<td>{$payment['email']}</td>";
-		echo "<td>{$payment['payment_method']}</td>";
-		echo "<td>".$curr_formatter->format($payment['value_paid'])."</td>";
-		echo "<td>".$curr_formatter->format($payment['value_received'])."</td>";
-		echo "<td>".$date_formatter->format(strtotime($payment['date']))."</td>";
-		echo "<td><button type=\"button\" onclick=\"window.location='paymentedit.php?id={$payment['id']}'\"><img src=\"style/icons/payment_edit.png\"></button></td>";
-		echo "<td><button type=\"button\" onclick=\"window.location='user.php?user={$payment['email']}'\"><img src=\"style/icons/user_edit.png\"></button></td>";
-		echo "<td><button type=\"button\" onclick=\"payment_delete({$payment['id']})\"><img src=\"style/icons/delete.png\"></button></td>";
-		echo "</tr>";
+		const form = document.createElement('form');
+ 		form.method = 'post';
+  		form.action = 'send_message.php';
+		for (const key of screennames)
+		{
+			const hiddenField = document.createElement('input');
+      		hiddenField.type = 'hidden';
+      		hiddenField.name = 'screenname[]';
+      		hiddenField.value = key;
+      		form.appendChild(hiddenField);
+  		}
+		document.body.appendChild(form);
+		form.submit();
 	}
-	?>
-	</table>
-	<!-- Payment view end --------------------------------------------------------------------->
-
-	<!-- Payment item view start -------------------------------------------------------------->
-	<table class="data_table" id="paymentitem_table" style="display:none;">
-	<thead>
-	<!--
-	<th style="width: 40%">A</th>
-	<th style="width: 20%">B</th>
-	<th style="width: 20%">C</th>
-	<th style="width: 20%">D</th>
-	-->
-	</thead>
-	<tbody>
-	</tbody>
-	</table>
-	<!-- Payment item view end ---------------------------------------------------------------->
+	</script>	
 	<?php
 
 	$eve->output_html_footer();

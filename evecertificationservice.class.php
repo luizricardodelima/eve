@@ -351,10 +351,11 @@ class EveCertificationService
 		$stmt2->execute();
 		if ($this->eve->mysqli->affected_rows)
 		{
+			$certification_id = $stmt2->insert_id;
 			if ($this->eve->getSetting('email_snd_certification'))
-			$this->send_certification_mail($stmt2->insert_id);
+				$this->send_certification_mail($certification_id);
 			$stmt2->close();
-			return self::CERTIFICATION_MODEL_ATTRIBUITION_SUCCESS;
+			return $certification_id;
 		}
 		else
 		{

@@ -29,9 +29,15 @@ else if ($certificationmodel == null)
 else if (isset($_POST['action'])) switch ($_POST['action'])
 {
 	case "specialsubmissionattibuition":
-		$msgs = array();
-		$msgs[$_POST['submission_id']] = $eveCertificationService->certification_model_attribuition($_GET['id'], $_POST['screenname'], $_POST['submission_id']);
-		$eve->output_redirect_page(basename(__FILE__)."?id=".$_GET['id']."&msgs=".urlencode(json_encode($msgs)));
+		$msg = $eveCertificationService->certification_model_attribuition($_GET['id'], $_POST['screenname'], $_POST['submission_id']);
+		if (is_int($msg)) // the certification was successfully created and its id was returned.
+			$msg = EveCertificationService::CERTIFICATION_MODEL_ATTRIBUITION_SUCCESS;
+
+		$url = basename(__FILE__)."?id=".$_GET['id'];
+		if (isset($_GET['submission_definition_id'])) $url .= "&submission_definition_id=".$_GET['submission_definition_id'];
+		$url .= "&msg=".urlencode($msg);
+		
+		$eve->output_redirect_page($url);
 		break;
 	default:
 		// If an unrecognized post action is passed, simply reload the page
@@ -46,33 +52,34 @@ else
 	([
 		$eve->getSetting('userarea_label') => "userarea.php",
 		$eve->_('userarea.option.admin.certification_models') => "certification_models.php",
-		$eve->_('certificationmodel.attribuition') => null
+		"Certificados do modelo ".$certificationmodel['name'] /*$eve->_('certificationmodel.attribuition') */=> null
 	]);
 	
 	?>
-	<form method="post" action="<?php echo basename(__FILE__)."?id=".$_GET['id'];?>" id="specialsubmissionattibuition_form">
-	<input type="hidden" name="action" value="specialsubmissionattibuition"/>
-	<input type="hidden" name="submission_id" id="ipt_specialsubmissionattibuition_submissionid"/>
-	<input type="hidden" name="screenname" id="ipt_specialsubmissionattibuition_screenname"/>
-	</form>
-
 	<div class="section">
-	<label for="certification_ipt">Atribuição de <?php echo $certificationmodel['name'];?></label>
+	<label for="certification_ipt">Certificados do modelo <?php echo $certificationmodel['name'];?></label>
 
 	<?php
 	if ($certificationmodel['type'] == 'submissioncertification')
 	{
-		echo " para ";
+		echo " para "; // TODO G11N
 		echo "<select id=\"sel_submissiondefinition\" onchange=\"changeSubmissionDefinition()\">";
 		echo "<option value=\"null\">{$eve->_('common.select.null')}</option>";
 		foreach ($eveSubmissionService->submission_definition_list() as $submissiondefinition)
-			echo "<option value=\"{$submissiondefinition['id']}\">{$submissiondefinition['description']}</option>";
+		{
+			echo "<option value=\"{$submissiondefinition['id']}\"";
+			if (isset($_GET['submission_definition_id']) && $_GET['submission_definition_id'] == $submissiondefinition['id'])
+				echo " selected=\"selected\"";
+			echo ">{$submissiondefinition['description']}</option>";
+		}
 		echo "</select>";
-		echo "<button type=\"button\" onclick=\"specialSubmissionAttribuition()\">Atribuição especial</button>";
+		echo "<button type=\"button\" onclick=\"specialSubmissionAttribuition()\">Atribuição para outro usuário</button>";
 	}
 	?>
 	</div>
 	<?php
+	// Success/Error messages
+	if (isset($_GET['msg'])) $eve->output_service_message($_GET['msg']);
 
 	if ($certificationmodel['type'] == "submissioncertification")
 	{
@@ -123,7 +130,7 @@ else
 			echo "<td>"; 
 			echo ($user_certification['id'] === null) ?
 				"" : 
-				"<button type=\"button\" onclick=\"alert('Implement Delete')\"/><img src=\"style/icons/delete.png\"/>Apagar</button>" ;
+				"<button type=\"button\" onclick=\"certification_delete({$user_certification['id']})\"/><img src=\"style/icons/delete.png\"/>Apagar</button>" ;
 			echo "</td>";
 			echo "</tr>";
 		}
@@ -137,15 +144,40 @@ else
 	<script>
 		function certification_attribuition(screenname, submission_id)
 		{
+			var button = event.srcElement;
+			while (button.nodeName != 'BUTTON') button = button.parentElement;
+			while (button.lastChild) 
+			{
+    			button.removeChild(button.lastChild);
+ 			}
+			button.innerHTML = "<img src=\"style/icons/loading.gif\" height=\"16\" width=\"16\"> Aguarde"; // TODO G11N & Create elements for better performance
+			var row = button.parentElement;
+			while (row.nodeName != 'TR') row = row.parentElement;
 			var xhr = new XMLHttpRequest();
 			xhr.open('GET', 'service/certification_attribuition.php?certificationmodel_id=<?php echo $_GET['id'];?>&screenname='+screenname+'&submission_id='+submission_id);
 			xhr.onload = function() {
 				if (xhr.status === 200) 
 				{
-					if (xhr.responseText == '<?php echo EveCertificationService::CERTIFICATION_MODEL_ATTRIBUITION_SUCCESS; ?>')
-						alert('success! reload page - ' + xhr.responseText);
+					if (isNaN(parseInt(xhr.responseText)))
+						alert('not success - ' + xhr.responseText);
 					else
-						alert('not success - ' + xhr.responseText);		
+					{
+						var col_count = <?php echo ($certificationmodel['type'] == 'submissioncertification') ? '8' : '6'; ?>;
+						row.removeChild(row.childNodes[col_count - 1]);
+						row.removeChild(row.childNodes[col_count - 2]);
+						row.removeChild(row.childNodes[col_count - 3]);
+						row.removeChild(row.childNodes[col_count - 4]);
+						var cell_id = row.insertCell(-1);
+						var cell_views = row.insertCell(-1);
+						var cell_option1 = row.insertCell(-1);
+						var cell_option2 = row.insertCell(-1);
+						cell_id.innerHTML = xhr.responseText;
+						cell_views.innerHTML = '0';
+						cell_option1.innerHTML = '<button type="button" onclick="window.location.href=\'certification.php?id=' + xhr.responseText + '\'"><img src="style/icons/accept.png"/>Ver</button>';
+						cell_option2.innerHTML = '<button type="button" onclick="certification_delete(' + xhr.responseText + ')"/><img src=\"style/icons/delete.png\"/>Apagar</button>';
+						row.style.fontStyle = 'italic'; // TODO Think of a css style for it
+					}
+					console.log(row);
 				}
 				else 
 				{
@@ -155,6 +187,11 @@ else
 			};
 			xhr.send();
 		}
+
+	function certification_delete(certification_id) {
+		alert('Implement delete certification id ' + certification_id);
+	}
+
 	function changeSubmissionDefinition()
 	{
 		var submission_definition_id = document.getElementById("sel_submissiondefinition").value;
@@ -170,6 +207,7 @@ else
 				for (i = 0; i < structure_variable.length; i++)
 				{ 
 					var row = table.insertRow(-1);
+					row.id = 'row,'+structure_variable[i].email+','+structure_variable[i].submission_id;
 					var cell_email = row.insertCell(-1);
 					var cell_name = row.insertCell(-1);
 					var cell_submissionid = row.insertCell(-1);
@@ -191,9 +229,9 @@ else
 					}
 					else
 					{
-						row.style.fontStyle = 'italic';
 						cell_option1.innerHTML = '<button type="button" onclick="window.location.href=\'certification.php?id=' + structure_variable[i].id + '\'"><img src="style/icons/view.png"/>Ver</button>';
-						cell_option2.innerHTML = '<button type="button" onclick="alert(\'Implement Delete\')"/><img src="style/icons/delete.png"/>Apagar</button>';
+						cell_option2.innerHTML = '<button type="button" onclick="certification_delete(' + structure_variable[i].id + ')"/><img src=\"style/icons/delete.png\"/>Apagar</button>';
+						row.style.fontStyle = 'italic'; // TODO Think of a css style for it
 					}
 				}
 		    }
@@ -217,13 +255,32 @@ else
 				var screenname = prompt("Digite o email do usuário");
 				if (screenname  != null)
 				{
-					document.getElementById('ipt_specialsubmissionattibuition_submissionid').value = submission_id;
-					document.getElementById('ipt_specialsubmissionattibuition_screenname').value = screenname;
-					document.forms['specialsubmissionattibuition_form'].submit();
+					form = document.createElement('form');
+					form.setAttribute('method', 'POST');
+					form.setAttribute('action', '<?php echo basename(__FILE__)."?id=".$_GET['id']."&submission_definition_id=";?>'+submissiondefinition_id);
+					var1 = document.createElement('input');
+					var1.setAttribute('type', 'hidden');
+					var1.setAttribute('name', 'action');
+					var1.setAttribute('value', 'specialsubmissionattibuition');
+					form.appendChild(var1);
+					var2 = document.createElement('input');
+					var2.setAttribute('type', 'hidden');
+					var2.setAttribute('name', 'submission_id');
+					var2.setAttribute('value', submission_id);
+					form.appendChild(var2);
+					var2 = document.createElement('input');
+					var2.setAttribute('type', 'hidden');
+					var2.setAttribute('name', 'screenname');
+					var2.setAttribute('value', screenname);
+					form.appendChild(var2);
+					document.body.appendChild(form);
+					form.submit();
 				}
 			}
 		}	
 	}
+	// TODO : only when its submission certification model
+	changeSubmissionDefinition();
 	</script>
 	<?php
 	

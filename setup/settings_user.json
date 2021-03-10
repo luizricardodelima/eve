@@ -1,13 +1,13 @@
 {
-	"phpmailer_host":"smtp.mailtrap.io",
-	"phpmailer_password":"a9a97275df23a3",
-	"phpmailer_port":"2525",
-	"phpmailer_senderemail":"test@test.com",
-	"phpmailer_sendername":"EVE - Gerenciador de eventos",
-	"phpmailer_smtpauth":"1",
-	"phpmailer_smtpdebug":"0",
-	"phpmailer_smtpsecure":"tls",
-    "phpmailer_username":"53362fca99c18a",
+	"phpmailer_host":"",
+	"phpmailer_password":"",
+	"phpmailer_port":"",
+	"phpmailer_senderemail":"",
+	"phpmailer_sendername":"EVE",
+	"phpmailer_smtpauth":"",
+	"phpmailer_smtpdebug":"",
+	"phpmailer_smtpsecure":"",
+    "phpmailer_username":"",
     "support_email_address":"",
-    "system_name":"EVE - Sisteeema Gerenciador de eventos"
+    "system_name":"EVE"
 }

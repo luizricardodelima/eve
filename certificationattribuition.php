@@ -58,8 +58,8 @@ else
 	?>
 	<div class="section">
 	<label for="certification_ipt">Certificados do modelo <?php echo $certificationmodel['name'];?></label>
-
 	<?php
+
 	if ($certificationmodel['type'] == 'submissioncertification')
 	{
 		echo " para "; // TODO G11N
@@ -75,6 +75,7 @@ else
 		echo "</select>";
 		echo "<button type=\"button\" onclick=\"specialSubmissionAttribuition()\">Atribuição para outro usuário</button>";
 	}
+	
 	?>
 	</div>
 	<?php
@@ -159,14 +160,12 @@ else
 				if (xhr.status === 200) 
 				{
 					if (isNaN(parseInt(xhr.responseText)))
-						alert('not success - ' + xhr.responseText);
+						alert('not success - ' + xhr.responseText); // TODO Improve error view
 					else
 					{
-						var col_count = <?php echo ($certificationmodel['type'] == 'submissioncertification') ? '8' : '6'; ?>;
-						row.removeChild(row.childNodes[col_count - 1]);
-						row.removeChild(row.childNodes[col_count - 2]);
-						row.removeChild(row.childNodes[col_count - 3]);
-						row.removeChild(row.childNodes[col_count - 4]);
+						// removing the last 4 cells of the row
+						for (let index = 0; index < 4; index++)
+							row.removeChild(row.lastChild);
 						var cell_id = row.insertCell(-1);
 						var cell_views = row.insertCell(-1);
 						var cell_option1 = row.insertCell(-1);

@@ -36,9 +36,16 @@ else if (isset($_POST['action'])) switch ($_POST['action'])
 		$url = basename(__FILE__)."?id=".$_GET['id'];
 		if (isset($_GET['submission_definition_id'])) $url .= "&submission_definition_id=".$_GET['submission_definition_id'];
 		$url .= "&msg=".urlencode($msg);
-		
 		$eve->output_redirect_page($url);
 		break;
+	case "certification_delete":
+		$msg = $eveCertificationService->certification_delete($_POST['certification_id']);
+		
+		$url = basename(__FILE__)."?id=".$_GET['id'];
+		if (isset($_GET['submission_definition_id'])) $url .= "&submission_definition_id=".$_GET['submission_definition_id'];
+		$url .= "&msg=".urlencode($msg);
+		$eve->output_redirect_page($url);
+	break;
 	default:
 		// If an unrecognized post action is passed, simply reload the page
 		$eve->output_redirect_page(basename(__FILE__)."?id=".$_GET['id']);
@@ -188,7 +195,31 @@ else
 		}
 
 	function certification_delete(certification_id) {
-		alert('Implement delete certification id ' + certification_id);
+		if (confirm('Tem certeza que deseja apagar o certificado de id ' + certification_id + '?'))
+		{
+			var submissiondefinition_id = 'null';
+			if (document.getElementById('sel_submissiondefinition') != null)
+				submissiondefinition_id = document.getElementById('sel_submissiondefinition').value;
+
+			form = document.createElement('form');
+			form.setAttribute('method', 'POST');
+			if (submissiondefinition_id != 'null')
+				form.setAttribute('action', '<?php echo basename(__FILE__)."?id=".$_GET['id']."&submission_definition_id=";?>'+submissiondefinition_id);
+			else
+				form.setAttribute('action', '<?php echo basename(__FILE__)."?id=".$_GET['id'];?>');
+			var1 = document.createElement('input');
+			var1.setAttribute('type', 'hidden');
+			var1.setAttribute('name', 'action');
+			var1.setAttribute('value', 'certification_delete');
+			form.appendChild(var1);
+			var2 = document.createElement('input');
+			var2.setAttribute('type', 'hidden');
+			var2.setAttribute('name', 'certification_id');
+			var2.setAttribute('value', certification_id);
+			form.appendChild(var2);
+			document.body.appendChild(form);
+			form.submit();
+		}
 	}
 
 	function changeSubmissionDefinition()
@@ -244,7 +275,7 @@ else
 	function specialSubmissionAttribuition()
 	{
 		var submissiondefinition_id = document.getElementById('sel_submissiondefinition').value;
-		if (submissiondefinition_id == "null")
+		if (submissiondefinition_id == 'null')
 			alert("É necessário selecionar uma definição de submissão");
 		else
 		{
@@ -267,11 +298,11 @@ else
 					var2.setAttribute('name', 'submission_id');
 					var2.setAttribute('value', submission_id);
 					form.appendChild(var2);
-					var2 = document.createElement('input');
-					var2.setAttribute('type', 'hidden');
-					var2.setAttribute('name', 'screenname');
-					var2.setAttribute('value', screenname);
-					form.appendChild(var2);
+					var3 = document.createElement('input');
+					var3.setAttribute('type', 'hidden');
+					var3.setAttribute('name', 'screenname');
+					var3.setAttribute('value', screenname);
+					form.appendChild(var3);
 					document.body.appendChild(form);
 					form.submit();
 				}

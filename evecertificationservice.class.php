@@ -11,6 +11,10 @@ class EveCertificationService
 	const TEXT_FONTS = ['Courier', 'Helvetica', 'Times', 'Symbol', 'ZapfDingbats'];
 	const DEFAULT_TEXT_FONT = 'Helvetica';
 	
+	const CERTIFICATION_DELETE_ERROR = 'certification.delete.error';
+	const CERTIFICATION_DELETE_ERROR_SQL = 'certification.delete.error.sql';
+	const CERTIFICATION_DELETE_SUCCESS = 'certification.delete.success';
+
 	const CERTIFICATION_MODEL_ATTRIBUITION_ERROR = 'certificationmodel.attribuition.error';	
 	const CERTIFICATION_MODEL_ATTRIBUITION_ERROR_SQL = 'certificationmodel.attribuition.error.sql';
 	const CERTIFICATION_MODEL_ATTRIBUITION_SUCCESS = 'certificationmodel.attribuition.success';
@@ -271,7 +275,6 @@ class EveCertificationService
 		return $certifications;
 	}
 	
-	// $certifications must be an array with certification ids
 	function certification_delete($certification_id)
 	{
 		$stmt = $this->eve->mysqli->prepare
@@ -284,10 +287,18 @@ class EveCertificationService
 		{
 			return self::CERTIFICATION_DELETE_ERROR_SQL;
 		}
-		$stmt->bind_param('i', $id);
+		$stmt->bind_param('i', $certification_id);
 		$stmt->execute();
-		$stmt->close();
-		return self::CERTIFICATION_DELETE_SUCCESS;
+		if (!empty($stmt->error))
+		{
+			$stmt->close();
+			return self::CERTIFICATION_DELETE_ERROR;
+		}
+		else
+		{
+			$stmt->close();
+			return self::CERTIFICATION_DELETE_SUCCESS;
+		}
 	}
 
 	private function send_certification_mail($certification_id)

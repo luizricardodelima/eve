@@ -317,7 +317,7 @@ function create_database($dbpassword, $screenname, $password)
 	$mysqli->query("ALTER TABLE `{$pref}submission_history` ADD PRIMARY KEY (`id`), ADD KEY `submission_id` (`submission_id`), ADD KEY `agent_email` (`agent_email`);");
 	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys submission_history - ".$mysqli->error; delete_database($dbpassword); return $log;}
 
-	$mysqli->query("ALTER TABLE `{$pref}certification` ADD PRIMARY KEY (`id`), ADD KEY `certification_model_id` (`certification_model_id`), ADD KEY `screenname` (`screenname`), ADD KEY `submissionid` (`submissionid`);");
+	$mysqli->query("ALTER TABLE `{$pref}certification` ADD PRIMARY KEY (`id`), ADD KEY `certification_model_id` (`certification_model_id`), ADD KEY `screenname` (`screenname`), ADD KEY `submissionid` (`submissionid`), ADD UNIQUE( `certification_model_id`, `screenname`, `submissionid`);");
 	if ($mysqli->error) {$log[] = "ERROR - Keys and primary keys certification - ".$mysqli->error; delete_database($dbpassword); return $log;}
 	
 	$mysqli->query("ALTER TABLE `{$pref}certification_model` ADD PRIMARY KEY (`id`);");

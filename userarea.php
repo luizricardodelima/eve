@@ -119,7 +119,7 @@ else
 	
 	// Certifications
 	$eveCertificationService = new EveCertificationService($eve);
-	$certifications = $eveCertificationService->get_certifications_for_user($_SESSION['screenname']);
+	$certifications = $eveCertificationService->certification_list_for_user($_SESSION['screenname']);
 	foreach ($certifications as $certification)
 	{
 		if ($certification['hasopenermsg'])

@@ -11,13 +11,13 @@ class EveCertificationService
 	const TEXT_FONTS = ['Courier', 'Helvetica', 'Times', 'Symbol', 'ZapfDingbats'];
 	const DEFAULT_TEXT_FONT = 'Helvetica';
 	
+	const CERTIFICATION_ASSIGNMENT_ERROR = 'certification.assignment.error';	
+	const CERTIFICATION_ASSIGNMENT_ERROR_SQL = 'certification.assignment.error.sql';
+	const CERTIFICATION_ASSIGNMENT_SUCCESS = 'certification.assignment.success';
+
 	const CERTIFICATION_DELETE_ERROR = 'certification.delete.error';
 	const CERTIFICATION_DELETE_ERROR_SQL = 'certification.delete.error.sql';
 	const CERTIFICATION_DELETE_SUCCESS = 'certification.delete.success';
-
-	const CERTIFICATION_MODEL_ATTRIBUITION_ERROR = 'certificationmodel.attribuition.error';	
-	const CERTIFICATION_MODEL_ATTRIBUITION_ERROR_SQL = 'certificationmodel.attribuition.error.sql';
-	const CERTIFICATION_MODEL_ATTRIBUITION_SUCCESS = 'certificationmodel.attribuition.success';
 
 	const CERTIFICATIONMODEL_CREATE_ERROR_SQL = 'certificationmodel.create.error.sql';
 	const CERTIFICATIONMODEL_CREATE_SUCCESS = 'certificationmodel.create.success';
@@ -227,37 +227,9 @@ class EveCertificationService
 		$stmt->close();
 	}
 
-	function certification_list()
+	function certification_list_for_user($screenname)
 	{
-		$certification_res = $this->eve->mysqli->query
-		("
-			SELECT
-				`{$this->eve->DBPref}certification`.`id`,	
-				`{$this->eve->DBPref}userdata`.`name`,
-				`{$this->eve->DBPref}certification_model`.`name`, 
-				`{$this->eve->DBPref}certification`.`views`
-			FROM
-				`{$this->eve->DBPref}certification_model`,
-				`{$this->eve->DBPref}certification`,
-				`{$this->eve->DBPref}userdata`
-			WHERE
-				`{$this->eve->DBPref}certification`.`screenname` = `{$this->eve->DBPref}userdata`.`email`
-			AND
-				`{$this->eve->DBPref}certification_model`.`id` = `{$this->eve->DBPref}certification`.`certification_model_id`
-		");
-		$result = array();
-		while ($certification_row = $certification_res->fetch_row())
-		{
-			$result[] = $certification_row;
-		}
-		return $result;
-	}
-
-	function get_certifications_for_user($screenname)
-	{
-		// TODO REMOVE SQL INJECTION (Although this methods is currently not being used with get/post values)
-		$certifications = array();
-		$certifications_res = $this->eve->mysqli->query
+		$stmt = $this->eve->mysqli->prepare
 		("
 			SELECT  
 				`{$this->eve->DBPref}certification`.`id`,
@@ -268,10 +240,20 @@ class EveCertificationService
 				`{$this->eve->DBPref}certification_model`
 			WHERE
 				`{$this->eve->DBPref}certification`.`certification_model_id` = `{$this->eve->DBPref}certification_model`.`id` AND
-				`{$this->eve->DBPref}certification`.`screenname` = '$screenname'
+				`{$this->eve->DBPref}certification`.`screenname` = ?
 		");
-		while ($certification = $certifications_res->fetch_assoc())
-			$certifications[] = $certification;
+		if ($stmt === false)
+		{
+			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
+			return null;
+		}
+		$stmt->bind_param('s', $screenname);
+		$stmt->execute();
+		$result = $stmt->get_result();
+		$certifications = array();
+		while ($row = $result->fetch_array(MYSQLI_ASSOC))
+			$certifications[] = $row;
+		$stmt->close();
 		return $certifications;
 	}
 	
@@ -344,9 +326,12 @@ class EveCertificationService
 		$this->evemail->send_mail($certification['owner'], $placeholders, $this->eve->getSetting('email_sbj_certification'), $this->eve->getSetting('email_msg_certification'));
 	}
 
-	function certification_model_attribuition($certification_model_id, $screenname, $submission_id)
+	function certification_assignment($certification_model_id, $screenname, $submission_id)
 	{
-		// TODO check if screenname and submissionid are valid to return more specific errors
+		// TODO check parameters for more specific error messages in case the validation fails.
+		// $certification_model_id must be valid and existing, $screnname must be valid and there
+		// must be only one combination of $certification_model_id, $screenname, $submission_id.
+		// All these verifications are made in database but the error message is too generic.
 		// Preparing insert statement
 		$stmt2 = $this->eve->mysqli->prepare
 		("
@@ -356,11 +341,11 @@ class EveCertificationService
 		");
 		if ($stmt2 === false)
 		{
-			return self::CERTIFICATION_MODEL_ATTRIBUITION_ERROR_SQL;
+			return self::CERTIFICATION_ASSIGNMENT_ERROR_SQL;
 		}
 		$stmt2->bind_param('isi', $certification_model_id, $screenname, $submission_id);
 		$stmt2->execute();
-		if ($this->eve->mysqli->affected_rows)
+		if (!$stmt2->error)
 		{
 			$certification_id = $stmt2->insert_id;
 			if ($this->eve->getSetting('email_snd_certification'))
@@ -371,7 +356,7 @@ class EveCertificationService
 		else
 		{
 			$stmt2->close();
-			return self::CERTIFICATION_MODEL_ATTRIBUITION_ERROR;
+			return self::CERTIFICATION_ASSIGNMENT_ERROR;
 		}
 	}
 
@@ -385,7 +370,7 @@ class EveCertificationService
 		select	`{$this->eve->DBPref}userdata`.`email`,
 				`{$this->eve->DBPref}userdata`.`name`,
 				`{$this->eve->DBPref}submission`.`id` as `submission_id`,
-				'to_owner' as `attibuition_type`,
+				'owner' as `assignment_type`,
 				`{$this->eve->DBPref}certification`.`id`,
 				`{$this->eve->DBPref}certification`.`views`
 		from 	`{$this->eve->DBPref}submission`
@@ -411,7 +396,7 @@ class EveCertificationService
 		select 	`{$this->eve->DBPref}userdata`.`email`,
 				`{$this->eve->DBPref}userdata`.`name`,
 				`{$this->eve->DBPref}submission`.`id` as `submission_id`,
-				'to_third_person' as `attibuition_type`,
+				'non.owner' as `assignment_type`,
 				`{$this->eve->DBPref}certification`.`id`,
 				`{$this->eve->DBPref}certification`.`views`
 		from 	`{$this->eve->DBPref}certification`
@@ -455,7 +440,7 @@ class EveCertificationService
 				`{$this->eve->DBPref}certification` on
 				`{$this->eve->DBPref}userdata`.`email` = `{$this->eve->DBPref}certification`.`screenname`
 				and `{$this->eve->DBPref}certification`.`certification_model_id` = ?
-		 -- where 	`{$this->eve->DBPref}certification`.`certification_model_id` = ? or
+		-- where 	`{$this->eve->DBPref}certification`.`certification_model_id` = ? or
 		--		`{$this->eve->DBPref}certification`.`certification_model_id` is null
 		");
 		if ($stmt === false)

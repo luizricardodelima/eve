@@ -138,6 +138,7 @@ else
 
 	function payment_create()
 	{
+		// TODO #21 Improve error message when screenname does not exist
 		var message = '<?php echo $eve->_("payments.message.create")?>';
 		var payment_screenname = prompt(message);
 		if (payment_screenname != null)

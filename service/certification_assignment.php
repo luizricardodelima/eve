@@ -23,7 +23,7 @@ else
 {
 	header("Content-Type: application/json; charset=utf-8");
 	$submission_id = (is_numeric($_GET['submission_id'])) ? intval($_GET['submission_id']) : null;
-	$msg = $eveCertificationService->certification_model_attribuition($_GET['certificationmodel_id'], $_GET['screenname'], $submission_id);
+	$msg = $eveCertificationService->certification_assignment($_GET['certificationmodel_id'], $_GET['screenname'], $submission_id);
 	echo $msg;
 }
 ?>

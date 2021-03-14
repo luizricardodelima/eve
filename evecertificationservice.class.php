@@ -52,8 +52,6 @@ class EveCertificationService
 		$stmt->bind_param('i', $id);
 		$stmt->execute();
 		$certification = array();
-		// Binding result variable - Column by column to ensure compability
-		// From PHP Verions 5.3+ there is the get_result() method
     	$stmt->bind_result
 		(
 			$certification['id'],
@@ -252,10 +250,17 @@ class EveCertificationService
 		}
 		$stmt->bind_param('s', $screenname);
 		$stmt->execute();
-		$result = $stmt->get_result();
+		$stmt->bind_result($res_id, $res_name, $res_hasopenermsg);
 		$certifications = array();
-		while ($row = $result->fetch_array(MYSQLI_ASSOC))
-			$certifications[] = $row;
+		while ($stmt->fetch())
+		{
+		   $certifications[] = 
+		   	[
+			   'id' => $res_id,
+			   'name' => $res_name,
+			   'hasopenermsg' => $res_hasopenermsg
+			];
+		}
 		$stmt->close();
 		return $certifications;
 	}
@@ -421,12 +426,22 @@ class EveCertificationService
 		}
 		$stmt->bind_param('iiii', $submission_definition_id, $certification_model_id, $submission_definition_id, $certification_model_id);
 		$stmt->execute();
-		$result = $stmt->get_result();
-		$list = array();
-		while ($row = $result->fetch_array(MYSQLI_ASSOC))
-			$list[] = $row;
+		$stmt->bind_result($res_email, $res_name, $res_submission_id, $res_assignment_type, $res_id, $res_views);
+		$certifications = array();
+		while ($stmt->fetch())
+		{
+		   $certifications[] = 
+		   	[
+			   'email' => $res_email,
+			   'name' => $res_name,
+			   'submission_id' => $res_submission_id,
+			   'assignment_type' => $res_assignment_type,
+			   'id' => $res_id,
+			   'views' => $res_views
+			];
+		}
 		$stmt->close();
-		return $list;
+		return $certifications;
 	}
 
 	function certificationmodel_user_certification_list($certification_model_id)
@@ -440,8 +455,8 @@ class EveCertificationService
 		from 	`{$this->eve->DBPref}userdata`
 		left join
 				`{$this->eve->DBPref}certification` on
-				`{$this->eve->DBPref}userdata`.`email` = `{$this->eve->DBPref}certification`.`screenname`
-				and `{$this->eve->DBPref}certification`.`certification_model_id` = ?
+				`{$this->eve->DBPref}userdata`.`email` = `{$this->eve->DBPref}certification`.`screenname` and 
+				`{$this->eve->DBPref}certification`.`certification_model_id` = ?
 		");
 		if ($stmt === false)
 		{
@@ -450,12 +465,20 @@ class EveCertificationService
 		}
 		$stmt->bind_param('i', $certification_model_id);
 		$stmt->execute();
-		$result = $stmt->get_result();
-		$list = array();
-		while ($row = $result->fetch_array(MYSQLI_ASSOC))
-			$list[] = $row;
+		$stmt->bind_result($res_email, $res_name, $res_id, $res_views);
+		$certifications = array();
+		while ($stmt->fetch())
+		{
+		   $certifications[] = 
+		   	[
+			   'email' => $res_email,
+			   'name' => $res_name,
+			   'id' => $res_id,
+			   'views' => $res_views
+			];
+		}
 		$stmt->close();
-		return $list;
+		return $certifications;
 	}
 	
 	function certificationmodel_create($name = "")
@@ -553,8 +576,6 @@ class EveCertificationService
 		$stmt->bind_param('i', $id);
 		$stmt->execute();
 		$certificationmodel = array();
-		// Binding result variable - Column by column to ensure compability
-		// From PHP Verions 5.3+ there is the get_result() method
     	$stmt->bind_result
 		(
 			$certificationmodel['id'],

@@ -246,8 +246,6 @@ class EveSubmissionService
 			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
 			return null;
 		}
-		// Binding result variable - Column by column to ensure compability
-		// From PHP Verions 5.3+ there is the get_result() method
 		$submission = array();
 		$stmt->bind_result
 		(
@@ -336,9 +334,7 @@ class EveSubmissionService
 		else
 			$stmt->bind_param('is', $submission_definition_id, $email);
 		$stmt->execute();
-		// Binding result variable - Column by column to ensure compability
-		// From PHP Verions 5.3+ there is the get_result() method
-    		$stmt->bind_result
+   		$stmt->bind_result
 		(
 			$id,
 			$submission_definition_id,
@@ -652,8 +648,6 @@ class EveSubmissionService
 		}
 		$stmt->bind_param('i', $id);
 		$stmt->execute();
-		// Binding result variable - Column by column to ensure compability
-		// From PHP Verions 5.3+ there is the get_result() method
 		$submission_definition = array();
 		$stmt->bind_result
 		(
@@ -909,9 +903,7 @@ class EveSubmissionService
 		}
 		$stmt->bind_param('i', $id);
 		$stmt->execute();
-		// Binding result variable - Column by column to ensure compability
-		// From PHP Verions 5.3+ there is the get_result() method
-    		$stmt->bind_result
+    	$stmt->bind_result
 		(
 			$id,
 			$submission_definition_id,
@@ -1064,8 +1056,6 @@ class EveSubmissionService
 		}
 		$stmt->bind_param('sss', $requirement, $requirement, $screenname);
 		$stmt->execute();
-		// Binding result variable - Column by column to ensure compability
-		// From PHP Verions 5.3+ there is the get_result() method
 		$submission_definition = array();
 		$stmt->bind_result
 		(

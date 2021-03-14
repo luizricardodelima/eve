@@ -234,12 +234,19 @@ class EveUserService
 			return null;
 		}
 		$stmt->execute();
-		$result = $stmt->get_result();
-		$list = array();
-		while ($row = $result->fetch_array(MYSQLI_ASSOC))
-			$list[] = $row;
+		$stmt->bind_result($res_email, $res_password, $res_verificationcode);
+		$unverified_users = array();
+		while ($stmt->fetch())
+		{
+		   $unverified_users[] = 
+		   	[
+			   'email' => $res_email,
+			   'password' => $res_password,
+			   'verificationcode' => $res_verificationcode
+			];
+		}
 		$stmt->close();
-		return $list;
+		return $unverified_users;
 	}
 
 	function unverified_user_send_verification_email($email) 
@@ -445,8 +452,43 @@ class EveUserService
 		}		
 		$stmt1->bind_param('s', $email);
 		$stmt1->execute();
-		$result = $stmt1->get_result();
-		$user = $result->fetch_array(MYSQLI_ASSOC);
+		$stmt1->bind_result
+		(
+			$res_email, $res_admin, $res_name, $res_address, $res_city, $res_state, $res_country,
+			$res_postalcode, $res_birthday, $res_gender, $res_phone1, $res_phone2, $res_institution,
+			$customtext1, $customtext2, $customtext3, $customtext4, $customtext5, $customflag1,
+			$customflag2, $customflag3, $customflag4, $customflag5, $res_note
+
+		);
+		$user = null;
+		if ($stmt1->fetch())
+		   $user = 
+		   	[
+			   'email' => $res_email,
+			   'admin' => $res_admin,
+			   'name' => $res_name,
+			   'address' => $res_address,
+			   'city' => $res_city,
+			   'state' => $res_state,
+			   'country' => $res_country,
+			   'postalcode' => $res_postalcode,
+			   'birthday' => $res_birthday,
+			   'gender' => $res_gender,
+			   'phone1' => $res_phone1,
+			   'phone2' => $res_phone2,
+			   'institution' => $res_institution,
+			   'customtext1' => $customtext1,
+			   'customtext2' => $customtext2,
+			   'customtext3' => $customtext3,
+			   'customtext4' => $customtext4,
+			   'customtext5' => $customtext5,
+			   'customflag1' => $customflag1,
+			   'customflag2' => $customflag2,
+			   'customflag3' => $customflag3,
+			   'customflag4' => $customflag4,
+			   'customflag5' => $customflag5,
+			   'note' => $res_note
+			];			
 		$stmt1->close();
 		return $user;
 	}

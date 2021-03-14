@@ -54,9 +54,6 @@ class EvePaymentService
 		}
 		$stmt->bind_param('si', $screenname, $payment_group_id);
 		$stmt->execute();
-
-		// Binding result variable - Column by column to ensure compability
-		// From PHP Verions 5.3+ there is the get_result() method
 		$stmt->bind_result
 		(
 			$id, $payment_group_id, $user_email, $date, $payment_method, $value_paid, $value_received, $note, $file, $active
@@ -146,8 +143,6 @@ class EvePaymentService
 		$stmt1->bind_param('i', $id);
 		$stmt1->execute();
 		$payment = array();
-		// Binding result variable - Column by column to ensure compability
-		// From PHP Verions 5.3+ there is the get_result() method
     	$stmt1->bind_result
 		(
 			$payment['id'],
@@ -381,10 +376,6 @@ class EvePaymentService
 			return null;
 		}		
 		$stmt1->execute();
-
-		
-		// Binding result variable - Column by column to ensure compability
-		// From PHP Verions 5.3+ there is the get_result() method
     	$stmt1->bind_result
 		(
 			$id, $name, $payment_info, $unverified_payment_info, $verified_payment_info, $state
@@ -439,9 +430,6 @@ class EvePaymentService
 			return null;
 		}		
 		$stmt1->execute();
-
-		// Binding result variable - Column by column to ensure compability
-		// From PHP Verions 5.3+ there is the get_result() method
     	$stmt1->bind_result ($id);
 		// Fetching values
 		while ($stmt1->fetch())
@@ -518,9 +506,6 @@ class EvePaymentService
 		}
 		$stmt1->bind_param('i', $id);		
 		$stmt1->execute();
-
-		// Binding result variable - Column by column to ensure compability
-		// From PHP Verions 5.3+ there is the get_result() method
     	$stmt1->bind_result
 		(
 			$id, $name, $payment_info, $unverified_payment_info, $verified_payment_info, $state
@@ -609,8 +594,6 @@ class EvePaymentService
 		}
 		$stmt1->bind_param('i', $payment_id);
 		$stmt1->execute();		
-		// Binding result variable - Column by column to ensure compability
-		// From PHP Verions 5.3+ there is the get_result() method
     	$stmt1->bind_result
 		(
 			$id, $payment_id, $payment_option_id, $type, $name, $description,
@@ -694,9 +677,6 @@ class EvePaymentService
 		}
 		$stmt1->bind_param('i', $id);		
 		$stmt1->execute();
-
-		// Binding result variable - Column by column to ensure compability
-		// From PHP Verions 5.3+ there is the get_result() method
     	$stmt1->bind_result
 		(
 			$id, $type, $name, $description, $value, $available_from,
@@ -746,9 +726,6 @@ class EvePaymentService
 		}
 		if ($payment_group_filter) $stmt1->bind_param('i', $payment_group_id);	
 		$stmt1->execute();
-
-		// Binding result variable - Column by column to ensure compability
-		// From PHP Verions 5.3+ there is the get_result() method
     	$stmt1->bind_result
 		(
 			$id, $type, $name, $description, $value, $available_from,

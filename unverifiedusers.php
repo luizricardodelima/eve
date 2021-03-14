@@ -4,6 +4,7 @@ require_once 'eve.class.php';
 require_once 'eveuserservice.class.php';
 
 $eve = new Eve();
+$eveUserService = new EveUserService($eve);
 
 // Session verification.
 if (!isset($_SESSION['screenname']))
@@ -20,20 +21,19 @@ else if (!$eve->is_admin($_SESSION['screenname']))
 // when page is reloaded.
 else if (isset($_POST['action']))
 {
-	$EveUserService = new EveUserService($eve);
 	switch ($_POST['action'])
 	{
 		case 'change_email':
-			$msg = $EveUserService->unverified_user_change_email($_POST['oldemail'], $_POST['newemail']);
+			$msg = $eveUserService->unverified_user_change_email($_POST['oldemail'], $_POST['newemail']);
 			break;
 		case "delete":
-			$msg = $EveUserService->unverified_user_delete($_POST['email']);
+			$msg = $eveUserService->unverified_user_delete($_POST['email']);
 			break;
-		case "send_verification_email":
-			$msg = $EveUserService->unverified_user_send_verification_email($_POST['email']);
+		case "resend_email":
+			$msg = $eveUserService->unverified_user_send_verification_email($_POST['email']);
 			break;
 	}
-	$eve->output_redirect_page(basename(__FILE__)."?message=$msg");
+	$eve->output_redirect_page(basename(__FILE__)."?msg=$msg");
 }
 // If there is a valid session, and the current user is administrator and there is no
 // action sent by post, display the regular listing page.
@@ -47,97 +47,99 @@ else
 	]);
  
 	// Success/Error messages
-	if (isset($_GET['message'])) switch ($_GET['message'])
-	{
-		case EveUserService::UNVERIFIED_USER_CHANGE_EMAIL_ERROR_INVALID_EMAIL:
-			$eve->output_error_message("O e-mail informado é inválido."); //TODO g11n
-			break;
-		case EveUserService::UNVERIFIED_USER_CHANGE_EMAIL_ERROR_UNVERIFIED_USER_EXISTS:
-			$eve->output_error_message("O e-mail informado já é usado por outro usuário não verificado."); //TODO g11n
-			break;	
-		case EveUserService::UNVERIFIED_USER_CHANGE_EMAIL_ERROR_USER_EXISTS:
-			$eve->output_error_message("O e-mail informado já é usado por outro usuário."); //TODO g11n
-			break;		
-		case EveUserService::UNVERIFIED_USER_CHANGE_EMAIL_SUCCESS:
-			$eve->output_success_message("E-mail alterado com sucesso."); //TODO g11n
-			break;
-		case EveUserService::UNVERIFIED_USER_DELETE_SUCCESS:
-			$eve->output_success_message("Usuário sem verificação removido com sucesso."); //TODO g11n
-			break;
-		case EveUserService::UNVERIFIED_USER_SEND_VERIFICATION_EMAIL_SUCCESS:
-			$eve->output_success_message("E-mail de verificação reenviado."); //TODO g11n
-			break;
-	}	
+	if (isset($_GET['msg'])) $eve->output_service_message($_GET['msg']);
+
 	?>
 	<table class="data_table">
 	<tr>
-	<th style="width:40%">E-mail</th>
-	<th style="width:40%">Código de verificação</th>
+	<th style="width:40%"><?php echo $eve->_('unverified.users.header.email');?></th>
+	<th style="width:40%"><?php echo $eve->_('unverified.users.header.verificationcode');?></th>
 	<th style="width:20%" colspan="3"><?php echo $eve->_('common.table.header.options');?></th>		
 	</tr>
 	<?php
-	$unverifieduser_res = $eve->mysqli->query
-	("
-		SELECT `email`, `verificationcode`
-		FROM `{$eve->DBPref}unverifieduser`
-		ORDER BY `{$eve->DBPref}unverifieduser`.`email`;
-	");
-	while ($unverifieduser = $unverifieduser_res->fetch_assoc())
+
+	$unverifiedusers = $eveUserService->unverified_user_list();
+	foreach ($unverifiedusers as $unverifieduser) 
 	{	
 		echo "<tr>";
 		echo "<td style=\"text-align:left\">{$unverifieduser['email']}</td>";
 		echo "<td style=\"text-align:left\">{$unverifieduser['verificationcode']}</td>";
-		echo "<td><button type=\"button\" onclick=\"send_email('{$unverifieduser['email']}')\"><img src=\"style/icons/email.png\"/></td>";
-		echo "<td><button type=\"button\" onclick=\"changeemail('{$unverifieduser['email']}')\"><img src=\"style/icons/changeemail.png\"/></td>";
-		echo "<td><button type=\"button\" onclick=\"delete_row('{$unverifieduser['email']}')\"><img src=\"style/icons/delete.png\"></td>";
+		echo "<td><button type=\"button\" onclick=\"unverified_user_resend_email('{$unverifieduser['email']}')\"><img src=\"style/icons/email.png\"/></td>";
+		echo "<td><button type=\"button\" onclick=\"unverified_user_change_email('{$unverifieduser['email']}')\"><img src=\"style/icons/changeemail.png\"/></td>";
+		echo "<td><button type=\"button\" onclick=\"unverified_user_delete('{$unverifieduser['email']}')\"><img src=\"style/icons/delete.png\"></td>";
 		echo "</tr>";
 	}
 	?>
 	</table>
 	<script>
-	function changeemail(oldemail)
+	function unverified_user_change_email(oldemail)
 	{
-		var newemail = prompt("Insira o novo e-mail em substituição a " + oldemail + ".");
+		var raw_message = '<?php echo $eve->_('unverified.users.message.change.email');?>';
+		var message = raw_message.replace('<OLD_EMAIL>', oldemail);
+		var newemail = prompt(message);
 		if (newemail != null)
 		{
-			document.getElementById('oldemail_hidden_value').value=oldemail;
-			document.getElementById('newemail_hidden_value').value=newemail;
-			document.getElementById('change_email_form').submit();
+			form = document.createElement('form');
+			form.method = "post";
+			var1 = document.createElement('input');
+			var1.setAttribute('type', 'hidden');
+			var1.setAttribute('name', 'action');
+			var1.setAttribute('value', 'change_email');
+			form.appendChild(var1);
+			var2 = document.createElement('input');
+			var2.setAttribute('type', 'hidden');
+			var2.setAttribute('name', 'oldemail');
+			var2.setAttribute('value', oldemail);
+			form.appendChild(var2);
+			var3 = document.createElement('input');
+			var3.setAttribute('type', 'hidden');
+			var3.setAttribute('name', 'newemail');
+			var3.setAttribute('value', newemail);
+			form.appendChild(var3);
+			document.body.appendChild(form);
+			form.submit();
 		}
-		return false;
 	}
-	function delete_row(screenname)
+	function unverified_user_delete(email)
 	{
-		if (confirm("Confirma a exclusão do usuário sem verificação " + screenname + "?"))
+		var raw_message = '<?php echo $eve->_('unverified.users.message.delete');?>';
+		var message = raw_message.replace('<EMAIL>', email);
+		if (confirm(message))
 		{
-			document.getElementById("email_hidden_value").value=screenname;
-			document.getElementById("delete_form").submit();
+			form = document.createElement('form');
+			form.method = "post";
+			var1 = document.createElement('input');
+			var1.setAttribute('type', 'hidden');
+			var1.setAttribute('name', 'action');
+			var1.setAttribute('value', 'delete');
+			form.appendChild(var1);
+			var2 = document.createElement('input');
+			var2.setAttribute('type', 'hidden');
+			var2.setAttribute('name', 'email');
+			var2.setAttribute('value', email);
+			form.appendChild(var2);
+			document.body.appendChild(form);
+			form.submit();
 		}
-		return false;
 	}
-	function send_email(email)
+	function unverified_user_resend_email(email)
 	{
-		if (confirm("Confirma o reevenivo do e-mail de verificação para " + email + "?"))
-		{
-			document.getElementById("send_email_hidden_value").value=email;
-			document.getElementById("send_email_form").submit();
-		}
-		return false;
+		form = document.createElement('form');
+		form.method = "post";
+		var1 = document.createElement('input');
+		var1.setAttribute('type', 'hidden');
+		var1.setAttribute('name', 'action');
+		var1.setAttribute('value', 'resend_email');
+		form.appendChild(var1);
+		var2 = document.createElement('input');
+		var2.setAttribute('type', 'hidden');
+		var2.setAttribute('name', 'email');
+		var2.setAttribute('value', email);
+		form.appendChild(var2);
+		document.body.appendChild(form);
+		form.submit();
 	}
 	</script>
-	<form method="post" id="delete_form">
-		<input type="hidden" name="action" value="delete"/>
-		<input type="hidden" name="email" id="email_hidden_value"/>
-	</form>
-	<form method="post" id="change_email_form">
-		<input type="hidden" name="action" value="change_email"/>
-		<input type="hidden" name="oldemail" id="oldemail_hidden_value"/>
-		<input type="hidden" name="newemail" id="newemail_hidden_value"/>
-	</form>
-	<form method="post" id="send_email_form">
-		<input type="hidden" name="action" value="send_verification_email"/>
-		<input type="hidden" name="email" id="send_email_hidden_value"/>
-	</form>
 	<?php
 	$eve->output_html_footer();
 }

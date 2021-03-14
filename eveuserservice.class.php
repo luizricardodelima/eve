@@ -18,20 +18,20 @@ class EveUserService
 	const LOGIN_SUCCESSFUL = 1;
 	const LOGIN_NEW_USER = 2;
 
-	const UNVERIFIED_USER_CHANGE_EMAIL_ERROR_INVALID_EMAIL = 3;
-	const UNVERIFIED_USER_CHANGE_EMAIL_ERROR_UNVERIFIED_USER_EXISTS = 4;
-	const UNVERIFIED_USER_CHANGE_EMAIL_ERROR_USER_EXISTS = 5;
-	const UNVERIFIED_USER_CHANGE_EMAIL_SUCCESS = 6;
+	const UNVERIFIED_USER_CHANGE_EMAIL_ERROR_INVALID_EMAIL = 'unverified.user.change.email.error.invalid.email';
+	const UNVERIFIED_USER_CHANGE_EMAIL_ERROR_UNVERIFIED_USER_EXISTS = 'unverified.user.change.email.error.unverified.user.exists';
+	const UNVERIFIED_USER_CHANGE_EMAIL_ERROR_USER_EXISTS = 'unverified.user.change.email.error.user.exists';
+	const UNVERIFIED_USER_CHANGE_EMAIL_SUCCESS = 'unverified.user.change.email.success';
 
 	const UNVERIFIED_USER_CREATE_ERROR_PASSWORDS_DO_NOT_MATCH = 'unverified.user.create.error.passwords.do.not.match';
 	const UNVERIFIED_USER_CREATE_ERROR_PASSWORD_TOO_SMALL = 'unverified.user.create.error.password.too.small';
 	const UNVERIFIED_USER_CREATE_ERROR_INVALID_EMAIL = 'unverified.user.create.error.invalid.email';
 	const UNVERIFIED_USER_CREATE_ERROR_USER_EXISTS = 'unverified.user.create.error.user.exists';
-	const UNVERIFIED_USER_CREATE_SUCCESS = 11;
+	const UNVERIFIED_USER_CREATE_SUCCESS = 'unverified.user.create.success';
 
-	const UNVERIFIED_USER_DELETE_SUCCESS = 12;
+	const UNVERIFIED_USER_DELETE_SUCCESS = 'unverified.user.delete.success';
 
-	const UNVERIFIED_USER_SEND_VERIFICATION_EMAIL_SUCCESS = 13;
+	const UNVERIFIED_USER_SEND_VERIFICATION_EMAIL_SUCCESS = 'unverified.user.send.verification.email.success';
 
 	const USER_CHANGE_EMAIL_ERROR_INVALID_EMAIL = 'user.change.email.error.invalid.email';
 	const USER_CHANGE_EMAIL_ERROR_EMAIL_IN_USE = 'user.change.email.error.email.in.use';
@@ -184,12 +184,7 @@ class EveUserService
 			for ($i = 0; $i < $length; $i++)
 	       			$verification_code .= $characters[rand(0, strlen($characters) - 1)];
 
-			// TODO: use unverified_user_delete($email)
-			$stmt1 = $this->eve->mysqli->prepare("delete from `{$this->eve->DBPref}unverifieduser` where `email`=?;");
-			$stmt1->bind_param('s', $email);
-			$stmt1->execute();
-			$stmt1->close();
-
+			$this->unverified_user_delete($email);
 			$stmt2 = $this->eve->mysqli->prepare("insert into `{$this->eve->DBPref}unverifieduser` (`email`, `password`, `verificationcode`) values (?,?,?);");
 			$stmt2->bind_param('sss', $email, $encrypted_password, $verification_code);
 			$stmt2->execute();
@@ -220,6 +215,28 @@ class EveUserService
 		$result = ($stmt->num_rows > 0);
 		$stmt->close();
 		return $result;
+	}
+
+	function unverified_user_list()
+	{
+		$stmt = $this->eve->mysqli->prepare
+		("
+			SELECT 		*
+			FROM 		`{$this->eve->DBPref}unverifieduser`
+			ORDER BY	`{$this->eve->DBPref}unverifieduser`.`email`;
+		");
+		if ($stmt === false)
+		{
+			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
+			return null;
+		}
+		$stmt->execute();
+		$result = $stmt->get_result();
+		$list = array();
+		while ($row = $result->fetch_array(MYSQLI_ASSOC))
+			$list[] = $row;
+		$stmt->close();
+		return $list;
 	}
 
 	function unverified_user_send_verification_email($email) 
@@ -370,6 +387,7 @@ class EveUserService
 	{
 		// User delete consists of only one SQL line. It relies on the relationships
 		// among tables and cascade settings on update.
+		// TODO: #24 Users cannot be simply deleted. They need to be deactivated
 		$stmt = $this->eve->mysqli->prepare
 		("
 			delete from `{$this->eve->DBPref}user` where `email` = ?

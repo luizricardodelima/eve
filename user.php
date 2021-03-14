@@ -40,11 +40,11 @@ else
 		if (empty($validation_errors))
 		{
 			// Updating user data, if there are no validating errors
-			$eveUserService->user_save($user);
+			$msg = $eveUserService->user_save($user);
 			if ($admin_mode)
-				$eve->output_redirect_page("users.php?msg=userarea.message.userdata.saved.successfully");
+				$eve->output_redirect_page("users.php?msg=$msg");
 			else
-				$eve->output_redirect_page("userarea.php?msg=userarea.message.userdata.saved.successfully");
+				$eve->output_redirect_page("userarea.php?msg=$msg");
 		}
 	}
 

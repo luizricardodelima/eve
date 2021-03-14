@@ -30,6 +30,9 @@ class EveCertificationService
 	const CERTIFICATIONMODEL_DUPLICATE_ERROR_SQL = 'certificationmodel.duplicate.error.sql';
 	const CERTIFICATIONMODEL_DUPLICATE_SUCCESS = 'certificationmodel.duplicate.success';
 
+	const CERTIFICATION_MODEL_SAVE_ERROR_SQL = 'certification.model.save.error.sql';
+	const CERTIFICATION_MODEL_SAVE_SUCCESS = 'certification.model.save.success';
+
 	private $eve;
 	private $evemail;
 
@@ -377,14 +380,13 @@ class EveCertificationService
 		inner join
 				`{$this->eve->DBPref}userdata`
 		on
-				`{$this->eve->DBPref}userdata`.`email` = `{$this->eve->DBPref}submission`.`email`
+				`{$this->eve->DBPref}userdata`.`email` = `{$this->eve->DBPref}submission`.`email` and
+				`{$this->eve->DBPref}submission`.`submission_definition_id` = ?  and
+				`{$this->eve->DBPref}submission`.`active` = 1 
 		left join
 				`{$this->eve->DBPref}certification`
 		on      `{$this->eve->DBPref}certification`.`screenname` = `{$this->eve->DBPref}submission`.`email` and
-				`{$this->eve->DBPref}certification`.`submissionid` = `{$this->eve->DBPref}submission`.`id`
-		where
-				`{$this->eve->DBPref}submission`.`submission_definition_id` = ? and
-				`{$this->eve->DBPref}submission`.`active` = 1 and
+				`{$this->eve->DBPref}certification`.`submissionid` = `{$this->eve->DBPref}submission`.`id` and
 				(`{$this->eve->DBPref}certification`.`certification_model_id` = ? or
 				`{$this->eve->DBPref}certification`.`certification_model_id` is null)
 		
@@ -440,8 +442,6 @@ class EveCertificationService
 				`{$this->eve->DBPref}certification` on
 				`{$this->eve->DBPref}userdata`.`email` = `{$this->eve->DBPref}certification`.`screenname`
 				and `{$this->eve->DBPref}certification`.`certification_model_id` = ?
-		-- where 	`{$this->eve->DBPref}certification`.`certification_model_id` = ? or
-		--		`{$this->eve->DBPref}certification`.`certification_model_id` is null
 		");
 		if ($stmt === false)
 		{
@@ -595,9 +595,6 @@ class EveCertificationService
 			from `{$this->eve->DBPref}certification_model`;
 		");
 	}
-
-	const CERTIFICATION_MODEL_SAVE_ERROR_SQL = 'certification.model.save.error.sql';
-	const CERTIFICATION_MODEL_SAVE_SUCCESS = 'certification.model.save.success';
 
 	function certificationmodel_save($certification_model)
 	{

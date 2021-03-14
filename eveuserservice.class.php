@@ -46,6 +46,9 @@ class EveUserService
 	const USER_PASSWORDCHANGE_ERROR_INCORRECT_PASSWORD = 'user.passwordchange.error.incorrect.password';
 	const USER_PASSWORDCHANGE_SUCCESS = 'user.passwordchange.success';
 
+	const USER_SAVE_ERROR = 'user.save.error';
+	const USER_SAVE_SUCCESS = 'user.save.success';
+
 	function admin_add($screenname)
 	{
 		if (!$this->user_exists($screenname))
@@ -499,8 +502,10 @@ class EveUserService
 		}
 	}
 
-	/* Saves user data descripted in the $user array. Its keys have to have the same name as the table columns.
-	   This function does not update $user['email'] */
+	/**
+	 *  Saves user data descripted in the $user array. Its keys have to have the same name as the
+	 *  table columns. This function does not update $user['email'] nor $user['admin'].  
+	 */
 	function user_save($user)
 	{ 
 		// Verifying the consistency of values $user['birthday'] and $user['gender'], since
@@ -514,29 +519,28 @@ class EveUserService
 		$stmt1 = $this->eve->mysqli->prepare
 		("
 			update	`{$this->eve->DBPref}userdata` 
-			set	`admin` = ?,
-				`name` = ?,
-				`address` = ?,
-				`city` = ?,
-				`state` = ?,
-				`country` = ?,
-				`postalcode` = ?,
-				`birthday` = ?,
-				`gender` = ?,
-				`phone1` = ?,
-				`phone2` = ?,
-				`institution` = ?,
-				`customtext1` = ?,
-				`customtext2` = ?,
-				`customtext3` = ?,
-				`customtext4` = ?,
-				`customtext5` = ?,
-				`customflag1` = ?,
-				`customflag2` = ?,
-				`customflag3` = ?,
-				`customflag4` = ?,
-				`customflag5` = ?,
-				`note` = ?
+			set		`name` = ?,
+					`address` = ?,
+					`city` = ?,
+					`state` = ?,
+					`country` = ?,
+					`postalcode` = ?,
+					`birthday` = ?,
+					`gender` = ?,
+					`phone1` = ?,
+					`phone2` = ?,
+					`institution` = ?,
+					`customtext1` = ?,
+					`customtext2` = ?,
+					`customtext3` = ?,
+					`customtext4` = ?,
+					`customtext5` = ?,
+					`customflag1` = ?,
+					`customflag2` = ?,
+					`customflag3` = ?,
+					`customflag4` = ?,
+					`customflag5` = ?,
+					`note` = ?
 			where	`email` = ?
 
 		");
@@ -545,16 +549,24 @@ class EveUserService
 			trigger_error($this->eve->mysqli->error, E_USER_ERROR);
 			return null;
 		}
-		$stmt1->bind_param('iissssssssssssssssiiiiiss',
-				$user['admin'], $user['name'], $user['address'],
-				$user['city'], $user['state'], $user['country'], $user['postalcode'],
-				$user_birthday, $user_gender, $user['phone1'], $user['phone2'], $user['institution'],
+		$stmt1->bind_param('ssssssssssssssssiiiiiss',
+				$user['name'], $user['address'], $user['city'], $user['state'],
+				$user['country'], $user['postalcode'], $user_birthday, $user_gender,
+				$user['phone1'], $user['phone2'], $user['institution'],
 				$user['customtext1'], $user['customtext2'], $user['customtext3'], $user['customtext4'], $user['customtext5'],
 				$user['customflag1'], $user['customflag2'], $user['customflag3'], $user['customflag4'], $user['customflag5'],
 				$user['note'], $user['email']);
 		$stmt1->execute();
-		// TODO verify any eventual $this->eve->mysqli->error and return success/failure codes 	
-		$stmt1->close();
+		if (!empty($stmt1->error))
+		{
+			$stmt1->close();
+			return self::USER_SAVE_ERROR;
+		}
+		else
+		{
+			$stmt1->close();
+			return self::USER_SAVE_SUCCESS;
+		}
 	}
 
 	/** Retrieves a list of users with just a few attributes: email, name, and note */

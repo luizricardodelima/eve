@@ -35,7 +35,7 @@ else
 
 	$settings = $eveSettingsService->settings_get
 	(
-		'block_user_form',  'user_display_custom_message_on_unlocked_form',
+		'user_display_custom_message_on_unlocked_form',
 		'user_custom_message_on_unlocked_form', 
 		'user_name_visible', 'user_name_mandatory', 'user_address_visible', 'user_address_mandatory', 
 		'user_city_visible', 'user_city_mandatory', 'user_state_visible', 'user_state_mandatory', 
@@ -61,14 +61,8 @@ else
 	</div>
 
 	<form id="settings_form" method="post" class="dialog_panel_wide">
-	<div class="dialog_section">Bloqueio da ficha de inscrição</div>	
+	<div class="dialog_section">Mensagem personalizada</div><!-- TODO change key "unloked_form" -->
 
-	<label for="block_user_form">Bloquear edição da ficha de inscrição</label>
-	<select id="block_user_form" name="block_user_form">
-		<option value="never" <?php if ($settings['block_user_form'] == 'never') echo "selected=\"selected\"";?>>Nunca</option>
-		<option value="after_sending" <?php if ($settings['block_user_form'] == 'after_sending') echo "selected=\"selected\"";?>>Depois do envio</option>
-	</select>
-	
 	<label for="user_display_custom_message_on_unlocked_form"><input type="hidden" name="user_display_custom_message_on_unlocked_form" value="0"/>
 	<input id="user_display_custom_message_on_unlocked_form" type="checkbox" name="user_display_custom_message_on_unlocked_form" value="1" <?php if ($settings['user_display_custom_message_on_unlocked_form']) echo "checked=\"checked\"";?> />Mensagem personalizada em fichas não-bloqueadas</label>
 	<textarea class="htmleditor" rows="6" cols="50" name="user_custom_message_on_unlocked_form">

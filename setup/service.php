@@ -274,7 +274,6 @@ function create_database($dbpassword, $screenname, $password)
 		CREATE TABLE `{$pref}userdata` (
 		  `email` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
 		  `admin` tinyint(4) NOT NULL DEFAULT '0',
-		  `locked_form` tinyint(4) NOT NULL DEFAULT '0',
 		  `name` text COLLATE utf8_unicode_ci,
 		  `address` text COLLATE utf8_unicode_ci,
 		  `city` text COLLATE utf8_unicode_ci,

@@ -411,12 +411,11 @@ class EveUserService
 
 	function user_get($email)
 	{	
-		$user = null;
 		$stmt1 = $this->eve->mysqli->prepare
 		("
 			select * 
 			from   `{$this->eve->DBPref}userdata`
-			where  `email` = ?
+			where  `{$this->eve->DBPref}userdata`.`email` = ?
 		");
 		if ($stmt1 === false)
 		{
@@ -425,38 +424,8 @@ class EveUserService
 		}		
 		$stmt1->bind_param('s', $email);
 		$stmt1->execute();
-		// Binding result variable - Column by column to ensure compability
-		// From PHP Verions 5.3+ there is the get_result() method
-    	$stmt1->bind_result
-		(
-			$user['email'],
-			$user['admin'],
-			$user['locked_form'],
-			$user['name'],
-			$user['address'],
-			$user['city'],
-			$user['state'],
-			$user['country'],
-			$user['postalcode'],
-			$user['birthday'],
-			$user['gender'],
-			$user['phone1'],
-			$user['phone2'],
-			$user['institution'],
-			$user['customtext1'],
-			$user['customtext2'],
-			$user['customtext3'],
-			$user['customtext4'],
-			$user['customtext5'],
-			$user['customflag1'],
-			$user['customflag2'],
-			$user['customflag3'],
-			$user['customflag4'],
-			$user['customflag5'],
-			$user['note']
-		);
-		// Fetching values
-		$stmt1->fetch();
+		$result = $stmt1->get_result();
+		$user = $result->fetch_array(MYSQLI_ASSOC);
 		$stmt1->close();
 		return $user;
 	}
@@ -528,7 +497,6 @@ class EveUserService
 		("
 			update	`{$this->eve->DBPref}userdata` 
 			set	`admin` = ?,
-				`locked_form` = ?,
 				`name` = ?,
 				`address` = ?,
 				`city` = ?,
@@ -560,7 +528,7 @@ class EveUserService
 			return null;
 		}
 		$stmt1->bind_param('iissssssssssssssssiiiiiss',
-				$user['admin'], $user['locked_form'], $user['name'], $user['address'],
+				$user['admin'], $user['name'], $user['address'],
 				$user['city'], $user['state'], $user['country'], $user['postalcode'],
 				$user_birthday, $user_gender, $user['phone1'], $user['phone2'], $user['institution'],
 				$user['customtext1'], $user['customtext2'], $user['customtext3'], $user['customtext4'], $user['customtext5'],
@@ -571,7 +539,7 @@ class EveUserService
 		$stmt1->close();
 	}
 
-	/** Retrieves a list of users with just a few attributes: email, name, note and locked_form */
+	/** Retrieves a list of users with just a few attributes: email, name, and note */
 	function user_simple_list()
 	{
 		$result = array();
@@ -580,8 +548,7 @@ class EveUserService
 			select 
 				`{$this->eve->DBPref}userdata`.`email`,
 				`{$this->eve->DBPref}userdata`.`name`,
-				`{$this->eve->DBPref}userdata`.`note`,
-				`{$this->eve->DBPref}userdata`.`locked_form`
+				`{$this->eve->DBPref}userdata`.`note`
 			from
 				`{$this->eve->DBPref}userdata`
 		");

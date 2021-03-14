@@ -67,8 +67,8 @@ else
 	}	
 	?>
 	</div>
-	
 	<?php
+	
 	if (isset($_GET['msg'])) $eve->output_service_message($_GET['msg']); // Success/Error messages
 
 	if ($certificationmodel['type'] == "submissioncertification")
@@ -97,8 +97,7 @@ else
 		<th><?php echo $eve->_('certifications.header.certification.views');?></th>
 		<th colspan="2"><?php echo $eve->_('common.table.header.options');?></th>
 		</thead>
-		<tbody>
-		</tbody>
+		<tbody></tbody>
 		</table>
 		<?php
 	}
@@ -116,23 +115,23 @@ else
 		<tbody>
 		<?php
 		$eveUserService = new EveUserService($eve);
-		foreach($eveCertificationService->certificationmodel_user_certification_list($_GET['id']) as $user_certification)
+		foreach($eveCertificationService->certificationmodel_user_certification_list($_GET['id']) as $certification)
 		{	
-			$tr_style = ($user_certification['id'] !== null) ? " style=\"font-style: italic;\"" : ""; // TODO css style
+			$tr_style = ($certification['id'] !== null) ? " style=\"font-style: italic;\"" : ""; // TODO css style
 			echo "<tr$tr_style>";
-			echo "<td>{$user_certification['email']}</td>";
-			echo "<td>{$user_certification['name']}</td>";
-			echo "<td>{$user_certification['id']}</td>";
-			echo "<td>{$user_certification['views']}</td>";
+			echo "<td>{$certification['email']}</td>";
+			echo "<td>{$certification['name']}</td>";
+			echo "<td>{$certification['id']}</td>";
+			echo "<td>{$certification['views']}</td>";
 			echo "<td>"; 
-			echo ($user_certification['id'] === null) ?
-				"<button type=\"button\" onclick=\"certification_assignment('{$user_certification['email']}', null)\"><img src=\"style/icons/certification_new.png\"/>{$eve->_('certifications.button.assign')}</button>" : 
-				"<button type=\"button\" onclick=\"certification_view({$user_certification['id']})\"><img src=\"style/icons/view.png\"/>{$eve->_('certifications.button.view')}</button>";
+			echo ($certification['id'] === null) ?
+				"<button type=\"button\" onclick=\"certification_assignment('{$certification['email']}', null)\"><img src=\"style/icons/certification_new.png\"/>{$eve->_('certifications.button.assign')}</button>" : 
+				"<button type=\"button\" onclick=\"certification_view({$certification['id']})\"><img src=\"style/icons/view.png\"/>{$eve->_('certifications.button.view')}</button>";
 			echo "</td>";
 			echo "<td>"; 
-			echo ($user_certification['id'] === null) ?
+			echo ($certification['id'] === null) ?
 				"" : 
-				"<button type=\"button\" onclick=\"certification_delete({$user_certification['id']})\"/><img src=\"style/icons/delete.png\"/>{$eve->_('certifications.button.delete')}</button>" ;
+				"<button type=\"button\" onclick=\"certification_delete({$certification['id']})\"/><img src=\"style/icons/delete.png\"/>{$eve->_('certifications.button.delete')}</button>" ;
 			echo "</td>";
 			echo "</tr>";
 		}
@@ -141,7 +140,6 @@ else
 		</table>
 		<?php
 	}
-
 	?>
 	<script>
 	function certification_assignment(screenname, submission_id)
@@ -149,8 +147,8 @@ else
 		var button = event.srcElement;
 		while (button.nodeName != 'BUTTON') button = button.parentElement; // sometimes the element inside the button is returned
 		while (button.lastChild) button.removeChild(button.lastChild); // removing all the contents of button
-		button.innerHTML = '<img src="style/icons/loading.gif" height="16" width="16"> <?php echo $eve->_('common.action.pleasewait');?>'; // Create elements for better performance
-		button.disabled = true;
+		button.innerHTML = '<img src="style/icons/loading.gif" height="16" width="16"> <?php echo $eve->_('common.action.pleasewait');?>';
+		button.disabled = true; // preventing the user to click assignment button twice
 		var row = button.parentElement.parentElement;
 
 		var xhr = new XMLHttpRequest();
@@ -176,7 +174,6 @@ else
 					cell_option2.innerHTML = '<button type="button" onclick="certification_delete(' + xhr.responseText + ')"><img src="style/icons/delete.png"/><?php echo $eve->_('certifications.button.delete');?></button>';
 					row.style.fontStyle = 'italic'; // TODO css style
 				}
-				console.log(row);
 			}
 			else 
 			{
@@ -227,16 +224,12 @@ else
 		var message = raw_message.replace('<ID>', certification_id);
 		if (confirm(message))
 		{
-			var submissiondefinition_id = 'null';
-			if (document.getElementById('sel_submissiondefinition') != null)
-				submissiondefinition_id = document.getElementById('sel_submissiondefinition').value;
-
 			form = document.createElement('form');
 			form.setAttribute('method', 'POST');
-			if (submissiondefinition_id != 'null')
-				form.setAttribute('action', '<?php echo basename(__FILE__)."?id=".$_GET['id']."&submission_definition_id=";?>'+submissiondefinition_id);
+			if (document.getElementById('sel_submissiondefinition') != null && document.getElementById('sel_submissiondefinition').value != 'null')
+				form.setAttribute('action', '<?php echo basename(__FILE__)."?id={$_GET['id']}&submission_definition_id=";?>'+document.getElementById('sel_submissiondefinition').value);
 			else
-				form.setAttribute('action', '<?php echo basename(__FILE__)."?id=".$_GET['id'];?>');
+				form.setAttribute('action', '<?php echo basename(__FILE__)."?id={$_GET['id']}";?>');
 			var1 = document.createElement('input');
 			var1.setAttribute('type', 'hidden');
 			var1.setAttribute('name', 'action');
@@ -264,7 +257,8 @@ else
 		var xhr = new XMLHttpRequest();
 		xhr.open('GET', 'service/submission_certifications_list.php?certificationmodel_id=<?php echo $_GET['id'];?>&submission_definition_id=' + submission_definition_id);
 		xhr.onload = function() {
-		    if (xhr.status === 200) {
+		    if (xhr.status === 200) 
+			{
 				var certifications = JSON.parse(xhr.responseText);
 				for (i = 0; i < certifications.length; i++)
 				{ 
@@ -277,27 +271,21 @@ else
 					var cell_views = row.insertCell(-1);
 					var cell_option1 = row.insertCell(-1);
 					var cell_option2 = row.insertCell(-1);
-
 					cell_submissionid.innerHTML = certifications[i].submission_id;
 					cell_email.innerHTML = certifications[i].email;
 					cell_name.innerHTML = certifications[i].name;
-					switch (certifications[i].assignment_type)
-					{
-						case 'owner':
-							cell_assignmenttype.innerHTML = '<?php echo $eve->_('certifications.label.assignment.type.to.owner');?>';
-						break;
-						case 'non.owner':
-							cell_assignmenttype.innerHTML = '<?php echo $eve->_('certifications.label.assignment.type.to.non.owner');?>';
-						break;
-					}				
-					cell_id.innerHTML = certifications[i].id;
-					cell_views.innerHTML = certifications[i].views;
+					if (certifications[i].assignment_type == 'owner')
+						cell_assignmenttype.innerHTML = '<?php echo $eve->_('certifications.label.assignment.type.to.owner');?>';
+					else if (certifications[i].assignment_type == 'non.owner')
+						cell_assignmenttype.innerHTML = '<?php echo $eve->_('certifications.label.assignment.type.to.non.owner');?>';
 					if (certifications[i].id == null)
 					{
 						cell_option1.innerHTML = '<button type="button" onclick="certification_assignment(\''+certifications[i].email+'\','+certifications[i].submission_id+')"/><img src="style/icons/certification_new.png"/><?php echo $eve->_('certifications.button.assign');?></button>';				
 					}
 					else
 					{
+						cell_id.innerHTML = certifications[i].id;
+						cell_views.innerHTML = certifications[i].views;
 						cell_option1.innerHTML = '<button type="button" onclick="certification_view(' + certifications[i].id  + ')"><img src="style/icons/view.png"/><?php echo $eve->_('certifications.button.view');?></button>';
 						cell_option2.innerHTML = '<button type="button" onclick="certification_delete(' + certifications[i].id  + ')"><img src="style/icons/delete.png"/><?php echo $eve->_('certifications.button.delete');?></button>';
 						row.style.fontStyle = 'italic'; // TODO css style

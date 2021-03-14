@@ -92,20 +92,17 @@ else
 	<th onclick="sortColumn('users_table',1,false)">Nome</th>
 	<th onclick="sortColumn('users_table',2,false)">E-mail</th>
 	<th onclick="sortColumn('users_table',3,false)">Obs</th>
-	<th onclick="sortColumn('users_table',4,false)">Bloq.</th>
 	<th colspan="3"><?php echo $eve->_('common.table.header.options');?></th>		
 	</tr>
 	<?php
 
 	foreach($eveUserService->user_simple_list() as $user)
 	{	
-		$locked_form = ($user['locked_form']) ? "&#8226;" : "";
 		echo "<tr>";
 		echo "<td><input type=\"checkbox\" name=\"screenname[]\" value=\"{$user['email']}\" onclick=\"toggleRow(this)\"/></td>";
 		echo "<td>{$user['name']}</td>";
 		echo "<td>{$user['email']}</td>";
 		echo "<td>{$user['note']}</td>";
-		echo "<td class=\"icon\">$locked_form</td>";
 		echo "<td><button type=\"button\" onclick=\"window.location.href='user.php?user={$user['email']}'\"><img src=\"style/icons/user_edit.png\"></button></td>";
 		echo "<td><button type=\"button\" onclick=\"user_change_email('{$user['email']}')\"><img src=\"style/icons/changeemail.png\"/></td>";
 		echo "<td><button type=\"button\" onclick=\"delete_user('{$user['email']}')\"><img src=\"style/icons/delete.png\"/></td>";

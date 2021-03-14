@@ -30,11 +30,6 @@ else
 		// There are POST information with user data. If they are valid, they will be
 		// saved, if not an error will be displayed.
 
-		// $_POST['lock_request_from_user'] is not user data, but a request for
-		// locking the form sent by user in the non-admin mode.
-		$lock_request_from_user = isset($_POST['lock_request_from_user']) ? $_POST['lock_request_from_user'] : 0;
-		unset($_POST['lock_request_from_user']);
-
 		// Overwriting $user with POST data so users can see the data they have
 		// inputted, even if the data is not saved because of a validation error.
 		foreach ($_POST as $column => $value) {$user[$column] = $value;}
@@ -46,13 +41,10 @@ else
 		{
 			// Updating user data, if there are no validating errors
 			$eveUserService->user_save($user);
-			if (($eve->getSetting('block_user_form') == 'after_sending') && $lock_request_from_user)
-			{
-				// TODO this code should be in a service.
-				$eve->mysqli->query("UPDATE `{$eve->DBPref}userdata` SET `locked_form` = 1 WHERE `email` = '$email';");
-				$user['locked_form'] = 1;
-			}
-			$eve->output_redirect_page("userarea.php?msg=userarea.message.userdata.saved.successfully");
+			if ($admin_mode)
+				$eve->output_redirect_page("users.php?msg=userarea.message.userdata.saved.successfully");
+			else
+				$eve->output_redirect_page("userarea.php?msg=userarea.message.userdata.saved.successfully");
 		}
 	}
 
@@ -67,9 +59,9 @@ else
 			$eve->_('userarea.option.userdata') => null
 		]);		
 		?>
-		<div class="section"><?php echo $eve->_('userarea.option.userdata');?> - modo administrador <!-- TODO G11N -->
+		<div class="section"><?php echo $eve->_('userarea.option.userdata');?>
 		<button type="button" onclick="document.forms['user_form'].submit()"><?php echo $eve->_('common.action.save');?></button>
-		<button type="button" onclick="document.getElementById('credential_form').submit()">Gerar credencial</button>
+		<button type="button" onclick="document.forms['credential_form'].submit()">Gerar credencial</button><!-- TODO G11N -->
 		</div>
 		<form action="credential.php" method="post" id="credential_form">
 		<input type="hidden" name="screenname[]" value="<?php echo($user['email']);?>"/>
@@ -96,7 +88,7 @@ else
 	<form method="post" id="user_form" class="dialog_panel" <?php if ($admin_mode) echo "action=\"".basename(__FILE__)."?user=$email\"";?>>
 
 	<?php
-	if (!$user['locked_form'] && !$admin_mode && $eve->getSetting('user_display_custom_message_on_unlocked_form'))
+	if (!$admin_mode && $eve->getSetting('user_display_custom_message_on_unlocked_form'))
 		echo $eve->getSetting('user_custom_message_on_unlocked_form');
 	?>
 	<label for="user_data_email"><?php echo $eve->_('user.data.email');?></label>
@@ -258,91 +250,27 @@ else
 	{
 		?>
 		<label><!-- Empty space --></label>
-		<div class="dialog_section">Campos do administrador</div>
+		<div class="dialog_section">Campos do administrador</div><!-- TODO G11N -->
 
 		<label for="user_data_note"><?php echo $eve->_('user.data.note');?></label>
 		<input id="user_data_note" type="text" name="note" value="<?php echo $user['note'];?>"/>
 
-		<span>
-		<input type="hidden" name="locked_form" value="0"/> <input type="checkbox" id="locked_form_cbx" name="locked_form" value="1" <?php if ($user['locked_form']) echo "checked=\"checked\"";?>/>
-		<label for="locked_form_cbx"><?php echo $eve->_('user.data.locked.form'); ?></label>
-		</span>
 		<?php
 	}
 	else
 	{
-		// Displaying note and locked_form as hidden variables
-		// TODO this is a security breach... A malicious user can change this values
+		// Displaying note as hidden variables // TODO this is a security breach... A malicious user can change this value
 		?>
 		<input type="hidden" name="note" value="<?php echo $user['note'];?>"/> 
-		<input type="hidden" name="locked_form" value="<?php echo $user['locked_form'];?>"/> 
 		<?php
 	}
-
-	// Control buttons - They are initially storead in an array label (g11n key) => onclick action (javascript)
-	$buttons = array();
-
-	// Save and send button - Displayed only if "after_sending" is set as the value of "block_user_form" setting.	
-	if (($eve->getSetting('block_user_form') == 'after_sending') && !$user['locked_form'] && !$admin_mode)
-	{
-		$buttons['user.action.saveandsend'] = 'save_and_send();'; 
-		?>
-		<script>
-		function save_and_send()
-		{
-			if (confirm("Depois do finalizar, você não poderá mais alterar os dados. Confirma?"))
-			{
-				// Creating tag <input type="hidden" name="lock_request_from_user" value="1"> and
-				// inserting this inside user_form. This will indicate a lock request from user.
-				var v_input = document.createElement("input");
-				v_input.setAttribute("type", "hidden");
-				v_input.setAttribute("name", "lock_request_from_user");
-				v_input.setAttribute("value", "1");
-				document.getElementById("user_form").appendChild(v_input);
-				document.getElementById("user_form").submit();
-			}
-		return false;
-		}
-		</script>
-		<?php
-	}
-
-	// Save button - Displayed only if form is not blocked or if form is viewed in admin mode
-	if (!$user['locked_form'] || $admin_mode)
-		$buttons['user.action.save'] = 'document.forms[\'user_form\'].submit();';
-
-	// Back button - Always displayed
-	$buttons['common.action.back'] = 'window.location.href=\'userarea.php\';';
-
-	// Displaying buttons on form
-	echo "<span style=\"display: grid; grid-gap: 0.5em; grid-template-columns:";
-	switch (count ($buttons)) { case 3: echo " 1fr 1fr 1fr"; break; case 2: echo " 2fr 1fr"; break; default: echo " 1fr"; break;}
-	echo ";\">";
-	foreach ($buttons as $label => $action)
-	{
-		echo "<button type=\"button\" onclick=\"$action\" class=\"submit\">{$eve->_($label)}</button>";
-	}
-	echo "</span>";
 
 	?>
+	<button type="submit" class="submit"><?php echo $eve->_('user.action.save');?></button>
+	<button type="button" class="submit" onclick="history.go(-1)"><?php echo $eve->_('common.action.back');?></button>
 	</form>
 	<?php
 	
-	// If this form is locked, call js code to disable all inputs
-	if ($user['locked_form'] && !$admin_mode)
-	{ 
-		?>
-		<script>
-		var form = document.getElementById('user_form');
-		var elements = form.elements;
-		for (var i = 0, len = elements.length; i < len; ++i)
-		{
-	    		elements[i].readOnly = true;
-		}
-		</script>
-		<?php
-	}
-
 	$eve->output_html_footer();
 }
 ?>

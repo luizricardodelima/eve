@@ -10,6 +10,7 @@ _Event management system_
 
 ## Changelog
 
+- 2018-03-14 **(usability)** Now using PHPX_XLSXwriter library instead of PHP Excel. Lighter code, faster deploys.
 - 2018-03-14 **(usability)** User forms are not lockable anymore. In the beggining user forms could be locked after payments and afer the explicit command of the user, but this does not make sense (with the option of multiple payments and with the future feature of many events in one system)
 - 2018-03-09 **(feature)** Message sender which uses the system capabilities to send bulk emails to the users.
 - 2021-03-08 **(feature)** Remodeled Certifications area for administrators. The certification attribuition page nows functions both as listing and attribuition page, and it is more simple and intuitive. Certification attribuition now works with ajax, so, it is one http request for each attribuition, avoiding timeout problems when lots of attribuitions were asked in one request (and lots of e-mails being sent). The locking feature of crtifications has been removed, since it has proven to be useless.
